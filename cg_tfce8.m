@@ -2,8 +2,11 @@ function cg_nonparam_tfce
 
 global defaults
 
-% determine stepsize for tfce
+% define stepsize for tfce
 n_steps_tfce = 100;
+
+% define histogram bins
+n_hist_bins = 1000;
 
 % colors and alpha levels
 col = str2mat('b','g','r');
@@ -175,11 +178,19 @@ tfce0_max = max(tfce0(:));
 t0_min  = min(t0(:));
 t0_max  = max(t0(:));
 
+% get vector for histogram bins
+tfce_bins = linspace(0, max(abs(tfce0(:))), n_hist_bins);
+t_bins    = linspace(0, max(abs(t0(:))), n_hist_bins);
+
 % prepare countings
+t_hist = zeros(1, n_hist_bins);
+tfce_hist = zeros(1, n_hist_bins);
 t_max    = [];
 t_max_th  = [];
+t_th = [];
 tfce_max  = [];
 tfce_max_th = [];
+tfce_th = [];
 rand_vector = [];
 
 % general initialization
@@ -280,6 +291,9 @@ while(i < n_perm)
   tfce_max = [tfce_max max(tfce(:))];
   t_max   = [t_max max(t(:))];
   
+  tfce_hist = tfce_hist + hist(tfce(find(tfce>0)), tfce_bins);
+  t_hist = t_hist + hist(t(find(t>0)), t_bins);
+  
   % use cummulated sum to find threshold
   tfce_max = sort(tfce_max);
   t_max   = sort(t_max);
@@ -291,11 +305,29 @@ while(i < n_perm)
   ind_max = ceil((1-alpha).*length(tfce_max));
   tfce_max_th = [tfce_max_th; tfce_max(ind_max);];
         
+  % find uncorrected thresholds
+if 0  
+  ind_max = ceil((1-alpha).*sum(t_hist));
+  tmp = [];
+  for k=1:length(ind_max)
+    tmp = [tmp min(find(cumsum(t_hist)>=ind_max(k)))];
+  end
+  t_th = [t_th; t_bins(tmp)];
+  
+  ind_max = ceil((1-alpha).*sum(tfce_hist));
+  tmp = [];
+  for k=1:length(ind_max)
+    tmp = [tmp min(find(cumsum(tfce_hist)>=ind_max(k)))];
+  end
+  tfce_th = [tfce_th; tfce_bins(tmp)];
+end
+
   % plot thresholds and histograms
   figure(Fgraph)
+
   plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_min, tfce0_max);
   plot_distribution(t_max ,t_max_th, 't-value', alpha, col, 2, t0_min, t0_max);
-  
+
   i = i + 1;
 
   drawnow
@@ -308,7 +340,7 @@ end
 toc
 
 %save rand_vector rand_vector
-%save tfce_max tfce_max
+save tfce_max tfce_max
 
 spm_progress_bar('Clear')
 
@@ -324,6 +356,44 @@ n_alpha = 3;
 sz_val_max = length(tfce_max);
 if sz_val_max < 1000, n_alpha = 2; end
 if sz_val_max <  100, n_alpha = 1; end
+
+% save corrected p-values
+n_perm = length(tfce_max);
+corrP = ones(size(tfce0));
+
+for j=n_perm:-1:1
+  ind = find(corrP~=0);
+  indp = find(corrP(ind) > tfce_max(j));
+  corrP(ind(indp)) = j/n_perm;
+end
+
+if 0
+tic
+for x=1:VY(1).dim(1)
+  for y=1:VY(1).dim(2)
+    for z=1:VY(1).dim(3)
+      for j=n_perm:-1:1
+        if(tfce0(x,y,z) > tfce_max(j))
+          corrP(x,y,z) = j/n_perm;
+          j = 0;
+        end
+      end
+    end
+  end
+end
+toc
+end
+
+name = sprintf('corrP_%04d_tfce',Ic);
+Vt = VY(1);
+if vFWHM > 0
+  Vt.fname = fullfile(cwd,sprintf('%s_%.2fmm.img',name,vFWHM));
+  Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+else
+  Vt.fname = fullfile(cwd,[name '.img']);
+  Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
+end
+spm_write_vol(Vt,corrP);
 
 for j=1:n_alpha
 

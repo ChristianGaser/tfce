@@ -1,0 +1,25 @@
+% __________________________________________________________________________
+% Copyright (C) 2009 Christian Gaser christian.gaser@uni-jena.de
+%
+% $Id: Contents_info.txt 334 2010-05-19 10:56:16Z gaser $
+% ==========================================================================
+% Description
+% ==========================================================================
+% This toolbox is a an extensions to SPM8 (Wellcome Department of Cognitive 
+% Neurology) to provide non-parametric statistics based on threshold-free
+% cluster enhancement (TFCE). It is developed by Christian Gaser (University of 
+% Jena, Department of Psychiatry) and is available to the scientific 
+% community under the terms of the GNU General Public License.
+%
+% General files
+%   vbm8.man                    - notes on TFCE8 toolbox
+%   CHANGES.txt                 - changes in revisions
+%
+% TFCE8 functions
+%   cg_nonparam_tfce.m          - TFCE core function
+%
+%
+% Mex- and c-functions
+%   cg_glm_get_Beta_ResSS.c     - Adaptive Maximum A Posteriori segmentation
+%   tfceMex.c                   - TFCE-transformation 
+%

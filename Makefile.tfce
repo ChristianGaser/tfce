@@ -1,0 +1,56 @@
+# Personal Makefile variables
+#
+# $Id: Makefile.tfce 195 2009-10-27 23:05:34Z gaser $
+
+VERSION=`svn info |grep Revision|sed -e 's/Revision: //g'`
+DATE=`svn info |grep 'Last Changed Date: '|sed -e 's/Last Changed Date: //g'|cut -f1 -d' '`
+
+TARGET=/Users/gaser/spm/spm8/toolbox/tfce8
+TARGET2=/Volumes/UltraMax/spm8/toolbox/tfce8
+
+STARGET=dbm.neuro.uni-jena.de:/Applications/xampp/htdocs/tfce8
+
+MATLAB_FILES=Contents.m cg_tfce8.m
+C_FILES=cg_glm_get_Beta_ResSS.* tfceMex.* spm_*.[ch]
+MISC_FILES=Makefile Makefile.var
+
+FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}
+
+ZIPFILE=tfce8_r$(VERSION).zip
+
+install: 
+	-@echo install
+	-@test ! -d ${TARGET} || rm -rf ${TARGET}
+	-@mkdir ${TARGET}
+	-@cp -R ${FILES} ${TARGET}
+
+install2: 
+	-@echo install2
+	-@test ! -d ${TARGET2} || rm -rf ${TARGET2}
+	-@mkdir ${TARGET2}
+	-@cp -R ${FILES} ${TARGET2}
+
+help:
+	-@echo Available commands:
+	-@echo install zip scp update
+
+update:
+	-@svn update
+	-@echo '% TFCE Toolbox' > Contents.m
+	-@echo '% Version ' ${VERSION} ' (TFCE8) ' ${DATE} >> Contents.m
+	-@cat Contents_info.txt >> Contents.m
+	-@echo '% __________________________________________________________________________' > tfce8.man
+	-@echo '% TFCE Toolbox for SPM8' >> tfce8.man
+	-@echo '% Version ' ${VERSION} ' (TFCE8) ' ${DATE} >> tfce8.man
+	-@cat tfce8.txt >> tfce8.man
+
+zip: update
+	-@echo zip
+	-@test ! -d tfce8 || rm -r tfce8
+	-@mkdir tfce8
+	-@cp -rp ${FILES} tfce8
+	-@zip ${ZIPFILE} -rm tfce8
+
+scp: zip
+	-@echo scp to http://dbm.neuro.uni-jena.de/tfce8/${ZIPFILE}
+	-@scp -P 2222 CHANGES.txt ${ZIPFILE} ${STARGET}

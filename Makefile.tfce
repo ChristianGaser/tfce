@@ -10,7 +10,7 @@ TARGET2=/Volumes/UltraMax/spm8/toolbox/tfce8
 
 STARGET=dbm.neuro.uni-jena.de:/Applications/xampp/htdocs/tfce8
 
-MATLAB_FILES=Contents.m cg_tfce8.m
+MATLAB_FILES=Contents.m cg_tfce8.m cg_glm_get_Beta_ResSS.m tfceMex.m
 C_FILES=cg_glm_get_Beta_ResSS.* tfceMex.* spm_*.[ch]
 MISC_FILES=Makefile Makefile.var
 

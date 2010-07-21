@@ -340,7 +340,7 @@ end
 toc
 
 %save rand_vector rand_vector
-save tfce_max tfce_max
+%save tfce_max tfce_max
 
 spm_progress_bar('Clear')
 
@@ -357,34 +357,18 @@ sz_val_max = length(tfce_max);
 if sz_val_max < 1000, n_alpha = 2; end
 if sz_val_max <  100, n_alpha = 1; end
 
-% save corrected p-values
 n_perm = length(tfce_max);
-corrP = ones(size(tfce0));
+
+% save corrected p-values for TFCE
+corrP = zeros(size(tfce0));
 
 for j=n_perm:-1:1
-  ind = find(corrP~=0);
-  indp = find(corrP(ind) > tfce_max(j));
+  ind = find(corrP==0);
+  indp = find(tfce0(ind) >= tfce_max(j));
   corrP(ind(indp)) = j/n_perm;
 end
 
-if 0
-tic
-for x=1:VY(1).dim(1)
-  for y=1:VY(1).dim(2)
-    for z=1:VY(1).dim(3)
-      for j=n_perm:-1:1
-        if(tfce0(x,y,z) > tfce_max(j))
-          corrP(x,y,z) = j/n_perm;
-          j = 0;
-        end
-      end
-    end
-  end
-end
-toc
-end
-
-name = sprintf('corrP_%04d_tfce',Ic);
+name = sprintf('spmTFCE_%04d_corrp',Ic);
 Vt = VY(1);
 if vFWHM > 0
   Vt.fname = fullfile(cwd,sprintf('%s_%.2fmm.img',name,vFWHM));
@@ -394,6 +378,27 @@ else
   Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
 end
 spm_write_vol(Vt,corrP);
+
+% save corrected p-values for T
+corrP = zeros(size(t0));
+
+for j=n_perm:-1:1
+  ind = find(corrP==0);
+  indp = find(t0(ind) >= t_max(j));
+  corrP(ind(indp)) = j/n_perm;
+end
+
+name = sprintf('spmT_%04d_corrp',Ic);
+Vt = VY(1);
+if vFWHM > 0
+  Vt.fname = fullfile(cwd,sprintf('%s_%.2fmm.img',name,vFWHM));
+  Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+else
+  Vt.fname = fullfile(cwd,[name '.img']);
+  Vt.descrip = sprintf('T Contrast %04d.img',Ic);
+end
+spm_write_vol(Vt,corrP);
+
 
 for j=1:n_alpha
 

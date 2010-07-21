@@ -1,6 +1,4 @@
-function cg_nonparam_tfce
-
-global defaults
+function cg_tfce_estimate(SPM, Ic, xCon)
 
 % define stepsize for tfce
 n_steps_tfce = 100;
@@ -16,10 +14,16 @@ alpha = [0.05 0.01 0.001];
 rand('state',sum(100*clock));
 
 % load SPM file
-Pmat = spm_select(1,'SPM.mat','Select SPM.mat');
-load(Pmat)
+if nargin < 1
+  Pmat = spm_select(1,'SPM.mat','Select SPM.mat');
+  load(Pmat)
+  cwd = fileparts(Pmat);
+else
+  cwd = SPM.swd;
+end
+% analysis directory
 
-%-Check the model has been estimated
+%-Check that model has been estimated
 try
   xX  = SPM.xX;         %-Design definition structure
   XYZ  = SPM.xVol.XYZ;      %-XYZ coordinates
@@ -52,7 +56,7 @@ end
 if isfield(SPM.xX,'W')
   W = SPM.xX.W;
   if any(W>1)
-    warning('Whitening of the data is not yet working');
+    warning('Whitening of the data is probably not working');
     W = speye(size(SPM.xX.X,1));
   end
 else
@@ -66,14 +70,14 @@ X  = SPM.xX.X;
 % threshold vector
 TH = SPM.xM.TH;
 
-% select contrast
-try
-  xCon = SPM.xCon;
-catch
-  xCon = {};
-end
-[Ic,xCon] = spm_conman(SPM,'T',1,...
+if nargin < 3
+  [Ic,xCon] = spm_conman(SPM,'T',1,...
         '  Select contrasts...',' for conjunction',1);
+end
+
+if length(Ic) > 1
+  error('No conjunction allowed.');
+end
 
 % get contrast and find zero values in contrast
 c = xCon(Ic).c;
@@ -98,7 +102,7 @@ switch n_unique_con
     end
     % comparison of two regressors (=interaction) not fully tested
     if n_cond == 0
-      warning('Interaction between two regressors not yet fully tested.')
+      warning('Interaction between two regressors was not yet fully tested.')
     end
   otherwise
     error('Maximal two exchangeability blocks allowed.')
@@ -141,8 +145,6 @@ else  % one-sample t-test: n_perm = 2^n
   n_perm = 2^n_subj;
 end
 
-% analysis directory
-cwd = fileparts(Pmat);
 VY = SPM.xY.VY;
 
 % load mask file
@@ -305,23 +307,6 @@ while(i < n_perm)
   ind_max = ceil((1-alpha).*length(tfce_max));
   tfce_max_th = [tfce_max_th; tfce_max(ind_max);];
         
-  % find uncorrected thresholds
-if 0  
-  ind_max = ceil((1-alpha).*sum(t_hist));
-  tmp = [];
-  for k=1:length(ind_max)
-    tmp = [tmp min(find(cumsum(t_hist)>=ind_max(k)))];
-  end
-  t_th = [t_th; t_bins(tmp)];
-  
-  ind_max = ceil((1-alpha).*sum(tfce_hist));
-  tmp = [];
-  for k=1:length(ind_max)
-    tmp = [tmp min(find(cumsum(tfce_hist)>=ind_max(k)))];
-  end
-  tfce_th = [tfce_th; tfce_bins(tmp)];
-end
-
   % plot thresholds and histograms
   figure(Fgraph)
 
@@ -359,6 +344,22 @@ if sz_val_max <  100, n_alpha = 1; end
 
 n_perm = length(tfce_max);
 
+% pepare output files
+Vt = VY(1);
+Vt.dt(1) = 16;
+Vt.pinfo(1) = 1;
+
+% save TFCE map
+
+name = sprintf('spmTFCE_%04d',Ic);
+Vt.fname = fullfile(cwd,[name '.img']);
+if vFWHM > 0
+  Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+else
+  Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
+end
+spm_write_vol(Vt,tfce0);
+
 % save corrected p-values for TFCE
 corrP = zeros(size(tfce0));
 
@@ -368,13 +369,11 @@ for j=n_perm:-1:1
   corrP(ind(indp)) = j/n_perm;
 end
 
-name = sprintf('spmTFCE_%04d_corrp',Ic);
-Vt = VY(1);
+name = sprintf('TFCE_corrP_%04d',Ic);
+Vt.fname = fullfile(cwd,[name '.img']);
 if vFWHM > 0
-  Vt.fname = fullfile(cwd,sprintf('%s_%.2fmm.img',name,vFWHM));
   Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
 else
-  Vt.fname = fullfile(cwd,[name '.img']);
   Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
 end
 spm_write_vol(Vt,corrP);
@@ -388,17 +387,56 @@ for j=n_perm:-1:1
   corrP(ind(indp)) = j/n_perm;
 end
 
-name = sprintf('spmT_%04d_corrp',Ic);
-Vt = VY(1);
+name = sprintf('T_corrP_%04d',Ic);
+Vt.fname = fullfile(cwd,[name '.img']);
 if vFWHM > 0
-  Vt.fname = fullfile(cwd,sprintf('%s_%.2fmm.img',name,vFWHM));
   Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
 else
-  Vt.fname = fullfile(cwd,[name '.img']);
   Vt.descrip = sprintf('T Contrast %04d.img',Ic);
 end
 spm_write_vol(Vt,corrP);
 
+% save uncorrected p-values for TFCE
+uncorrP = zeros(size(tfce0));
+
+% estimate p-values only with 250 steps to save time
+for j=linspace(n_hist_bins,1,250)
+  ind = find(uncorrP==0);
+  tmp = min(find(cumsum(tfce_hist)>=ceil(j/n_hist_bins*sum(tfce_hist))));
+  indp = find(tfce0(ind) >= tfce_bins(tmp));
+  uncorrP(ind(indp)) = j/n_hist_bins;
+end
+
+name = sprintf('TFCE_P_%04d',Ic);
+Vt.fname = fullfile(cwd,[name '.img']);
+if vFWHM > 0
+  Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+else
+  Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
+end
+spm_write_vol(Vt,uncorrP);
+
+% save uncorrected p-values for T
+uncorrP = zeros(size(t0));
+
+% estimate p-values only with 100 steps to save time
+for j=linspace(n_hist_bins,1,100)
+  ind = find(uncorrP==0);
+  tmp = min(find(cumsum(t_hist)>=ceil(j/n_hist_bins*sum(t_hist))));
+  indp = find(t0(ind) >= t_bins(tmp));
+  uncorrP(ind(indp)) = j/n_hist_bins;
+end
+
+name = sprintf('T_P_%04d',Ic);
+Vt.fname = fullfile(cwd,[name '.img']);
+if vFWHM > 0
+  Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+else
+  Vt.descrip = sprintf('T Contrast %04d.img',Ic);
+end
+spm_write_vol(Vt,uncorrP);
+
+return
 
 for j=1:n_alpha
 
@@ -418,12 +456,11 @@ for j=1:n_alpha
      tfce_corrected(find(tfce_corrected <= tfce_max_th_final(j))) = 0;
 
      name = sprintf('spmT_%04d_tfce%d_pcorr%.3f',Ic,round(tfce_max_th_final(j)),alpha(j));
+     Vt.fname = fullfile(cwd,[name '.img']);
      if vFWHM > 0
-       Vt.fname = fullfile(cwd,sprintf('%s_%.2fmm.img',name,vFWHM));
        Vt.descrip = sprintf('tfce=%d; vFWHM=%.1fmm, Contrast %04d.img',...
          round(tfce_max_th_final(j)),vFWHM,Ic);
      else
-       Vt.fname = fullfile(cwd,[name '.img']);
        Vt.descrip = sprintf('tfce=%d; Contrast %04d.img',...
          round(tfce_max_th_final(j)),Ic);
      end
@@ -436,12 +473,11 @@ for j=1:n_alpha
      tfce_corrected(find(tfce_corrected >= -tfce_max_th_final(j))) = 0;
 
      name = sprintf('spmT_%04d_inverse_tfce%d_pcorr%.3f',Ic,round(tfce_max_th_final(j)),alpha(j));
+     Vt.fname = fullfile(cwd,[name '.img']);
      if vFWHM > 0
-       Vt.fname = fullfile(cwd,sprintf('%s_%.2fmm.img',name,vFWHM));
        Vt.descrip = sprintf('tfce=%d; vFWHM=%.1fmm, inverse contrast %04d.img',...
          round(tfce_max_th_final(j)),vFWHM,Ic);
      else
-       Vt.fname = fullfile(cwd,[name '.img']);
        Vt.descrip = sprintf('tfce=%d; inverse contrast %04d.img',...
          round(tfce_max_th_final(j)),Ic);
      end
@@ -473,7 +509,7 @@ if sz_val_max >= 20
   alpha = alpha(1:n_alpha);
   val_th = val_th(:,1:n_alpha);
 
-  [hmax, xmax] = hist(val_max, 50);
+  [hmax, xmax] = hist(val_max, 10);
     
   subplot(2,2,(2*order)-1)
   bar(xmax,hmax)
@@ -489,10 +525,12 @@ if sz_val_max >= 20
   end
 
   % plot minimum observed value for unpermuted model
+if 0
   hl = line([-val0_min -val0_min], [0 max_h]);
   set(hl,'Color','c','LineWidth',2);
   text(1.05*lim_x(1),0.9*max_h,'Min. observed negative value ',...
     'Color','c','HorizontalAlignment','Left','FontSize',8)
+end
 
   % plot maximum observed value for unpermuted model
   hl = line([val0_max val0_max], [0 max_h]);

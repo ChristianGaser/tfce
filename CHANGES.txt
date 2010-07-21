@@ -23,3 +23,14 @@ M       cg_tfce8.m
 New version with corrected p-maps.
 ------------------------------------------------------------------------
 r5 | gaser | 2010-07-21 07:40:14
+
+A      cg_tfce_estimate.m
+A      cg_getTFCE.m
+A      cg_tfce_results.m
+D      cg_tfce8.m
+
+(1) Added cg_tfce_results.m and cg_getTFCE.m for result presentation.
+(2) Renamed cg_tfce8.m to cg_tfce_estimate.m.
+
+------------------------------------------------------------------------
+r6 | gaser | 2010-07-21 18:20:08

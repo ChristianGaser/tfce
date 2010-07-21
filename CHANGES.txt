@@ -1,0 +1,19 @@
+
+M      Makefile.tfce
+
+Added cg_glm_get_Beta_ResSS.m tfceMex.m to Makefile.tfce.
+------------------------------------------------------------------------
+r2 | gaser | 2010-07-20 15:12:03
+
+M      cg_tfce8.m
+
+Added preliminary version for uncorrected p-values.
+------------------------------------------------------------------------
+r3 | gaser | 2010-07-20 18:18:11
+
+A      CHANGES.txt
+
+Added CHANGES.txt.
+
+------------------------------------------------------------------------
+r4 | gaser | 2010-07-21 07:39:25

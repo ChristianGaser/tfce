@@ -5,18 +5,18 @@
 VERSION=`svn info |grep Revision|sed -e 's/Revision: //g'`
 DATE=`svn info |grep 'Last Changed Date: '|sed -e 's/Last Changed Date: //g'|cut -f1 -d' '`
 
-TARGET=/Users/gaser/spm/spm8/toolbox/tfce8
-TARGET2=/Volumes/UltraMax/spm8/toolbox/tfce8
+TARGET=/Users/gaser/spm/spm8/toolbox/TFCE
+TARGET2=/Volumes/UltraMax/spm8/toolbox/TFCE
 
-STARGET=dbm.neuro.uni-jena.de:/Applications/xampp/htdocs/tfce8
+STARGET=dbm.neuro.uni-jena.de:/Applications/xampp/htdocs/tfce
 
-MATLAB_FILES=Contents.m cg_getTFCE.m cg_tfce_results.m cg_tfce_list.m cg_tfce_estimate.m spm_tfce8.m cg_glm_get_Beta_ResSS.m tfceMex.m
+MATLAB_FILES=Contents.m cg_getTFCE.m cg_tfce_results.m cg_tfce_list.m cg_tfce_estimate.m spm_TFCE.m cg_glm_get_Beta_ResSS.m tfceMex.m
 C_FILES=cg_glm_get_Beta_ResSS.* tfceMex.* spm_*.[ch]
-MISC_FILES=Makefile Makefile.var tfce8.man
+MISC_FILES=Makefile Makefile.var TFCE.man
 
 FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}
 
-ZIPFILE=tfce8_r$(VERSION).zip
+ZIPFILE=TFCE_r$(VERSION).zip
 
 install: 
 	-@echo install
@@ -39,18 +39,18 @@ update:
 	-@echo '% TFCE Toolbox' > Contents.m
 	-@echo '% Version ' ${VERSION} ' (TFCE8) ' ${DATE} >> Contents.m
 	-@cat Contents_info.txt >> Contents.m
-	-@echo '% __________________________________________________________________________' > tfce8.man
-	-@echo '% TFCE Toolbox for SPM8' >> tfce8.man
-	-@echo '% Version ' ${VERSION} ' (TFCE8) ' ${DATE} >> tfce8.man
-	-@cat tfce8.txt >> tfce8.man
+	-@echo '% __________________________________________________________________________' > TFCE.man
+	-@echo '% TFCE Toolbox for SPM8' >> TFCE.man
+	-@echo '% Version ' ${VERSION} ' (TFCE8) ' ${DATE} >> TFCE.man
+	-@cat TFCE.txt >> TFCE.man
 
 zip: update
 	-@echo zip
-	-@test ! -d tfce8 || rm -r tfce8
-	-@mkdir tfce8
-	-@cp -rp ${FILES} tfce8
-	-@zip ${ZIPFILE} -rm tfce8
+	-@test ! -d TFCE || rm -r TFCE
+	-@mkdir TFCE
+	-@cp -rp ${FILES} TFCE
+	-@zip ${ZIPFILE} -rm TFCE
 
 scp: zip
-	-@echo scp to http://dbm.neuro.uni-jena.de/tfce8/${ZIPFILE}
+	-@echo scp to http://dbm.neuro.uni-jena.de/TFCE/${ZIPFILE}
 	-@scp -P 2222 CHANGES.txt ${ZIPFILE} ${STARGET}

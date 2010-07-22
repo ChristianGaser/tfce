@@ -1,20 +1,20 @@
-function spm_tfce8
-% tfce8 Toolbox wrapper to call tfce8 functions
+function spm_TFCE
+% TFCE Toolbox wrapper to call TFCE functions
 %_______________________________________________________________________
-% @(#)spm_tfce8.m Christian Gaser 2008/06/18
+% @(#)spm_TFCE.m Christian Gaser 2008/06/18
 
 addpath(fileparts(which(mfilename)));
 
 SPMid = spm('FnBanner',mfilename,'v1.02');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TFCE Toolbox');
 spm_help('!ContextHelp',mfilename);
-spm_help('!Disp','tfce8.man','',Fgraph,'Threshold-Free Cluster Enhancement Toolbox');
+spm_help('!Disp','TFCE.man','',Fgraph,'Threshold-Free Cluster Enhancement Toolbox');
 
 fig = spm_figure('GetWin','Interactive');
 h0  = uimenu(fig,...
-	'Label',	'tfce8',...
+	'Label',	'TFCE',...
 	'Separator',	'on',...
-	'Tag',		'tfce8',...
+	'Tag',		'TFCE',...
 	'HandleVisibility','on');
 h1  = uimenu(h0,...
 	'Label',	'Estimate',...

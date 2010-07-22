@@ -57,3 +57,22 @@ M      Makefile
 (2) Many changes to get listing of p-values working.
 ------------------------------------------------------------------------
 r8 | gaser | 2010-07-22 15:26:18
+
+A      spm_getdata.mexmaci64.o
+D      tfce8.txt
+A  +   spm_TFCE.m
+M      Makefile.tfce
+A  +   TFCE.txt
+A      spm_mapping.mexmaci64.o
+A      cg_glm_get_Beta_ResSS.mexglx
+A      spm_vol_utils.mexmaci64.a
+A      spm_make_lookup.mexmaci64.o
+D      spm_tfce8.m
+A      spm_vol_access.mexmaci64.o
+A      tfceMex.mexa64
+A      tfceMex.mexglx
+
+(1) Renamed tfce8 to TFCE.
+(2) Compiled for linux
+------------------------------------------------------------------------
+r9 | gaser | 2010-07-22 16:23:40

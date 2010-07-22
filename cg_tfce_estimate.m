@@ -4,7 +4,8 @@ function cg_tfce_estimate(SPM, Ic, xCon)
 n_steps_tfce = 100;
 
 % define histogram bins
-n_hist_bins = 1000;
+% use value > 1000 to reliable estimate p<0.001 levels
+n_hist_bins = 1100;
 
 % colors and alpha levels
 col = str2mat('b','g','r');
@@ -21,7 +22,6 @@ if nargin < 1
 else
   cwd = SPM.swd;
 end
-% analysis directory
 
 %-Check that model has been estimated
 try
@@ -329,6 +329,8 @@ toc
 
 spm_progress_bar('Clear')
 
+spm_print
+
 %---------------------------------------------------------------
 % corrected threshold based on permutation distribution
 %---------------------------------------------------------------
@@ -349,8 +351,7 @@ Vt = VY(1);
 Vt.dt(1) = 16;
 Vt.pinfo(1) = 1;
 
-% save TFCE map
-
+% save unpermuted TFCE map
 name = sprintf('spmTFCE_%04d',Ic);
 Vt.fname = fullfile(cwd,[name '.img']);
 if vFWHM > 0
@@ -361,6 +362,7 @@ end
 spm_write_vol(Vt,tfce0);
 
 % save corrected p-values for TFCE
+fprintf('Save corrected p-values.\n');
 corrP = zeros(size(tfce0));
 
 for j=n_perm:-1:1
@@ -397,16 +399,16 @@ end
 spm_write_vol(Vt,corrP);
 
 % save uncorrected p-values for TFCE
+fprintf('Save uncorrected p-values.\n');
 uncorrP = zeros(size(tfce0));
 
-% estimate p-values only with 100 steps to save time
+% estimate p-values
 tfce_cumsum = cumsum(tfce_hist);
 for j=n_hist_bins:-1:1
   ind = find(uncorrP==0);
   tmp = min(find(tfce_cumsum>=ceil(j/n_hist_bins*sum(tfce_hist))));
   indp = find(tfce0(ind) >= tfce_bins(tmp));
   uncorrP(ind(indp)) = j/n_hist_bins;
-  j/n_hist_bins
 end
 
 name = sprintf('TFCE_P_%04d',Ic);
@@ -421,7 +423,7 @@ spm_write_vol(Vt,uncorrP);
 % save uncorrected p-values for T
 uncorrP = zeros(size(t0));
 
-% estimate p-values only with 100 steps to save time
+% estimate p-values
 t_cumsum = cumsum(t_hist);
 for j=n_hist_bins:-1:1
   ind = find(uncorrP==0);
@@ -438,59 +440,6 @@ else
   Vt.descrip = sprintf('T Contrast %04d.img',Ic);
 end
 spm_write_vol(Vt,uncorrP);
-
-return
-
-for j=1:n_alpha
-
-  fprintf('Final corrected tfce threshold = %6d (p<%.3f)\n',round(tfce_max_th_final(j)),alpha(j));
-  fprintf('Final corrected voxel height threshold = %6.2f (p<%.3f)\n',t_max_th_final(j),alpha(j));
-
-  if tfce_max_th_final(j) > max([-tfce0_min tfce0_max])
-    fprintf('No corrected suprathreshold tfce found.\n');
-  else
-    Vt = VY(1);
-    Vt.dt = [spm_type('float32') spm_platform('bigend')];
-    Vt.pinfo(1:2) = [1 0];
-
-    % threshold unpermuted positive tfce-values
-    if tfce0_max > tfce_max_th_final(j)
-     tfce_corrected = tfce0;
-     tfce_corrected(find(tfce_corrected <= tfce_max_th_final(j))) = 0;
-
-     name = sprintf('spmT_%04d_tfce%d_pcorr%.3f',Ic,round(tfce_max_th_final(j)),alpha(j));
-     Vt.fname = fullfile(cwd,[name '.img']);
-     if vFWHM > 0
-       Vt.descrip = sprintf('tfce=%d; vFWHM=%.1fmm, Contrast %04d.img',...
-         round(tfce_max_th_final(j)),vFWHM,Ic);
-     else
-       Vt.descrip = sprintf('tfce=%d; Contrast %04d.img',...
-         round(tfce_max_th_final(j)),Ic);
-     end
-     spm_write_vol(Vt,tfce_corrected);
-    end
-    
-    % threshold unpermuted negative tfce values
-    if tfce0_min < -tfce_max_th_final(j)
-     tfce_corrected = tfce0;
-     tfce_corrected(find(tfce_corrected >= -tfce_max_th_final(j))) = 0;
-
-     name = sprintf('spmT_%04d_inverse_tfce%d_pcorr%.3f',Ic,round(tfce_max_th_final(j)),alpha(j));
-     Vt.fname = fullfile(cwd,[name '.img']);
-     if vFWHM > 0
-       Vt.descrip = sprintf('tfce=%d; vFWHM=%.1fmm, inverse contrast %04d.img',...
-         round(tfce_max_th_final(j)),vFWHM,Ic);
-     else
-       Vt.descrip = sprintf('tfce=%d; inverse contrast %04d.img',...
-         round(tfce_max_th_final(j)),Ic);
-     end
-     spm_write_vol(Vt,tfce_corrected);
-    end
-
-  end
-
-  fprintf('\n')
-end
 
 return
 %---------------------------------------------------------------

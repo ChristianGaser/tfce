@@ -1,6 +1,3 @@
-% __________________________________________________________________________
-% TFCE for SPM8
-% Version  343  (TFCE8)  2010-06-25
 %  http://dbm.neuro.uni-jena.de/tfce/
 % __________________________________________________________________________
 % Copyright (C) 2010 Christian Gaser christian.gaser@uni-jena.de

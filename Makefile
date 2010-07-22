@@ -59,10 +59,6 @@ distclean: clean verb.distclean
 
 archive: spm_vol_utils.$(SUF).a
 
-install: verb.install $(SPMMEX)
-	$(COPY) $(SPMMEX) ..
-	$(MOVE) ../file2mat.$(SUF) ../mat2file.$(SUF) ../@file_array/private
-
 ###############################################################################
 # Compile spm_vol_utils.c with various flags
 ###############################################################################

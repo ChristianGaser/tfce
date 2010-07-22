@@ -117,12 +117,7 @@ function varargout = cg_tfce_list(varargin)
 % Karl Friston & Andrew Holmes
 % $Id: cg_tfce_list.m 3342 2009-09-02 10:35:28Z guillaume $
 
-
-% satellite figure global variable
-%--------------------------------------------------------------------------
-global SatWindow
-
-% voxel-wise FDR
+% always voxel-wise FDR
 topoFDR = false;
 
 %==========================================================================
@@ -165,8 +160,8 @@ switch lower(varargin{1}), case 'list'                            %-List
     end
     
     if STAT~='P'
-        R     = varargin{2}.R;
-        FWHM  = varargin{2}.FWHM;
+        R     = full(varargin{2}.R);
+        FWHM  = full(varargin{2}.FWHM);
     end
     try
         units = varargin{2}.units;
@@ -177,16 +172,17 @@ switch lower(varargin{1}), case 'list'                            %-List
     units{2}  = [units{2} ' '];
 
     DIM       = DIM > 1;              % dimensions
+    D         = sum(DIM);             % highest dimension
     VOX       = VOX(DIM);             % scaling
 
     if STAT~='P'
         FWHM  = FWHM(DIM);            % Full width at max/2
         FWmm  = FWHM.*VOX;            % FWHM {units}
-        v2r   = 1/prod(FWHM);         % voxels to resels
-        k     = k*v2r;                % extent threshold in resels
-        R(find(~DIM) + 1) = [];       % eliminate null resel counts
-        try, QPs = sort(QPs(:)); end  % Needed for voxel FDR
-        try, QPp = sort(QPp(:)); end  % Needed for peak FDR
+        V2R   = 1/prod(FWHM);         % voxels to resels
+        k     = k*V2R;                % extent threshold in resels
+        R     = R(1:(D + 1));         % eliminate null resel counts
+        try, QPs = sort(QPs(:)); end  % Needed for voxel   FDR
+        try, QPp = sort(QPp(:)); end  % Needed for peak    FDR
         try, QPc = sort(QPc(:)); end  % Needed for cluster FDR
     end
 
@@ -202,17 +198,19 @@ switch lower(varargin{1}), case 'list'                            %-List
     if length(varargin) > 5
         Title  = varargin{6};
     else
-        Title  = 'nonparametric p-values';
+        Title  = 'nonparametric p-values adjusted for search volume';
     end
 
     %-Setup graphics panel
     %----------------------------------------------------------------------
     spm('Pointer','Watch')
-    if SatWindow
-        Fgraph = SatWindow;
+    Fgraph = spm_figure('FindWin','Satellite');
+    if Fgraph
         figure(Fgraph);
+        ht = 0.85; bot = 0.14;
     else
         Fgraph = spm_figure('GetWin','Graphics');
+        ht = 0.4; bot = 0.1;
     end
     spm_results_ui('Clear',Fgraph)
     FS    = spm('FontSizes');           %-Scaled font sizes
@@ -224,7 +222,6 @@ switch lower(varargin{1}), case 'list'                            %-List
 
     %-Table axes & Title
     %----------------------------------------------------------------------
-    if SatWindow, ht = 0.85; bot = 0.14; else ht = 0.4; bot = 0.1; end
 
     if STAT == 'P'
         Title = 'Posterior Probabilities';
@@ -234,6 +231,7 @@ switch lower(varargin{1}), case 'list'                            %-List
                 'DefaultTextFontSize',FS(8),...
                 'DefaultTextInterpreter','Tex',...
                 'DefaultTextVerticalAlignment','Baseline',...
+                'Tag','SPMList',...
                 'Units','points',...
                 'Visible','off');
 
@@ -249,11 +247,38 @@ switch lower(varargin{1}), case 'list'                            %-List
     %----------------------------------------------------------------------
     set(gca,'DefaultTextFontName',PF.helvetica,'DefaultTextFontSize',FS(8))
 
+    Hc = [];
+    Hp = [];
+    if STAT~='TFCE'
+        text(0.22,y,        'cluster-level','FontSize',FS(9));
+        line([0.14,0.44],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
+        h  = text(0.15,y-9*dy/8,    '\itp\rm_{FWE-corr}');     Hp = [Hp,h];
+        h  = text(0.24,y-9*dy/8,    '\itq\rm_{FDR-corr}');     Hp = [Hp,h];
+        h  = text(0.39,y-9*dy/8,    '\itp\rm_{uncorr}');       Hp = [Hp,h];
+        h  = text(0.34,y-9*dy/8,    '\itk\rm_E');
+    end
+    
+    if STAT=='TFCE'
+        text(0.64,y,        'combined peak-cluster-level','FontSize',FS(9));
+    else
+        text(0.64,y,        'peak-level','FontSize',FS(9));
+    end
+    line([0.48,0.88],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
+    h  = text(0.49,y-9*dy/8,    '\itp\rm_{FWE-corr}');     Hp = [Hp,h];
+    h  = text(0.58,y-9*dy/8,        '\itq\rm_{FDR-corr}'); Hp = [Hp,h];
+    h  = text(0.82,y-9*dy/8,    '\itp\rm_{uncorr}');       Hp = [Hp,h];
+    h  = text(0.67,y-9*dy/8,     sprintf('\\it%c',STAT));
+    h  = text(0.75,y-9*dy/8,    '(\itZ\rm_\equiv)');
+    
+    text(0.92,y - dy/2,[units{:}],'Fontsize',FS(8));
+
+
     %-Headers for text table...
     %-----------------------------------------------------------------------
     TabDat.tit = Title;
-    TabDat.hdr = {  'set',      'c';...
+    TabDat.hdr = {...
         'set',      'p';...
+        'set',      'c';...
         'cluster',  'p(FWE-cor)';...
         'cluster',  'p(FDR-cor)';...
         'cluster',  'equivk';...
@@ -325,16 +350,56 @@ switch lower(varargin{1}), case 'list'                            %-List
     zscores     = 1 + minz + varargin{2}.Z;
     [N Z XYZ A] = spm_max(zscores,varargin{2}.XYZ);
     Z           = Z - minz - 1;
+    
+    % find corresponding p-values for Z
+    Pz = zeros(size(Z));
+    Pu = zeros(size(Z));
+    for i=1:length(Z)
+      ind = min(find(Z(i)==varargin{2}.Z));
+      if isempty(ind)
+      warning('warning');
+      end
+      Pz(i) = 1 - varargin{2}.Pz(ind);
+      Pu(i) = 1 - varargin{2}.Pu(ind);
+    end
 
-    %-Convert cluster sizes from voxels to resels
+    %-Convert cluster sizes from voxels (N) to resels (K)
     %----------------------------------------------------------------------
-    if STAT~='P'
-        if isfield(varargin{2},'VRvp')
-            V2R = spm_get_data(varargin{2}.VRvp,XYZ);
+    c       = max(A);                                  %-Number of clusters
+    try
+        NONSTAT = spm_get_defaults('stats.rft.nonstat');
+    catch
+        NONSTAT = 0;
+    end
+    if STAT ~= 'P'
+        if NONSTAT
+            K     = zeros(c,1);
+            for i = 1:c
+                
+                %-Get LKC for voxels in i-th region
+                %----------------------------------------------------------
+                LKC  = spm_get_data(varargin{2}.VRpv,L{i});
+                
+                %-Compute average of valid LKC measures for i-th region
+                %----------------------------------------------------------
+                valid = ~isnan(LKC);
+                if any(valid)
+                    LKC = sum(LKC(valid)) / sum(valid);
+                else
+                    LKC = V2R; % fall back to whole-brain resel density
+                end
+                
+                %-Intrinsic volume (with surface correction)
+                %----------------------------------------------------------
+                IV   = spm_resels([1 1 1],L{i},'V');
+                IV   = IV*[1/2 2/3 2/3 1]';
+                K(i) = IV*LKC;
+                
+            end
+            K   = K(A);
         else
-            V2R = v2r;
+            K   = N*V2R;
         end
-        N       = N.*V2R;
     end
 
     %-Convert maxima locations from voxels to mm
@@ -384,10 +449,6 @@ switch lower(varargin{1}), case 'list'                            %-List
         %-Compute cluster {k} and peak-level {u} p values for this cluster
         %------------------------------------------------------------------
         if STAT ~= 'P'
-            Nv      = N(i)/v2r;                       % extent {voxels}
-            
-            Pz      = []
-            Pu      = [];
             Qu      = [];
             Pk      = [];
             Pn      = [];
@@ -400,7 +461,6 @@ switch lower(varargin{1}), case 'list'                            %-List
                 Ze  = spm_invNcdf(1 - Pz);
             end
         else
-            Nv      = N(i);
             
             Pz      = [];
             Pu      = [];
@@ -421,15 +481,16 @@ switch lower(varargin{1}), case 'list'                            %-List
         h     = text(tCol(4),y,sprintf(TabDat.fmt{4},Qc),'FontWeight','Bold',...
             'UserData',Qc,'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
-        h     = text(tCol(5),y,sprintf(TabDat.fmt{5},Nv),'FontWeight','Bold',...
-            'UserData',Nv,'ButtonDownFcn','get(gcbo,''UserData'')');
+        if STAT~='TFCE'
+            h     = text(tCol(5),y,sprintf(TabDat.fmt{5},N(i)),'FontWeight','Bold',...
+                'UserData',N(i),'ButtonDownFcn','get(gcbo,''UserData'')');
+        end
         hPage = [hPage, h];
         h     = text(tCol(6),y,sprintf(TabDat.fmt{6},Pn),'FontWeight','Bold',...
             'UserData',Pn,'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
-
-        h     = text(tCol(7),y,sprintf(TabDat.fmt{7},Pu),'FontWeight','Bold',...
-            'UserData',Pu,'ButtonDownFcn','get(gcbo,''UserData'')');
+        h     = text(tCol(7),y,sprintf(TabDat.fmt{7},Pu(i)),'FontWeight','Bold',...
+            'UserData',Pu(i),'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
         if topoFDR
         h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qp),'FontWeight','Bold',...
@@ -442,12 +503,14 @@ switch lower(varargin{1}), case 'list'                            %-List
         h     = text(tCol(9),y,sprintf(TabDat.fmt{9},U),'FontWeight','Bold',...
             'UserData',U,'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
-        h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Ze),'FontWeight','Bold',...
-            'UserData',Ze,'ButtonDownFcn','get(gcbo,''UserData'')');
+        if STAT~='TFCE'
+            h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Ze(i)),'FontWeight','Bold',...
+                'UserData',Ze,'ButtonDownFcn','get(gcbo,''UserData'')');
+        end
         hPage = [hPage, h];
         h     = ...
-            text(tCol(11),y,sprintf(TabDat.fmt{11},Pz),'FontWeight','Bold',...
-            'UserData',Pz,'ButtonDownFcn','get(gcbo,''UserData'')');
+            text(tCol(11),y,sprintf(TabDat.fmt{11},Pz(i)),'FontWeight','Bold',...
+            'UserData',Pz(i),'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
 
         % Specifically changed so it properly finds hMIPax
@@ -471,9 +534,9 @@ switch lower(varargin{1}), case 'list'                            %-List
         y      = y - dy;
 
         if topoFDR
-        [TabDat.dat{TabLin,3:12}] = deal(Pk,Qc,Nv,Pn,Pu,Qp,U,Ze,Pz,XYZmm(:,i));
+        [TabDat.dat{TabLin,3:12}] = deal(Pk,Qc,N(i),Pn,Pu(i),Qp,U,Ze,Pz(i),XYZmm(:,i));
         else
-        [TabDat.dat{TabLin,3:12}] = deal(Pk,Qc,Nv,Pn,Pu,Qu,U,Ze,Pz,XYZmm(:,i));
+        [TabDat.dat{TabLin,3:12}] = deal(Pk,Qc,N(i),Pn,Pu(i),Qu,U,Ze,Pz(i),XYZmm(:,i));
         end
         TabLin = TabLin + 1;
 
@@ -504,11 +567,11 @@ switch lower(varargin{1}), case 'list'                            %-List
                     % voxel-level p values {Z}
                     %------------------------------------------------------
                     if STAT ~= 'P'
-                        Pz    = [];
-                        Pu    = [];
                         Qu    = [];
                         Qp    = [];
-                        Ze    = spm_invNcdf(Z(d));
+                        if STAT~='TFCE' 
+                            Ze    = spm_invNcdf(Z(d));
+                        end
                     else
                         Pz    = [];
                         Pu    = [];
@@ -517,8 +580,8 @@ switch lower(varargin{1}), case 'list'                            %-List
                         Ze    = spm_invNcdf(Z(d));
                     end
 
-                    h     = text(tCol(7),y,sprintf(TabDat.fmt{7},Pu),...
-                        'UserData',Pu,...
+                    h     = text(tCol(7),y,sprintf(TabDat.fmt{7},Pu(d)),...
+                        'UserData',Pu(d),...
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     hPage = [hPage, h];
 
@@ -536,12 +599,14 @@ switch lower(varargin{1}), case 'list'                            %-List
                         'UserData',Z(d),...
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     hPage = [hPage, h];
-                    h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Ze),...
-                        'UserData',Ze,...
-                        'ButtonDownFcn','get(gcbo,''UserData'')');
+                    if STAT~='TFCE'
+                        h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Ze),...
+                            'UserData',Ze,...
+                            'ButtonDownFcn','get(gcbo,''UserData'')');
+                    end
                     hPage = [hPage, h];
-                    h     = text(tCol(11),y,sprintf(TabDat.fmt{11},Pz),...
-                        'UserData',Pz,...
+                    h     = text(tCol(11),y,sprintf(TabDat.fmt{11},Pz(d)),...
+                        'UserData',Pz(d),...
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     hPage = [hPage, h];
 
@@ -568,10 +633,10 @@ switch lower(varargin{1}), case 'list'                            %-List
                     y     = y - dy;
                     if topoFDR
                     [TabDat.dat{TabLin,7:12}] = ...
-                        deal(Pu,Qp,Z(d),Ze,Pz,XYZmm(:,d));
+                        deal(Pu(d),Qp,Z(d),Ze,Pz(d),XYZmm(:,d));
                     else
                     [TabDat.dat{TabLin,7:12}] = ...
-                        deal(Pu,Qu,Z(d),Ze,Pz,XYZmm(:,d));
+                        deal(Pu(d),Qu,Z(d),Ze,Pz(d),XYZmm(:,d));
                     end
                     TabLin = TabLin+1;
                 end
@@ -592,24 +657,29 @@ switch lower(varargin{1}), case 'list'                            %-List
 
     %-End: Store TabDat in UserData of axes & reset pointer
     %======================================================================
-    h      = uicontextmenu('Tag','TabDat',...
+    h = uicontextmenu('Tag','TabDat',...
         'UserData',TabDat);
     set(gca,'UIContextMenu',h,...
         'Visible','on',...
         'XColor','w','YColor','w')
-    uimenu(h,'Label','Table')
-    uimenu(h,'Separator','on','Label','Print text table',...
+    uimenu(h,'Label','Print text table',...
         'Tag','TD_TxtTab',...
         'CallBack',...
-        'cg_tfce_list(''txtlist'',get(get(gcbo,''Parent''),''UserData''),3)',...
+        'spm_list(''txtlist'',get(get(gcbo,''Parent''),''UserData''),3)',...
         'Interruptible','off','BusyAction','Cancel');
     uimenu(h,'Separator','off','Label','Extract table data structure',...
         'Tag','TD_Xdat',...
-        'CallBack','get(get(gcbo,''Parent''),''UserData'')',...
+        'CallBack','TabDat=get(get(gcbo,''Parent''),''UserData'')',...
         'Interruptible','off','BusyAction','Cancel');
-    uimenu(h,'Separator','on','Label','help',...
+    if ispc
+        uimenu(h,'Separator','off','Label','Export to Excel',...
         'Tag','TD_Xdat',...
-        'CallBack','spm_help(''cg_tfce_list'')',...
+        'CallBack',@export2excel,...
+        'Interruptible','off','BusyAction','Cancel');
+    end
+    uimenu(h,'Separator','on','Label','Help',...
+        'Tag','TD_Xdat',...
+        'CallBack','spm_help(''spm_list'')',...
         'Interruptible','off','BusyAction','Cancel');
 
     %-Setup registry
@@ -663,6 +733,8 @@ switch lower(varargin{1}), case 'list'                            %-List
             A         = spm_clusters(SPM.XYZ);
             j         = find(A == A(i));
             SPM.Z     = SPM.Z(j);
+            SPM.Pu    = SPM.Pu(j);
+            SPM.Pz    = SPM.Pz(j);
             SPM.XYZ   = SPM.XYZ(:,j);
             SPM.XYZmm = SPM.XYZmm(:,j);
             if isfield(SPM,'Rd'), SPM.Rd = SPM.Rd(:,j); end
@@ -742,3 +814,16 @@ switch lower(varargin{1}), case 'list'                            %-List
         error('Unknown action string')
 end
 %==========================================================================
+
+%==========================================================================
+function export2excel(obj,evd,h)
+TabDat     = get(get(obj,'Parent'),'UserData');
+d          = [TabDat.hdr;TabDat.dat];
+xyz        = d(3:end,end);
+xyz        = num2cell([xyz{:}]');
+d(:,end+1) = d(:,end);
+d(:,end+1) = d(:,end);
+d(3:end,end-2:end) = xyz;
+tmpfile    = [tempname '.xls'];
+xlswrite(tmpfile, d);
+winopen(tmpfile);

@@ -331,7 +331,7 @@ catch
     titlestr     = spm_input('title for comparison',1,'s',str);
 end
 
-titlestr = ['Nonparametric: ' titlestr];
+titlestr = ['Nonparametric test: ' titlestr];
 
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %==========================================================================
@@ -369,10 +369,12 @@ switch STAT
         STATstr = sprintf('PPM^{%0.2f}','PPM',df(1));
 end
 
-tname = fullfile(swd, sprintf('spm%s_%04d.img',stattype,Ic));
-pname = fullfile(swd, sprintf('%s_%s_%04d.img',stattype,statcorr,Ic));
+z_name = fullfile(swd, sprintf('spm%s_%04d.img',stattype,Ic));
+Pz_name = fullfile(swd, sprintf('%s_P_%04d.img',stattype,Ic));
+Pu_name = fullfile(swd, sprintf('%s_corrP_%04d.img',stattype,Ic));
+
 % check that statistic for this contrast was estimated
-if ~exist(pname)
+if ~exist(Pz_name)
   strtmp = { 'No TFCE calculation for this contrast found.';...
       'Would you like to estimate it now?'};
   if spm_input(strtmp,1,'bd','yes|no',[1,0],1)
@@ -384,13 +386,22 @@ if ~exist(pname)
   end
 end
 
-Vp = spm_vol(pname);
-Vt = spm_vol(tname);
+VPu = spm_vol(Pu_name);
+VPz = spm_vol(Pz_name);
+Vz  = spm_vol(z_name);
 
 %-Compute SPM
 %--------------------------------------------------------------------------
-Zp = spm_get_data(Vp,XYZ);
-Zt = spm_get_data(Vt,XYZ);
+Pu = spm_get_data(VPu,XYZ);
+Pz = spm_get_data(VPz,XYZ);
+Z = spm_get_data(Vz,XYZ);
+
+switch thresDesc
+    case 'FWE' 
+        Zp = Pu;
+    otherwise
+        Zp = Pz;
+end
 
 %==========================================================================
 % - H E I G H T   &   E X T E N T   T H R E S H O L D S
@@ -419,7 +430,8 @@ if STAT ~= 'P'
         case 'FDR' % False discovery rate
         %------------------------------------------------------------------
         u = spm_input('p value (FDR)','+0','r',0.05,1,[0,1]);
-        thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];        
+        thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
+        u = spm_uc_FDR(u,df,'P',n,sort(Zp'));
         u = 1 - u;
         
         case 'none'  % No adjustment
@@ -434,13 +446,7 @@ if STAT ~= 'P'
         error(sprintf('Unknown control method "%s".',thresDesc));
 
     end % switch thresDesc
-    
-    %-Compute p-values for topological and voxel-wise FDR (all search voxels)
-    %----------------------------------------------------------------------
-    if ~topoFDR
-        Ps = sort(Zp);
-    end
-        
+            
 end % (if STAT)
 
 %-Calculate height threshold filtering
@@ -449,7 +455,9 @@ Q      = find(Zp > u);
 
 %-Apply height threshold
 %--------------------------------------------------------------------------
-Zt      = Zt(:,Q);
+Z      = Z(:,Q);
+Pu     = Pu(:,Q);
+Pz     = Pz(:,Q);
 XYZ    = XYZ(:,Q);
 if isempty(Q)
     fprintf('\n');                                                      %-#
@@ -470,7 +478,9 @@ spm('Pointer','Arrow')
 xSPM   = struct( ...
         'swd',      swd,...
         'title',    titlestr,...
-        'Z',        Zt,...
+        'Z',        Z,...
+        'Pu',       Pu,...
+        'Pz',       Pz,...
         'n',        n,...
         'STAT',     STAT,...
         'df',       df,...

@@ -43,3 +43,17 @@ Preliminary version for listing of results.
 ------------------------------------------------------------------------
 r7 | gaser | 2010-07-22 00:44:15
 
+M      cg_tfce_estimate.m
+M      cg_tfce_list.m
+D      tfce8.man
+A      spm_tfce8.m
+M      cg_getTFCE.m
+A  +   tfce8.txt
+M      Makefile.tfce
+M      cg_tfce_results.m
+M      Makefile
+
+(1) Added spm_tfce8.m
+(2) Many changes to get listing of p-values working.
+------------------------------------------------------------------------
+r8 | gaser | 2010-07-22 15:26:18

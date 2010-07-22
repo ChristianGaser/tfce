@@ -76,3 +76,11 @@ A      tfceMex.mexglx
 (2) Compiled for linux
 ------------------------------------------------------------------------
 r9 | gaser | 2010-07-22 16:23:40
+
+D      spm_vol_utils.mexmaci64.a
+D      spm_vol_utils.mexa64.a
+D      spm_vol_utils.mexglx.a
+
+Removed *.a files.
+------------------------------------------------------------------------
+r10 | gaser | 2010-07-22 16:31:50

@@ -10,8 +10,9 @@ static char sccsid[]="@(#)cg_glm_get_Beta_ResSS.c  1.01 Christian Gaser 07/09/09
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
   int n_subj, n_beta, n_slices, n_values;
-  int n, i, j, k, z, ind1, ind2;
-  double *Beta, *ResSS, *image, *estimates, *mask, sum, W2, ival;
+  int n, i, j, k, z, ind1, ind2, n_slices_x_values;
+  double *Beta, *ResSS, *image, *estimates, *mask, *X, *pKX, *TH, *W;
+  double sum, W2, ival;
   MAPTYPE *maps, *map_mask, *get_maps();
   static double mat[] = {1, 0, 0, 0, 0, 1, 0, 0,  0, 0, 1, 0, 0, 0, 0, 1};
 
@@ -57,10 +58,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mexErrMsgTxt("Incompatible dimensions between mask and images.");
   }
   
-  double *X = mxGetPr(prhs[2]);
-  double *pKX = mxGetPr(prhs[3]);
-  double *TH = mxGetPr(prhs[4]);
-  double *W = mxGetPr(prhs[5]);
+  X = mxGetPr(prhs[2]);
+  pKX = mxGetPr(prhs[3]);
+  TH = mxGetPr(prhs[4]);
+  W = mxGetPr(prhs[5]);
   
   n_subj = mxGetM(prhs[2]);
   if (n_subj!=mxGetM(prhs[4]))
@@ -83,7 +84,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   estimates  = (double *)mxCalloc(n_values*n_subj, sizeof(double));
   mask = (double *)mxCalloc(n_values, sizeof(double));
   
-  int n_slices_x_values = n_slices*n_values;
+  n_slices_x_values = n_slices*n_values;
   
   /* initialize Beta and ResSS with zeros */
   for(z=0; z<n_slices; z++)

@@ -432,6 +432,7 @@ if STAT ~= 'P'
         u = spm_input('p value (FDR)','+0','r',0.05,1,[0,1]);
         thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
         u = spm_uc_FDR(u,df,'P',n,sort(Zp'));
+        warning('FDR not yet working');
         u = 1 - u;
         
         case 'none'  % No adjustment

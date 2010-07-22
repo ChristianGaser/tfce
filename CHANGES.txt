@@ -84,3 +84,11 @@ D      spm_vol_utils.mexglx.a
 Removed *.a files.
 ------------------------------------------------------------------------
 r10 | gaser | 2010-07-22 16:31:50
+
+A      tfceMex.mexw64
+M      cg_getTFCE.m
+
+(1) Added tfceMex.mexw64.
+(2) Added warning for FDR.
+------------------------------------------------------------------------
+r11 | gaser | 2010-07-22 17:10:57

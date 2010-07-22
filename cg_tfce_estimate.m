@@ -399,12 +399,14 @@ spm_write_vol(Vt,corrP);
 % save uncorrected p-values for TFCE
 uncorrP = zeros(size(tfce0));
 
-% estimate p-values only with 250 steps to save time
-for j=linspace(n_hist_bins,1,250)
+% estimate p-values only with 100 steps to save time
+tfce_cumsum = cumsum(tfce_hist);
+for j=n_hist_bins:-1:1
   ind = find(uncorrP==0);
-  tmp = min(find(cumsum(tfce_hist)>=ceil(j/n_hist_bins*sum(tfce_hist))));
+  tmp = min(find(tfce_cumsum>=ceil(j/n_hist_bins*sum(tfce_hist))));
   indp = find(tfce0(ind) >= tfce_bins(tmp));
   uncorrP(ind(indp)) = j/n_hist_bins;
+  j/n_hist_bins
 end
 
 name = sprintf('TFCE_P_%04d',Ic);
@@ -420,9 +422,10 @@ spm_write_vol(Vt,uncorrP);
 uncorrP = zeros(size(t0));
 
 % estimate p-values only with 100 steps to save time
-for j=linspace(n_hist_bins,1,100)
+t_cumsum = cumsum(t_hist);
+for j=n_hist_bins:-1:1
   ind = find(uncorrP==0);
-  tmp = min(find(cumsum(t_hist)>=ceil(j/n_hist_bins*sum(t_hist))));
+  tmp = min(find(t_cumsum>=ceil(j/n_hist_bins*sum(t_hist))));
   indp = find(t0(ind) >= t_bins(tmp));
   uncorrP(ind(indp)) = j/n_hist_bins;
 end

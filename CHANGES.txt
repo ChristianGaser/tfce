@@ -34,3 +34,12 @@ D      cg_tfce8.m
 
 ------------------------------------------------------------------------
 r6 | gaser | 2010-07-21 18:20:08
+
+A       cg_tfce_list.m
+M       cg_tfce_estimate.m
+M       cg_tfce_results.m
+
+Preliminary version for listing of results.
+------------------------------------------------------------------------
+r7 | gaser | 2010-07-22 00:44:15
+

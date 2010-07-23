@@ -14,6 +14,6 @@ cd(pth);
 mex -O tfceMex.c
 cd(p_path);
 
-tfce = tfceMex(t, n_steps)
+tfce = tfceMex(t, n_steps);
 
 return

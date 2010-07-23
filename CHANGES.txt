@@ -124,3 +124,12 @@ M      cg_getTFCE.m
 (2) Added some additional information for result table in to cg_tfce_list.m.
 ------------------------------------------------------------------------
 r14 | gaser | 2010-07-23 12:43:38
+
+M      Makefile.tfce
+M      tfceMex.m
+A      make.m
+
+(1) Added make.m for easier compilation.
+(2) Added mexmaci files.
+------------------------------------------------------------------------
+r15 | gaser | 2010-07-23 13:20:08

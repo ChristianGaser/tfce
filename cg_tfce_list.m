@@ -249,14 +249,9 @@ switch lower(varargin{1}), case 'list'                            %-List
 
     Hc = [];
     Hp = [];
-    if STAT~='TFCE'
-        text(0.22,y,        'cluster-level','FontSize',FS(9));
-        line([0.14,0.44],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
-        h  = text(0.15,y-9*dy/8,    '\itp\rm_{FWE-corr}');     Hp = [Hp,h];
-        h  = text(0.24,y-9*dy/8,    '\itq\rm_{FDR-corr}');     Hp = [Hp,h];
-        h  = text(0.39,y-9*dy/8,    '\itp\rm_{uncorr}');       Hp = [Hp,h];
-        h  = text(0.34,y-9*dy/8,    '\itk\rm_E');
-    end
+    text(0.22,y,        'cluster-level','FontSize',FS(9));
+    line([0.14,0.44],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
+    h  = text(0.34,y-9*dy/8,    '\itk\rm_E');
     
     if STAT=='TFCE'
         text(0.64,y,        'combined peak-cluster-level','FontSize',FS(9));
@@ -268,7 +263,7 @@ switch lower(varargin{1}), case 'list'                            %-List
     h  = text(0.58,y-9*dy/8,        '\itq\rm_{FDR-corr}'); Hp = [Hp,h];
     h  = text(0.82,y-9*dy/8,    '\itp\rm_{uncorr}');       Hp = [Hp,h];
     h  = text(0.67,y-9*dy/8,     sprintf('\\it%c',STAT));
-    h  = text(0.75,y-9*dy/8,    '(\itZ\rm_\equiv)');
+%    h  = text(0.75,y-9*dy/8,    '(\itZ\rm_\equiv)');
     
     text(0.92,y - dy/2,[units{:}],'Fontsize',FS(8));
 
@@ -326,7 +321,41 @@ switch lower(varargin{1}), case 'list'                            %-List
     %----------------------------------------------------------------------
     line([0 1],[0 0],'LineWidth',1,'Color','r')
         
-    TabDat.ftr = {};
+    %-Volume, resels and smoothness (if classical inference)
+    %----------------------------------------------------------------------
+    line([0 1],[0 0],'LineWidth',1,'Color','r')
+    if STAT ~= 'P'
+        %-Footnote with SPM parameters
+        %------------------------------------------------------------------
+        set(gca,'DefaultTextFontName',PF.helvetica,...
+            'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
+        TabDat.ftr    = cell(5,2);
+
+        TabDat.ftr{6} = ...
+            sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
+        TabDat.ftr{7} = ...
+            ['FWHM = ' sprintf('%0.1f ', FWmm) units{:} '; ' ...
+            sprintf('%0.1f ', FWHM) '{voxels}'];
+        TabDat.ftr{8} = ...
+            sprintf('Volume: %0.0f = %0.0f voxels = %0.1f resels', ...
+            S*prod(VOX),S,R(end));
+        TabDat.ftr{9} = ...
+            ['Voxel size: ' sprintf('%0.1f ',VOX) units{:} '; ' ...
+            sprintf('(resel = %0.2f voxels)',prod(FWHM))];
+
+        text(0.5,-1*dy,TabDat.ftr{6},...
+            'UserData',df,'ButtonDownFcn','get(gcbo,''UserData'')')
+        text(0.5,-2*dy,TabDat.ftr{7},...
+            'UserData',FWmm,'ButtonDownFcn','get(gcbo,''UserData'')')
+        text(0.5,-3*dy,TabDat.ftr{8},...
+            'UserData',[S*prod(VOX),S,R(end)],...
+            'ButtonDownFcn','get(gcbo,''UserData'')')
+        text(0.5,-4*dy,TabDat.ftr{9},...
+            'UserData',[VOX,prod(FWHM)],...
+            'ButtonDownFcn','get(gcbo,''UserData'')')
+    else
+        TabDat.ftr = {};
+    end
 
 
     %-Characterize excursion set in terms of maxima
@@ -481,10 +510,8 @@ switch lower(varargin{1}), case 'list'                            %-List
         h     = text(tCol(4),y,sprintf(TabDat.fmt{4},Qc),'FontWeight','Bold',...
             'UserData',Qc,'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
-        if STAT~='TFCE'
-            h     = text(tCol(5),y,sprintf(TabDat.fmt{5},N(i)),'FontWeight','Bold',...
-                'UserData',N(i),'ButtonDownFcn','get(gcbo,''UserData'')');
-        end
+        h     = text(tCol(5),y,sprintf(TabDat.fmt{5},N(i)),'FontWeight','Bold',...
+            'UserData',N(i),'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
         h     = text(tCol(6),y,sprintf(TabDat.fmt{6},Pn),'FontWeight','Bold',...
             'UserData',Pn,'ButtonDownFcn','get(gcbo,''UserData'')');
@@ -503,11 +530,11 @@ switch lower(varargin{1}), case 'list'                            %-List
         h     = text(tCol(9),y,sprintf(TabDat.fmt{9},U),'FontWeight','Bold',...
             'UserData',U,'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
-        if STAT~='TFCE'
-            h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Ze(i)),'FontWeight','Bold',...
-                'UserData',Ze,'ButtonDownFcn','get(gcbo,''UserData'')');
-        end
+        if 0
+        h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Ze(i)),'FontWeight','Bold',...
+            'UserData',Ze,'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
+        end
         h     = ...
             text(tCol(11),y,sprintf(TabDat.fmt{11},Pz(i)),'FontWeight','Bold',...
             'UserData',Pz(i),'ButtonDownFcn','get(gcbo,''UserData'')');
@@ -569,7 +596,7 @@ switch lower(varargin{1}), case 'list'                            %-List
                     if STAT ~= 'P'
                         Qu    = [];
                         Qp    = [];
-                        if STAT~='TFCE' 
+                        if ~strcmp(STAT,'TFCE') 
                             Ze    = spm_invNcdf(Z(d));
                         end
                     else
@@ -599,7 +626,7 @@ switch lower(varargin{1}), case 'list'                            %-List
                         'UserData',Z(d),...
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     hPage = [hPage, h];
-                    if STAT~='TFCE'
+                    if ~strcmp(STAT,'TFCE')
                         h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Ze),...
                             'UserData',Ze,...
                             'ButtonDownFcn','get(gcbo,''UserData'')');

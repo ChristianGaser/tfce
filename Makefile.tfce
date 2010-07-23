@@ -5,18 +5,18 @@
 VERSION=`svn info |grep Revision|sed -e 's/Revision: //g'`
 DATE=`svn info |grep 'Last Changed Date: '|sed -e 's/Last Changed Date: //g'|cut -f1 -d' '`
 
-TARGET=/Users/gaser/spm/spm8/toolbox/TFCE
-TARGET2=/Volumes/UltraMax/spm8/toolbox/TFCE
+TARGET=/Users/gaser/spm/spm8/toolbox/tfce
+TARGET2=/Volumes/UltraMax/spm8/toolbox/tfce
 
 STARGET=dbm.neuro.uni-jena.de:/Applications/xampp/htdocs/tfce
 
-MATLAB_FILES=Contents.m cg_getTFCE.m cg_tfce_results.m cg_tfce_list.m cg_tfce_estimate.m spm_TFCE.m cg_glm_get_Beta_ResSS.m tfceMex.m
+MATLAB_FILES=Contents.m cg_getTFCE.m cg_tfce_results.m cg_tfce_list.m cg_tfce_estimate.m spm_tfce.m cg_glm_get_Beta_ResSS.m tfceMex.m
 C_FILES=cg_glm_get_Beta_ResSS.* tfceMex.* spm_*.[ch]
 MISC_FILES=Makefile Makefile.var TFCE.man
 
 FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}
 
-ZIPFILE=TFCE_r$(VERSION).zip
+ZIPFILE=tfce_r$(VERSION).zip
 
 install: 
 	-@echo install
@@ -46,10 +46,10 @@ update:
 
 zip: update
 	-@echo zip
-	-@test ! -d TFCE || rm -r TFCE
-	-@mkdir TFCE
-	-@cp -rp ${FILES} TFCE
-	-@zip ${ZIPFILE} -rm TFCE
+	-@test ! -d tfce || rm -r tfce
+	-@mkdir tfce
+	-@cp -rp ${FILES} tfce
+	-@zip ${ZIPFILE} -rm tfce
 
 scp: zip
 	-@echo scp to http://dbm.neuro.uni-jena.de/TFCE/${ZIPFILE}

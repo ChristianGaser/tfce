@@ -113,3 +113,14 @@ M      Makefile
 (3) Added compilation for w64.
 ------------------------------------------------------------------------
 r13 | gaser | 2010-07-23 11:46:14
+
+M      cg_tfce_list.m
+D      spm_TFCE.m
+A  +   spm_tfce.m
+M      Makefile.tfce
+M      cg_getTFCE.m
+
+(1) Renamed spm_TFCE.m to spm_tfce.m.
+(2) Added some additional information for result table in to cg_tfce_list.m.
+------------------------------------------------------------------------
+r14 | gaser | 2010-07-23 12:43:38

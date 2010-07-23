@@ -133,3 +133,11 @@ A      make.m
 (2) Added mexmaci files.
 ------------------------------------------------------------------------
 r15 | gaser | 2010-07-23 13:20:08
+
+A      cg_glm_get_Beta_ResSS.mexmaci
+A      cg_glm_get_Beta_ResSS.mexw64
+A      tfceMex.mexmaci
+
+Now really added mexmaci files.
+------------------------------------------------------------------------
+r16 | gaser | 2010-07-23 17:21:43

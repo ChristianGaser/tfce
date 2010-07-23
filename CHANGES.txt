@@ -101,3 +101,15 @@ A       tfceMex.mexw32
 (2) Added *.mexw32 
 ------------------------------------------------------------------------
 r12 | gaser | 2010-07-22 18:00:13
+
+M      Contents_info.txt
+M      cg_glm_get_Beta_ResSS.mexmaci64
+M      Makefile.tfce
+M      Makefile
+
+(1) Updated Contents_info.txt and Makefile.tfce to also mention SPM5.
+(2) Changed Makefile to skip creation of an archives, which causes problems
+    with Windows64.
+(3) Added compilation for w64.
+------------------------------------------------------------------------
+r13 | gaser | 2010-07-23 11:46:14

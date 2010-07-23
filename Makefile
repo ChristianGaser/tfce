@@ -160,9 +160,9 @@ spm_mapping.$(SUF).o: spm_mapping.c spm_mapping.h spm_vol_access.h spm_datatypes
 %.$(SUF) : %.c
 	$(MEX) $< $(MEXEND)
 
-cg_glm_get_Beta_ResSS.$(SUF): cg_glm_get_Beta_ResSS.c spm_vol_utils.$(SUF).a\
+cg_glm_get_Beta_ResSS.$(SUF): cg_glm_get_Beta_ResSS.c $(OBS) \
 		spm_mapping.h spm_vol_access.h spm_datatypes.h
-	$(MEX) cg_glm_get_Beta_ResSS.c spm_vol_utils.$(SUF).a $(MEXEND)
+	$(MEX) cg_glm_get_Beta_ResSS.c $(OBS) $(MEXEND)
 
 tfceMex.$(SUF): tfceMex.c
 	$(MEX) tfceMex.c $(MEXEND)

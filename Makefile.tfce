@@ -37,11 +37,11 @@ help:
 update:
 	-@svn update
 	-@echo '% TFCE Toolbox' > Contents.m
-	-@echo '% Version ' ${VERSION} ' (TFCE8) ' ${DATE} >> Contents.m
+	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> Contents.m
 	-@cat Contents_info.txt >> Contents.m
 	-@echo '% __________________________________________________________________________' > TFCE.man
-	-@echo '% TFCE Toolbox for SPM8' >> TFCE.man
-	-@echo '% Version ' ${VERSION} ' (TFCE8) ' ${DATE} >> TFCE.man
+	-@echo '% TFCE Toolbox for SPM5/SPM8' >> TFCE.man
+	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> TFCE.man
 	-@cat TFCE.txt >> TFCE.man
 
 zip: update

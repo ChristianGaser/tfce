@@ -372,13 +372,16 @@ switch lower(varargin{1}), case 'list'                            %-List
         return
     end
 
-    % Includes Darren Gitelman's code for working around
-    % spm_max for conjunctions with negative thresholds
+    %-Workaround in spm_max for conjunctions with negative thresholds
     %----------------------------------------------------------------------
-    minz        = abs(min(min(varargin{2}.Z)));
-    zscores     = 1 + minz + varargin{2}.Z;
-    [N Z XYZ A] = spm_max(zscores,varargin{2}.XYZ);
-    Z           = Z - minz - 1;
+    minz          = abs(min(min(varargin{2}.Z)));
+    zscores       = 1 + minz + varargin{2}.Z;
+    try
+        [N Z XYZ A L] = spm_max(zscores,varargin{2}.XYZ);
+    catch
+        [N Z XYZ A] = spm_max(zscores,varargin{2}.XYZ);
+    end
+    Z             = Z - minz - 1;
     
     % find corresponding p-values for Z
     Pz = zeros(size(Z));

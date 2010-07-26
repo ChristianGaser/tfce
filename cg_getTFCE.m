@@ -505,10 +505,10 @@ xSPM   = struct( ...
 
 % RESELS per voxel (density) if it exists
 %--------------------------------------------------------------------------
-try, xSPM.VRpv = SPM.VRpv; end
+try, xSPM.VRpv = SPM.xVol.VRpv; end
 try
-    xSPM.units = SPM.xVol.units; 
+    xSPM.units = SPM.xVol.units;
 catch
-    try, xSPM.units = varargin{1}.units; end;
+    try, xSPM.units = varargin{1}.units; end
 end
 

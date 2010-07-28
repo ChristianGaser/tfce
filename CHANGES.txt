@@ -148,3 +148,9 @@ M      cg_getTFCE.m
 Considered spm8 updates 4010.
 ------------------------------------------------------------------------
 r17 | gaser | 2010-07-26 09:08:20
+
+M      cg_tfce_estimate.m
+
+Added checks for empty index of in cg_tfce_estimate.m
+------------------------------------------------------------------------
+r18 | gaser | 2010-07-28 16:34:17

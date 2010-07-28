@@ -293,8 +293,14 @@ while(i < n_perm)
   tfce_max = [tfce_max max(tfce(:))];
   t_max   = [t_max max(t(:))];
   
-  tfce_hist = tfce_hist + hist(tfce(find(tfce>0)), tfce_bins);
-  t_hist = t_hist + hist(t(find(t>0)), t_bins);
+  tfce_gt0 = tfce(find(tfce>0));
+  if ~isempty(tfce_gt0)
+      tfce_hist = tfce_hist + hist(tfce_gt0, tfce_bins);
+  end
+  t_gt0 = t(find(tfce>0));
+  if ~isempty(t_gt0)
+      t_hist = t_hist + hist(t(find(t>0)), t_bins);
+  end
   
   % use cummulated sum to find threshold
   tfce_max = sort(tfce_max);

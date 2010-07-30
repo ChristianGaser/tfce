@@ -154,3 +154,15 @@ M      cg_tfce_estimate.m
 Added checks for empty index of in cg_tfce_estimate.m
 ------------------------------------------------------------------------
 r18 | gaser | 2010-07-28 16:34:17
+
+M      cg_tfce_list.m
+M      cg_tfce_estimate.m
+A      cg_tfce_estimate_multi.m
+M      Makefile.tfce
+
+(1) Added cg_tfce_estimate_multi.m fpr multiple contrasts.
+(2) Modified input for cg_tfce_estimate.m for multiple contrasts.
+(3) Corrected cg_tfce_estimate for reduced designs, where contrast vector 
+    does not comprises all subjects.
+------------------------------------------------------------------------
+r19 | gaser | 2010-07-30 15:58:50

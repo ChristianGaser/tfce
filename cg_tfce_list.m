@@ -599,7 +599,7 @@ switch lower(varargin{1}), case 'list'                            %-List
                     if STAT ~= 'P'
                         Qu    = [];
                         Qp    = [];
-                        if ~strcmp(STAT,'TFCE') 
+                        if 0 
                             Ze    = spm_invNcdf(Z(d));
                         end
                     else
@@ -629,7 +629,7 @@ switch lower(varargin{1}), case 'list'                            %-List
                         'UserData',Z(d),...
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     hPage = [hPage, h];
-                    if ~strcmp(STAT,'TFCE')
+                    if 0
                         h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Ze),...
                             'UserData',Ze,...
                             'ButtonDownFcn','get(gcbo,''UserData'')');

@@ -1,4 +1,4 @@
-function cg_tfce_estimate(SPM, Ic, xCon)
+function cg_tfce_estimate(SPM, Ic, xCon, n_perm_max, vFWHM, n_perm_break)
 
 % define stepsize for tfce
 n_steps_tfce = 100;
@@ -82,6 +82,7 @@ end
 % get contrast and find zero values in contrast
 c = xCon(Ic).c;
 ind_con = find(c~=0);
+c_name = deblank(xCon(Ic).name);
 
 % find exchangeability blocks using contrasts without zero values
 unique_con  = unique(c(ind_con));
@@ -122,7 +123,13 @@ case 0 % correlation
   label = 1:n_subj;
 case 1 % one-sample t-test
   fprintf('One sample t-test found\n');
-  label = ones(1,n_subj);
+  % use exchangeability blocks for labels
+  label = zeros(1,n_subj);
+  for j=1:n_unique_con
+    for k=1:length(ind_unique_con{j})
+      label(find(xX.X(:,ind_unique_con{j}(k))==1)) = j;
+    end
+  end
 otherwise  % Anova with at least 2 groups
   fprintf('Anova found\n');
   % use exchangeability blocks for labels
@@ -134,15 +141,20 @@ otherwise  % Anova with at least 2 groups
   end
 end
 
+% get index for label values > 0
+ind_label = find(label > 0);
+
+n_subj_with_contrast = length(find(label > 0));
+
 % estimate # of permutations
 % Anova/correlation: n_perm = (n1+n2+...+nk)!/(n1!*n2!*...*nk!)
 if n_cond ~=1  % Anova/correlation
-  n_perm = factorial(n_subj);
+  n_perm = factorial(n_subj_with_contrast);
   for i=1:n_cond
     n_perm = n_perm/factorial(length(find(label == i)));
   end
 else  % one-sample t-test: n_perm = 2^n
-  n_perm = 2^n_subj;
+  n_perm = 2^n_subj_with_contrast;
 end
 
 VY = SPM.xY.VY;
@@ -162,8 +174,14 @@ end
 clear SPM
 
 % choose number of permutations
-n_perm = spm_input('How many permutations? ',1,'r',n_perm,1,[10 n_perm]);
-vFWHM  = spm_input('Variance smoothing in FWHM (for low DFs) ','+1','e',0);
+if nargin < 4
+  n_perm = spm_input('How many permutations? ',1,'r',n_perm,1,[10 n_perm]);
+else
+  n_perm = min([n_perm n_perm_max]);
+end
+if nargin < 5
+  vFWHM  = spm_input('Variance smoothing in FWHM (for low DFs) ','+1','e',0);
+end
 
 % compute unpermuted t-map
 time0 = clock;
@@ -172,7 +190,7 @@ t0 = calc_glm(VY,X,c,Vmask,vFWHM,TH,W);
 
 % calculate tfce of unpermuted t-map
 tfce0 = tfceMex(t0, n_steps_tfce);
-fprintf('Estimated time to run all permutations: %3.1f min\n',n_perm*etime(clock, time0)/60);
+fprintf('Estimated time to run %d permutations: %3.1f min\n',n_perm,n_perm*etime(clock, time0)/60);
 
 % get largest tfce
 tfce0_min = min(tfce0(:));
@@ -199,6 +217,15 @@ rand_vector = [];
 Fgraph = spm_figure('GetWin','Graphics');
 spm_figure('Clear',Fgraph);
 figure(Fgraph)
+
+h = axes('position',[0.45 0.95 0.1 0.05],'Units','normalized','Parent',...
+    Fgraph,'Visible','off');
+text(0.5,0.5,c_name,...
+    'FontSize',spm('FontSize',16),...
+    'FontWeight','Bold',...
+    'FontName',spm_platform('Font','times'),...
+    'HorizontalAlignment','Center',...
+    'VerticalAlignment','middle')
 
 % check that label has correct dimension
 sz = size(label);
@@ -237,25 +264,25 @@ while(i < n_perm)
   % randomize subject vector
   if i==0 % first permutation is always unpermuted model
     if n_cond == 1 % one-sample t-test
-      rand_label = ones(1,n_subj);
+      rand_label = ones(1,n_subj_with_contrast);
     else % correlation or Anova
-      rand_order = 1:n_subj;
-      rand_label = label(rand_order);
+      rand_order = 1:n_subj_with_contrast;
+      rand_label = label(ind_label(rand_order));
     end
   else
     % init permutation and
     % check that each permutation is used only once
     if n_cond == 1 % one-sample t-test
-      rand_label = sign(randn(1,n_subj));
+      rand_label = sign(randn(1,n_subj_with_contrast));
       while any(ismember(rand_vector,rand_label,'rows'))
-        rand_label = sign(randn(1,n_subj));
+        rand_label = sign(randn(1,n_subj_with_contrast));
       end
     else % correlation or Anova
-      rand_order = randperm(n_subj);
-      rand_label = label(rand_order);
+      rand_order = randperm(n_subj_with_contrast);
+      rand_label = label(ind_label(rand_order));
       while any(ismember(rand_vector,rand_label,'rows'))
-        rand_order = randperm(n_subj);
-        rand_label = label(rand_order);
+        rand_order = randperm(n_subj_with_contrast);
+        rand_label = label(ind_label(rand_order));
       end
     end    
   end   
@@ -268,11 +295,11 @@ while(i < n_perm)
   
   if n_cond==1 % one-sample t-test
     % only change sign in the design matrix
-    for j=1:n_subj
-      Xperm(j,ind_con) = rand_label(j)*Xperm(j,ind_con);
+    for j=1:n_subj_with_contrast
+      Xperm(ind_label(j),ind_con) = rand_label(j)*Xperm(ind_label(j),ind_con);
     end
   else % correlation or Anova
-    Xperm(:,ind_con) = Xperm(rand_order,ind_con);
+    Xperm(ind_label,ind_con) = Xperm(ind_label(rand_order),ind_con);
   end
 
   % calculate permuted t-map
@@ -316,8 +343,19 @@ while(i < n_perm)
   % plot thresholds and histograms
   figure(Fgraph)
 
+  h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
   plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_min, tfce0_max);
   plot_distribution(t_max ,t_max_th, 't-value', alpha, col, 2, t0_min, t0_max);
+
+  % Check for suprathreshold values
+  if nargin > 5
+    if i > n_perm_break
+      if isempty(find(tfce0_max > tfce_max_th(50:end,1)))
+        fprintf('No FWE-corrected suprathreshold value after %d permutations found\n', n_perm_break);
+        i = n_perm;
+      end
+    end
+  end
 
   i = i + 1;
 
@@ -470,25 +508,17 @@ if sz_val_max >= 20
   [hmax, xmax] = hist(val_max, 10);
     
   subplot(2,2,(2*order)-1)
+  
   bar(xmax,hmax)
   avg_h = mean(hmax);
   max_h = max(hmax);
   lim_x = xlim;
-  
   for j=1:n_alpha
     hl = line([val_th(n,j) val_th(n,j)], [0 max_h]);
     set(hl,'Color',col(j));
     text(0.95*lim_x(2),(0.5+0.1*j)*max_h,['p<' num2str(alpha(j))],...
       'Color',col(j),'HorizontalAlignment','Right','FontSize',8)
   end
-
-  % plot minimum observed value for unpermuted model
-if 0
-  hl = line([-val0_min -val0_min], [0 max_h]);
-  set(hl,'Color','c','LineWidth',2);
-  text(1.05*lim_x(1),0.9*max_h,'Min. observed negative value ',...
-    'Color','c','HorizontalAlignment','Left','FontSize',8)
-end
 
   % plot maximum observed value for unpermuted model
   hl = line([val0_max val0_max], [0 max_h]);
@@ -505,6 +535,7 @@ end
   end
   
   subplot(2,2,2*order)
+  
   val_min = min(min(val_th(1:n,:)));
   val_max = max(max(val_th(1:n,:)));
   if val_max/val_min > 10

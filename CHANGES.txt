@@ -166,3 +166,13 @@ M      Makefile.tfce
     does not comprises all subjects.
 ------------------------------------------------------------------------
 r19 | gaser | 2010-07-30 15:58:50
+
+M      cg_glm_get_Beta_ResSS.c
+M      tfceMex.mexw64
+M      spm_tfce.m
+M      cg_glm_get_Beta_ResSS.mexw64
+
+(1) Some cosmetic changes to cg_glm_get_Beta_ResSS.c
+(2) Renamed TFCE.man to tfce.man.
+------------------------------------------------------------------------
+r20 | gaser | 2010-08-09 09:32:28

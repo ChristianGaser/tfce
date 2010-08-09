@@ -12,7 +12,7 @@ STARGET=dbm.neuro.uni-jena.de:/Applications/xampp/htdocs/tfce
 
 MATLAB_FILES=Contents.m cg_getTFCE.m cg_tfce_results.m cg_tfce_list.m cg_tfce_estimate.m cg_tfce_estimate_multi.m spm_tfce.m cg_glm_get_Beta_ResSS.m tfceMex.m make.m
 C_FILES=cg_glm_get_Beta_ResSS.* tfceMex.* spm_*.[ch]
-MISC_FILES=TFCE.man
+MISC_FILES=tfce.man
 
 FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}
 
@@ -40,9 +40,9 @@ update:
 	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> Contents.m
 	-@cat Contents_info.txt >> Contents.m
 	-@echo '% __________________________________________________________________________' > TFCE.man
-	-@echo '% TFCE Toolbox for SPM5/SPM8' >> TFCE.man
-	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> TFCE.man
-	-@cat TFCE.txt >> TFCE.man
+	-@echo '% TFCE Toolbox for SPM5/SPM8' >> tfce.man
+	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> tfce.man
+	-@cat TFCE.txt >> tfce.man
 
 zip: update
 	-@echo zip

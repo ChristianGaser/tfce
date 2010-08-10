@@ -176,3 +176,12 @@ M      cg_glm_get_Beta_ResSS.mexw64
 (2) Renamed TFCE.man to tfce.man.
 ------------------------------------------------------------------------
 r20 | gaser | 2010-08-09 09:32:28
+
+M      cg_tfce_list.m
+M      cg_tfce_estimate.m
+M      cg_getTFCE.m
+
+(1) Remaining time for estimation is printed.
+(2) Numbers of permutations are saved in spmTFCE_000x.txt file.
+------------------------------------------------------------------------
+r21 | gaser | 2010-08-10 10:47:35

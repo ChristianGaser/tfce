@@ -369,7 +369,14 @@ switch STAT
         STATstr = sprintf('PPM^{%0.2f}','PPM',df(1));
 end
 
-z_name = fullfile(swd, sprintf('spm%s_%04d.img',stattype,Ic));
+% get # of permutations
+try
+  n_perm = load(fullfile(swd, sprintf('spmTFCE_%04d.txt',Ic)));
+catch
+  n_perm = 0;
+end
+
+z_name  = fullfile(swd, sprintf('spm%s_%04d.img',stattype,Ic));
 Pz_name = fullfile(swd, sprintf('%s_P_%04d.img',stattype,Ic));
 Pu_name = fullfile(swd, sprintf('%s_corrP_%04d.img',stattype,Ic));
 
@@ -501,6 +508,7 @@ xSPM   = struct( ...
         'DIM',      SPM.xVol.DIM,...
         'VOX',      VOX,...
         'Vspm',     VspmSv,...
+        'n_perm',   n_perm,...
         'thresDesc',thresDesc);
 
 % RESELS per voxel (density) if it exists

@@ -11,8 +11,8 @@ n_hist_bins = 1100;
 col = str2mat('b','g','r');
 alpha = [0.05 0.01 0.001];
 
-% Initialise random number generator
-rand('state',sum(100*clock));
+% give same results each time
+rand('state',0);
 
 % load SPM file
 if nargin < 1
@@ -141,6 +141,8 @@ otherwise  % Anova with at least 2 groups
   end
 end
 
+fprintf('\n')
+
 % get index for label values > 0
 ind_label = find(label > 0);
 
@@ -180,17 +182,14 @@ else
   n_perm = min([n_perm n_perm_max]);
 end
 if nargin < 5
-  vFWHM  = spm_input('Variance smoothing in FWHM (for low DFs) ','+1','e',0);
+  vFWHM  = spm_input('Variance smoothing (for low DFs) ','+1','e',0);
 end
 
 % compute unpermuted t-map
-time0 = clock;
-
 t0 = calc_glm(VY,X,c,Vmask,vFWHM,TH,W);
 
 % calculate tfce of unpermuted t-map
 tfce0 = tfceMex(t0, n_steps_tfce);
-fprintf('Estimated time to run %d permutations: %3.1f min\n',n_perm,n_perm*etime(clock, time0)/60);
 
 % get largest tfce
 tfce0_min = min(tfce0(:));
@@ -240,8 +239,11 @@ spm_progress_bar('Init',n_perm,'Calculating','Permutations')
 % only update progress bar every 1%
 progress_step = max([1 round(n_perm/100)]);
 
-tic
+sum_time = 0;
+
 while(i < n_perm)
+
+  time0 = clock;
 
   % add Stop button after 20 iterations
   if i==20
@@ -286,6 +288,7 @@ while(i < n_perm)
       end
     end    
   end   
+  
   % update rand_vector for checking of unique permutations
   rand_vector = [rand_vector; rand_label];
   
@@ -342,10 +345,13 @@ while(i < n_perm)
         
   % plot thresholds and histograms
   figure(Fgraph)
-
   h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
   plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_min, tfce0_max);
   plot_distribution(t_max ,t_max_th, 't-value', alpha, col, 2, t0_min, t0_max);
+
+  drawnow
+
+  i = i + 1;
 
   % Check for suprathreshold values
   if nargin > 5
@@ -356,20 +362,21 @@ while(i < n_perm)
       end
     end
   end
-
-  i = i + 1;
-
-  drawnow
+  
+  % estimate time for remaining permutations
+  sum_time = sum_time + etime(clock, time0);
+  avg_time = sum_time/i;
+  str = sprintf('%.f%% (%s remaining)',i/n_perm*100,estimate(avg_time*(n_perm-i)));
+  fprintf('%-25s%-25s',repmat(sprintf('\b'),1,25),str);
   
   if ~rem(i,progress_step)
     spm_progress_bar('Set',i);
   end
   
 end
-toc
 
-%save rand_vector rand_vector
-%save tfce_max tfce_max
+fprintf('%-25s',repmat(sprintf('\b'),1,25));
+fprintf('Processing time for %d permutations: %s\n',i,estimate(sum_time));
 
 spm_progress_bar('Clear')
 
@@ -404,6 +411,9 @@ else
   Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
 end
 spm_write_vol(Vt,tfce0);
+fid = fopen(fullfile(cwd,[name '.txt']),'w');
+fprintf(fid,'%d\n',n_perm);
+fclose(fid);
 
 % save corrected p-values for TFCE
 fprintf('Save corrected p-values.\n');
@@ -650,4 +660,37 @@ for j=1:Vm.dim(3),
   pXY = reshape(pXY,[Vm.dim(1:2) m]);
   beta(:,:,j,:) = double(pXY);
  end
+end
+
+function [str] = estimate(t)
+% Gives an appropriately unitized string of a duration in seconds.
+%
+% [STR] = ESTIMATE(T)
+%
+
+% License:
+%=====================================================================
+%
+% This is part of the Princeton MVPA toolbox, released under
+% the GPL. See http://www.csbmb.princeton.edu/mvpa for more
+% information.
+% 
+% The Princeton MVPA toolbox is available free and
+% unsupported to those who might find it useful. We do not
+% take any responsibility whatsoever for any problems that
+% you have related to the use of the MVPA toolbox.
+%
+% ======================================================================
+minutes = t./60;
+hours = t./3600;
+days = hours./24;
+
+if days > 1
+  str = sprintf('%d days %02.1f hr', floor(days),24*(days-floor(days)));
+elseif hours > 1
+  str = sprintf('%d:%02.0f hr', floor(hours),60*(hours-floor(hours)));
+elseif minutes > 1
+  str = sprintf('%d:%02.0f min',floor(minutes),60*(minutes-floor(minutes)));
+else
+  str = sprintf('%02.1f sec',t);
 end

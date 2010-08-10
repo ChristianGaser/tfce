@@ -16,7 +16,11 @@
 %   CHANGES.txt                 - changes in revisions
 %
 % TFCE functions
-%   cg_nonparam_tfce.m          - TFCE core function
+%   cg_tfce_estimate.m          - TFCE core function
+%   cg_tfce_list.m              - list result table
+%   cg_tfce_results.m           - call results
+%   cg_getTFCE.m                - get TFCE information
+%   cg_tfce_update.m            - get TFCE update
 %
 %
 % Mex- and c-functions

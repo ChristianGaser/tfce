@@ -185,3 +185,12 @@ M      cg_getTFCE.m
 (2) Numbers of permutations are saved in spmTFCE_000x.txt file.
 ------------------------------------------------------------------------
 r21 | gaser | 2010-08-10 10:47:35
+
+M      Contents_info.txt
+A      cg_tfce_update.m
+M      spm_tfce.m
+
+(1) Added update function.
+(2) Updated Contents_info.txt
+------------------------------------------------------------------------
+r22 | gaser | 2010-08-10 14:08:25

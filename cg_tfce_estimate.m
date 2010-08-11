@@ -155,6 +155,7 @@ if n_cond ~=1  % Anova/correlation
   for i=1:n_cond
     n_perm = n_perm/factorial(length(find(label == i)));
   end
+  n_perm = round(n_perm);
 else  % one-sample t-test: n_perm = 2^n
   n_perm = 2^n_subj_with_contrast;
 end
@@ -235,15 +236,12 @@ end
 stopStatus = false;
 i = 0;
 spm_progress_bar('Init',n_perm,'Calculating','Permutations')
+cg_progress('Init',n_perm,'Calculating','Permutations')
 
-% only update progress bar every 1%
-progress_step = max([1 round(n_perm/100)]);
-
-sum_time = 0;
+% update interval for progress bar
+progress_step = max([1 round(n_perm/1000)]);
 
 while(i < n_perm)
-
-  time0 = clock;
 
   % add Stop button after 20 iterations
   if i==20
@@ -362,22 +360,15 @@ while(i < n_perm)
       end
     end
   end
-  
-  % estimate time for remaining permutations
-  sum_time = sum_time + etime(clock, time0);
-  avg_time = sum_time/i;
-  str = sprintf('%.f%% (%s remaining)',i/n_perm*100,estimate(avg_time*(n_perm-i)));
-  fprintf('%-25s%-25s',repmat(sprintf('\b'),1,25),str);
-  
+    
   if ~rem(i,progress_step)
+    cg_progress('Set',i)
     spm_progress_bar('Set',i);
   end
   
 end
 
-fprintf('%-25s',repmat(sprintf('\b'),1,25));
-fprintf('Processing time for %d permutations: %s\n',i,estimate(sum_time));
-
+cg_progress('Clear')
 spm_progress_bar('Clear')
 
 spm_print

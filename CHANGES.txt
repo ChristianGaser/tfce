@@ -194,3 +194,11 @@ M      spm_tfce.m
 (2) Updated Contents_info.txt
 ------------------------------------------------------------------------
 r22 | gaser | 2010-08-10 14:08:25
+
+M      cg_tfce_estimate.m
+A      cg_progress.m
+
+(1) Added cg_pogress.m for estimating remaining processing time.
+(2) Updated cg_tfce_estimate.m for use of cg_progress.m.
+------------------------------------------------------------------------
+r23 | gaser | 2010-08-11 11:14:57

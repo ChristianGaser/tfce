@@ -8,6 +8,10 @@
 #include "mex.h"
 #include <stdlib.h>
 
+#ifdef OPENMP
+#include "omp.h"
+#endif
+
 #ifndef MAX
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 #endif
@@ -16,87 +20,106 @@
 #define MIN(A,B) ((A) > (B) ? (B) : (A))
 #endif
 
-void tfce(double *inData, double *outData, int numSteps, const int *dims)
+void tfce_thread(double *inData, double *outData, double thresh, double delta, const int *dims)
 {
-   double fmax = 0.0f, thresh, valToAdd, delta;
+   double valToAdd;
    double E = 0.5, H = 2.0;
    int i, j, k, ti, tj, tk, maxi, maxj, maxk, mini, minj, mink, temp, growingInd, growingCur;
    int numVoxels = dims[0] * dims[1] * dims[2];
-   bool* flagUsed;
+   char* flagUsed;
    short* growing;
    
-   flagUsed = (bool*)malloc(numVoxels*sizeof(bool));
+   flagUsed = (char*)malloc(numVoxels*sizeof(char));
    growing  = (short*)malloc(numVoxels*3*sizeof(short));
-   
-   for (temp = 0; temp < numVoxels; ++temp)
-   {
-      if (inData[temp] > fmax) fmax = inData[temp];
-      outData[temp] = 0.0f;
-   }
-   
-   delta = fmax/numSteps;
-   for (thresh = delta / 2.0; thresh < fmax; thresh += delta)
-   {
-      for (temp = 0; temp < numVoxels; ++temp) flagUsed[temp] = false;
-      for (k = 0; k < dims[2]; ++k)
-      {
-         for (j = 0; j < dims[1]; ++j)
-         {
-            for (i = 0; i < dims[0]; ++i)
-            {
-               temp = k*(dims[0]*dims[1])+(j*dims[0])+i;
-               if (!flagUsed[temp] && inData[temp] >= thresh)
-               {
-                  flagUsed[temp] = true;
-                  growingInd = 3;
-                  growingCur = 0;
-                  growing[0] = i;
-                  growing[1] = j;
-                  growing[2] = k;
-                  while (growingCur < growingInd)
-                  {
-                     maxi = MIN(dims[0], growing[growingCur    ] + 2);
-                     maxj = MIN(dims[1], growing[growingCur + 1] + 2);
-                     maxk = MIN(dims[2], growing[growingCur + 2] + 2);
-                     mini = MAX(0, growing[growingCur    ] - 1);
-                     minj = MAX(0, growing[growingCur + 1] - 1);
-                     mink = MAX(0, growing[growingCur + 2] - 1);
-                     for (tk = mink; tk < maxk; ++tk)
-                     {
-                        for (tj = minj; tj < maxj; ++tj)
-                        {
-                           for (ti = mini; ti < maxi; ++ti)
-                           {
-                              temp = tk*(dims[0]*dims[1])+(tj*dims[0])+ti;
-                              if (!flagUsed[temp] && inData[temp] >= thresh)
-                              {
-                                 flagUsed[temp] = true;
-                                 growing[growingInd    ] = ti;
-                                 growing[growingInd + 1] = tj;
-                                 growing[growingInd + 2] = tk;
-                                 growingInd += 3;
-                              }
-                           }
-                        }
-                     }
-                     growingCur += 3;
-                  }
-                  growingCur = 0;
-                  valToAdd = pow(growingInd / 3.0f, E) * pow(thresh, H) * delta;
+      
+    for (temp = 0; temp < numVoxels; ++temp) flagUsed[temp] = 0;
+    
+    for (k = 0; k < dims[2]; ++k)
+    {
+       for (j = 0; j < dims[1]; ++j)
+       {
+          for (i = 0; i < dims[0]; ++i)
+          {
+             temp = k*(dims[0]*dims[1])+(j*dims[0])+i;
+             if (!flagUsed[temp] && inData[temp] >= thresh)
+             {
+                flagUsed[temp] = 1;
+                growingInd = 3;
+                growingCur = 0;
+                growing[0] = i;
+                growing[1] = j;
+                growing[2] = k;
+                while (growingCur < growingInd)
+                {
+                   maxi = MIN(dims[0], growing[growingCur    ] + 2);
+                   maxj = MIN(dims[1], growing[growingCur + 1] + 2);
+                   maxk = MIN(dims[2], growing[growingCur + 2] + 2);
+                   mini = MAX(0, growing[growingCur    ] - 1);
+                   minj = MAX(0, growing[growingCur + 1] - 1);
+                   mink = MAX(0, growing[growingCur + 2] - 1);
+                   for (tk = mink; tk < maxk; ++tk)
+                   {
+                      for (tj = minj; tj < maxj; ++tj)
+                      {
+                         for (ti = mini; ti < maxi; ++ti)
+                         {
+                            temp = tk*(dims[0]*dims[1])+(tj*dims[0])+ti;
+                            if (!flagUsed[temp] && inData[temp] >= thresh)
+                            {
+                               flagUsed[temp] = 1;
+                               growing[growingInd    ] = ti;
+                               growing[growingInd + 1] = tj;
+                               growing[growingInd + 2] = tk;
+                               growingInd += 3;
+                            }
+                         }
+                      }
+                   }
+                   growingCur += 3;
+                }
+                growingCur = 0;
+                valToAdd = pow(growingInd / 3.0f, E) * pow(thresh, H) * delta;
 
-                  while (growingCur < growingInd)
-                  {
-                     outData[growing[growingCur + 2]*(dims[0]*dims[1])+(growing[growingCur + 1]*dims[0])+growing[growingCur]] += valToAdd;
-                     growingCur += 3;
-                  }
-               }
+                while (growingCur < growingInd)
+                {
+                   outData[growing[growingCur + 2]*(dims[0]*dims[1])+(growing[growingCur + 1]*dims[0])+growing[growingCur]] += valToAdd;
+                   growingCur += 3;
+                }
             }
          }
       }
    }
    
    free(flagUsed);
-   free(growing);
+   free(growing);}
+
+void tfce(double *inData, double *outData, int numSteps, const int *dims)
+{
+   double fmax = 0.0, thresh0, thresh, delta;
+   int i;
+   int numVoxels = dims[0] * dims[1] * dims[2];
+   
+   for (i = 0; i < numVoxels; ++i)
+   {
+      if (inData[i] > fmax) fmax = inData[i];
+      outData[i] = 0.0;
+   }
+   
+   delta = fmax/numSteps;
+   thresh0 = delta/2.0;
+
+{
+#ifdef OPENMP
+    /* this is faster than the default setting to the # of processors */
+    omp_set_num_threads(numSteps);
+    # pragma omp parallel for private(thresh) shared(outData) 
+#endif
+    for (i = 0; i < numSteps; i++)
+    {
+       thresh = thresh0 + (double)i*delta;
+       tfce_thread(inData, outData, thresh, delta, dims);
+    }
+  }   
 }
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])

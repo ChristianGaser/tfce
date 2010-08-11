@@ -202,3 +202,23 @@ A      cg_progress.m
 (2) Updated cg_tfce_estimate.m for use of cg_progress.m.
 ------------------------------------------------------------------------
 r23 | gaser | 2010-08-11 11:14:57
+
+M      tfceMex.mexw64
+M      cg_glm_get_Beta_ResSS.mexw32
+M      Makefile.tfce
+M      cg_glm_get_Beta_ResSS.mexa64
+M      cg_glm_get_Beta_ResSS.mexglx
+M      tfceMex.c
+M      tfceMex.mexw32
+M      CHANGES.txt
+M      tfceMex.mexmaci64
+M      cg_glm_get_Beta_ResSS.mexw64
+M      tfceMex.mexa64
+M      tfceMex.mexglx
+M      make.m
+M      tfceMex.mexmaci
+
+(1) Compiled tfceMex with OpenMP support.
+(2) Updated make.m to provide compilations for different systems.
+------------------------------------------------------------------------
+r24 | gaser | 2010-08-11 17:22:15

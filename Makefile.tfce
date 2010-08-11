@@ -52,5 +52,5 @@ zip: update
 	-@zip ${ZIPFILE} -rm tfce
 
 scp: zip
-	-@echo scp to http://dbm.neuro.uni-jena.de/TFCE/${ZIPFILE}
+	-@echo scp to http://dbm.neuro.uni-jena.de/tfce/${ZIPFILE}
 	-@scp -P 2222 CHANGES.txt ${ZIPFILE} ${STARGET}

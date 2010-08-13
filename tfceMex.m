@@ -1,5 +1,5 @@
-tfce = tfceMex(t, n_steps)
-% FORMAT tfce = tfceMex(t, n_steps)
+tfce = tfceMex(t, n_steps, show_number_of_processors)
+% FORMAT tfce = tfceMex(t, n_steps, show_number_of_processors)
 
 % Christian Gaser
 % $Id: tfceMex.m 224 2009-12-02 23:39:15Z gaser $
@@ -14,6 +14,6 @@ cd(pth);
 mex -O tfceMex.c
 cd(p_path);
 
-tfce = tfceMex(t, n_steps);
+tfce = tfceMex(t, n_steps, show_number_of_processors);
 
 return

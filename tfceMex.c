@@ -111,8 +111,9 @@ void tfce(double *inData, double *outData, int numSteps, const int *dims)
 {
 #ifdef OPENMP
     /* this is faster than the default setting to the # of processors */
+    omp_set_dynamic(0);
     omp_set_num_threads(numSteps);
-    # pragma omp parallel for private(thresh) shared(outData) 
+    # pragma omp parallel for default(shared) private(i,thresh)
 #endif
     for (i = 0; i < numSteps; i++)
     {
@@ -131,7 +132,7 @@ int numSteps, ndim;
 const int *dims;
 
 /* check inputs */
-if (nrhs!=2)
+if (nrhs<2)
   mexErrMsgTxt("2 inputs required.");
 else if (nlhs>2)
   mexErrMsgTxt("Too many output arguments.");
@@ -150,6 +151,11 @@ dims = mxGetDimensions(prhs[0]);
 
 /* get parameters */
 numSteps = (int)(mxGetScalar(prhs[1]));
+
+#ifdef OPENMP
+    omp_set_dynamic(0);
+    if (nrhs>2) fprintf(stdout,"%d processors found\n",omp_get_num_procs());
+#endif
 
 /*Allocate memory and assign output pointer*/
 plhs[0] = mxCreateNumericArray(ndim,dims,mxDOUBLE_CLASS, mxREAL);

@@ -222,3 +222,12 @@ M      tfceMex.mexmaci
 (2) Updated make.m to provide compilations for different systems.
 ------------------------------------------------------------------------
 r24 | gaser | 2010-08-11 17:22:15
+
+M      cg_tfce_estimate.m
+M      tfceMex.c
+M      tfceMex.m
+M      tfceMex.mexmaci64
+
+Added option to print # of processors in tfceMex.c
+------------------------------------------------------------------------
+r25 | gaser | 2010-08-13 12:37:05

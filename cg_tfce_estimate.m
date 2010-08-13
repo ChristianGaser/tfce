@@ -190,7 +190,11 @@ end
 t0 = calc_glm(VY,X,c,Vmask,vFWHM,TH,W);
 
 % calculate tfce of unpermuted t-map
-tfce0 = tfceMex(t0, n_steps_tfce,1);
+try
+    tfce0 = tfceMex(t0, n_steps_tfce,1);
+catch
+    tfce0 = tfceMex(t0, n_steps_tfce);
+end
 
 % get largest tfce
 tfce0_min = min(tfce0(:));

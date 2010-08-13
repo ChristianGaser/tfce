@@ -231,3 +231,9 @@ M      tfceMex.mexmaci64
 Added option to print # of processors in tfceMex.c
 ------------------------------------------------------------------------
 r25 | gaser | 2010-08-13 12:37:05
+
+M      cg_tfce_estimate.m
+
+Use try-command for calling tfceMex because compilations are not yet ready.
+------------------------------------------------------------------------
+r26 | gaser | 2010-08-13 12:39:17

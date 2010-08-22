@@ -237,3 +237,9 @@ M      cg_tfce_estimate.m
 Use try-command for calling tfceMex because compilations are not yet ready.
 ------------------------------------------------------------------------
 r26 | gaser | 2010-08-13 12:39:17
+
+M       tfceMex.c
+
+Updated OPENMP-flags in tfceMex.c
+------------------------------------------------------------------------
+r27 | gaser | 2010-08-23 01:35:12

@@ -8,7 +8,7 @@
 #include "mex.h"
 #include <stdlib.h>
 
-#ifdef OPENMP
+#ifdef _OPENMP
 #include "omp.h"
 #endif
 
@@ -109,10 +109,9 @@ void tfce(double *inData, double *outData, int numSteps, const int *dims)
    thresh0 = delta/2.0;
 
 {
-#ifdef OPENMP
+#ifdef _OPENMP
     /* this is faster than the default setting to the # of processors */
-    omp_set_dynamic(0);
-    omp_set_num_threads(numSteps);
+    omp_set_num_threads(2*omp_get_num_procs());
     # pragma omp parallel for default(shared) private(i,thresh)
 #endif
     for (i = 0; i < numSteps; i++)
@@ -152,7 +151,7 @@ dims = mxGetDimensions(prhs[0]);
 /* get parameters */
 numSteps = (int)(mxGetScalar(prhs[1]));
 
-#ifdef OPENMP
+#ifdef _OPENMP
     omp_set_dynamic(0);
     if (nrhs>2) fprintf(stdout,"%d processors found\n",omp_get_num_procs());
 #endif

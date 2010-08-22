@@ -53,17 +53,17 @@ eval(['mex ' WIN32 ' -O cg_glm_get_Beta_ResSS.c utils_uchar.' mexext obj ' utils
 
 try % try OpenMP support
     if strcmp(mexext,'mexmaci64')
-        mex CC='gcc-4.2' CFLAGS='-fopenmp -m64 -fPIC -O3' -O -DOPENMP -lgomp tfceMex.c
+        mex CC='gcc-4.2' CFLAGS='-fopenmp -m64 -fPIC -O3' -O -lgomp tfceMex.c
     elseif strcmp(mexext,'mexmaci')
-        mex CC='gcc-4.2' CFLAGS='-fopenmp -m32 -fPIC -O3' -O -DOPENMP -lgomp tfceMex.c
+        mex CC='gcc-4.2' CFLAGS='-fopenmp -m32 -fPIC -O3' -O -lgomp tfceMex.c
     elseif strcmp(mexext,'mexa64')
-        mex CFLAGS='-fopenmp -m64 -fPIC -O3' -O -DOPENMP -lgomp tfceMex.c
+        mex CFLAGS='-fopenmp -m64 -fPIC -O3' -O -lgomp tfceMex.c
     elseif strcmp(mexext,'mexglx')
-        mex CFLAGS='-fopenmp -m32 -fPIC -O3' -O -DOPENMP -lgomp tfceMex.c
+        mex CFLAGS='-fopenmp -m32 -fPIC -O3' -O -lgomp tfceMex.c
     elseif strcmp(mexext,'mexw64')
-        mex CFLAGS='-fopenmp m64 -fPIC -O3' -O -DOPENMP tfceMex.c
+        mex CFLAGS='-fopenmp m64 -fPIC -O3' -O tfceMex.c
     elseif strcmp(mexext,'mexw32')
-        mex CFLAGS='-fopenmp m32 -fPIC -O3' -O -DOPENMP tfceMex.c
+        mex CFLAGS='-fopenmp m32 -fPIC -O3' -O tfceMex.c
     end
     disp('Compiling tfceMex with OpenMP')
 catch 

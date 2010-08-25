@@ -243,3 +243,9 @@ M       tfceMex.c
 Updated OPENMP-flags in tfceMex.c
 ------------------------------------------------------------------------
 r27 | gaser | 2010-08-23 01:35:12
+
+M      cg_tfce_estimate.m
+
+Some cosmetic changes to cg_tfce_estimate.m.
+------------------------------------------------------------------------
+r28 | gaser | 2010-08-25 10:33:51

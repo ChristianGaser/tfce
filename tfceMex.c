@@ -153,7 +153,7 @@ numSteps = (int)(mxGetScalar(prhs[1]));
 
 #ifdef _OPENMP
     omp_set_dynamic(0);
-    if (nrhs>2) fprintf(stdout,"%d processors found\n",omp_get_num_procs());
+    if (nrhs>2) printf("%d processors found\n",omp_get_num_procs());
 #endif
 
 /*Allocate memory and assign output pointer*/

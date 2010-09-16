@@ -249,3 +249,14 @@ M      cg_tfce_estimate.m
 Some cosmetic changes to cg_tfce_estimate.m.
 ------------------------------------------------------------------------
 r28 | gaser | 2010-08-25 10:33:51
+
+M      tfceMex.mexw64
+M      cg_glm_get_Beta_ResSS.mexw32
+M      tfceMex.c
+M      tfceMex.mexw32
+M      cg_glm_get_Beta_ResSS.mexw64
+
+Replaced fprintf by printf in tfceMex.c for correct windows output.
+
+------------------------------------------------------------------------
+r29 | gaser | 2010-09-16 22:06:50

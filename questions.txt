@@ -1,0 +1,1 @@
+The one-sided p-value of the test is calculated as the proportion of sampled permutations where the difference in means was greater than or equal to T(obs). The two-sided p-value of the test is calculated as the proportion of sampled permutations where the absolute difference was greater than or equal to ABS(T(obs)).

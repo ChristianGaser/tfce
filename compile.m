@@ -53,13 +53,21 @@ eval(['mex ' WIN32 ' -O cg_glm_get_Beta_ResSS.c utils_uchar.' mexext obj ' utils
 
 try % try OpenMP support
     if strcmp(mexext,'mexmaci64')
-        mex CC='gcc-4.2' CFLAGS='-fopenmp -m64 -fPIC -O3' -O -lgomp tfceMex.c
+        mex CC='gcc-4.2' CFLAGS='-m64 -fPIC -O3' -O tfceMex.c
+        movefile(['tfceMex.' mexext], ['tfceMex_noopenmp.' mexext],'f');
+        mex CC='gcc-4.2' CFLAGS='-fopenmp -m64 -fPIC -O3' -O /usr/local/lib/x86_64/libgomp.a tfceMex.c 
     elseif strcmp(mexext,'mexmaci')
-        mex CC='gcc-4.2' CFLAGS='-fopenmp -m32 -fPIC -O3' -O -lgomp tfceMex.c
+        mex CC='gcc-4.2' CFLAGS='-m32 -fPIC -O3' -O tfceMex.c
+        movefile(['tfceMex.' mexext], ['tfceMex_noopenmp.' mexext],'f');
+        mex CC='gcc-4.2' CFLAGS='-fopenmp -m32 -fPIC -O3' -O /usr/local/lib/x86/libgomp.a tfceMex.c 
     elseif strcmp(mexext,'mexa64')
+        mex CFLAGS='-m64 -fPIC -O3' -O tfceMex.c
+        movefile(['tfceMex.' mexext], ['tfceMex_noopenmp.' mexext],'f');
         mex CFLAGS='-fopenmp -m64 -fPIC -O3' -O -lgomp tfceMex.c
     elseif strcmp(mexext,'mexglx')
-        mex CFLAGS='-fopenmp -m32 -fPIC -O3' -O -lgomp tfceMex.c
+        mex CFLAGS='-m32 -fPIC -O3' -O tfceMex.c
+        movefile(['tfceMex.' mexext], ['tfceMex_noopenmp.' mexext],'f');
+        mex CFLAGS='-fopenmp -m32 -fPIC -O3' -O /usr/lib/gcc/i486-linux-gnu/4.4/libgomp.a tfceMex.c 
     elseif strcmp(mexext,'mexw64')
         mex CFLAGS='-fopenmp m64 -fPIC -O3' -O tfceMex.c
     elseif strcmp(mexext,'mexw32')
@@ -69,4 +77,11 @@ try % try OpenMP support
 catch 
     disp('Compiling tfceMex without OpenMP')
     mex CFLAGS='-fPIC -O3' -O tfceMex.c 
+end
+
+try
+    tfceMex(single(rand(10,10,10)),5);
+    disp('Compilation of tfceMex successful')
+catch
+    disp('Compilation of tfceMex not successful')
 end

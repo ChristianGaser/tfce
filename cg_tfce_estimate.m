@@ -200,7 +200,7 @@ try
     % print information about number of processors found
     tfce0 = tfceMex(t0, n_steps_tfce, 1);
 catch
-    tfce0 = tfceMex(t0, n_steps_tfce);
+    tfce0 = tfceMex_noopenmp(t0, n_steps_tfce);
 end
 
 % get largest tfce
@@ -328,8 +328,11 @@ while(i < n_perm)
   end
 
   % compute tfce
-  tfce = tfceMex(t, n_steps_tfce);
-
+  try
+      tfce = tfceMex(t, n_steps_tfce);
+  catch
+      tfce = tfceMex_noopenmp(t, n_steps_tfce);
+  end  
   tfce_max = [tfce_max max(tfce(:))];
   t_max   = [t_max max(t(:))];
   

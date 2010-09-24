@@ -260,3 +260,12 @@ Replaced fprintf by printf in tfceMex.c for correct windows output.
 
 ------------------------------------------------------------------------
 r29 | gaser | 2010-09-16 22:06:50
+
+M       cg_tfce_estimate.m
+M       questions.txt
+A  +    compile.m
+D       make.m
+
+Updated compile.m to additionally provide a single-threaded version of ifceMex.
+------------------------------------------------------------------------
+r30 | gaser | 2010-09-24 23:41:01

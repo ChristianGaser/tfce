@@ -472,8 +472,47 @@ if isempty(Q)
     warning(sprintf('No voxels survive height threshold u=%0.2g',u))
 end
 
-% no cluster threshold allowed
-k = 0;
+%-Extent threshold (disallowed for conjunctions)
+%--------------------------------------------------------------------------
+if ~isempty(XYZ) && nc == 1
+
+    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...extent threshold')  %-#
+    
+    %-Get extent threshold [default = 0]
+    %----------------------------------------------------------------------
+    if STAT == 'T'
+        try
+            k = xSPM.k;
+        catch
+            k = spm_input('& extent threshold {voxels}','+1','r',0,1,[0,Inf]);
+        end
+    else
+        k = 0;
+    end
+    
+    %-Calculate extent threshold filtering
+    %----------------------------------------------------------------------
+    A     = spm_clusters(XYZ);
+    Q     = [];
+    for i = 1:max(A)
+        j = find(A == i);
+        if length(j) >= k; Q = [Q j]; end
+    end
+
+    % ...eliminate voxels
+    %----------------------------------------------------------------------
+    Z     = Z(:,Q);
+    XYZ   = XYZ(:,Q);
+    if isempty(Q)
+        fprintf('\n');                                                  %-#
+        warning(sprintf('No voxels survive extent threshold k=%0.2g',k))
+    end
+
+else
+
+    k = 0;
+
+end % (if ~isempty(XYZ))
 
 %==========================================================================
 % - E N D

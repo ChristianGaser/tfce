@@ -192,6 +192,9 @@ if nargin < 5
   vFWHM  = spm_input('Variance smoothing (for low DFs) ','+1','e',0);
 end
 
+W = sparse(eye(length(W)));
+warning('Whitening is not considered!');
+
 % compute unpermuted t-map
 t0 = calc_glm(VY,X,c,Vmask,vFWHM,TH,W);
 

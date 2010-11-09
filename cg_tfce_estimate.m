@@ -48,7 +48,7 @@ catch
 end
 
 % check that no temporal filter was used
-if length(SPM.xX) > 1
+if isstruct(SPM.xX.K)
   error('No first level analysis with temporal correlations allowed');
 end
 
@@ -57,6 +57,7 @@ if isfield(SPM.xX,'W')
   W = SPM.xX.W;
   if any(W>1)
     warning('Whitening of the data is probably not working');
+    W = speye(size(SPM.xX.X,1));
   end
 else
   W = speye(size(SPM.xX.X,1));
@@ -69,24 +70,22 @@ X  = SPM.xX.X;
 % threshold vector
 TH = SPM.xM.TH;
 
-% select contrasts
 if nargin < 3
   [Ic,xCon] = spm_conman(SPM,'T',1,...
         '  Select contrasts...',' for conjunction',1);
 end
 
-% check whether more than 1 contrast were selected
 if length(Ic) > 1
   error('No conjunction allowed.');
 end
 
-% get contrast vector and find zero values in contrast
+% get contrast and find zero values in contrast
 c = xCon(Ic).c;
 ind_con = find(c~=0);
 c_name = deblank(xCon(Ic).name);
 
 % find exchangeability blocks using contrasts without zero values
-unique_con   = unique(c(ind_con));
+unique_con  = unique(c(ind_con));
 n_unique_con = length(unique_con);
 
 % check for exchangeability blocks and design matrix
@@ -110,7 +109,6 @@ switch n_unique_con
     error('Maximal two exchangeability blocks allowed.')
 end
 
-% find index of unique contrasts
 ind_unique_con = cell(n_unique_con,1);
 for j=1:n_unique_con
   ind_unique_con{j} = find(c==unique_con(j));
@@ -118,7 +116,7 @@ end
 
 n_subj = size(X,1);
 
-% check design and prepare labels
+% check design
 switch n_cond
 case 0 % correlation
   fprintf('Correlational design found\n');
@@ -148,11 +146,9 @@ fprintf('\n')
 % get index for label values > 0
 ind_label = find(label > 0);
 
-% estimate for how many subjects a contrast is defined
-% important e.g. for (reduced) Anova designs, where not all subjects are tested
-n_subj_with_contrast = length(ind_label);
+n_subj_with_contrast = length(find(label > 0));
 
-% estimate number of permutations
+% estimate # of permutations
 % Anova/correlation: n_perm = (n1+n2+...+nk)!/(n1!*n2!*...*nk!)
 if n_cond ~=1  % Anova/correlation
   n_perm = factorial(n_subj_with_contrast);
@@ -173,7 +169,7 @@ if ~exist(maskname)
 end
 Vmask = spm_vol(maskname);
 
-% if first image was not found you have to select all files
+% if first image was not found you have to select all files again
 if ~exist(VY(1).fname);
   P = spm_select(size(SPM.xY.VY,1),'image','select images');
   VY = spm_vol(P);
@@ -186,8 +182,6 @@ if nargin < 4
 else
   n_perm = min([n_perm n_perm_max]);
 end
-
-% variance smooting for low DF's
 if nargin < 5
   vFWHM  = spm_input('Variance smoothing (for low DFs) ','+1','e',0);
 end
@@ -200,10 +194,9 @@ t0 = calc_glm(VY,X,c,Vmask,vFWHM,TH,W);
 
 % calculate tfce of unpermuted t-map
 try
-    % print information about number of processors found
-    tfce0 = tfceMex(t0, n_steps_tfce, 1);
+    tfce0 = tfceMex(t0, n_steps_tfce,1);
 catch
-    tfce0 = tfceMex_noopenmp(t0, n_steps_tfce);
+    tfce0 = tfceMex(t0, n_steps_tfce);
 end
 
 % get largest tfce
@@ -217,14 +210,14 @@ tfce_bins = linspace(0, max(abs(tfce0(:))), n_hist_bins);
 t_bins    = linspace(0, max(abs(t0(:))), n_hist_bins);
 
 % prepare countings
-t_hist      = zeros(1, n_hist_bins);
-tfce_hist   = zeros(1, n_hist_bins);
-t_max       = [];
-t_max_th    = [];
-t_th        = [];
-tfce_max    = [];
+t_hist = zeros(1, n_hist_bins);
+tfce_hist = zeros(1, n_hist_bins);
+t_max    = [];
+t_max_th  = [];
+t_th = [];
+tfce_max  = [];
 tfce_max_th = [];
-tfce_th     = [];
+tfce_th = [];
 rand_vector = [];
 
 % general initialization
@@ -243,7 +236,7 @@ text(0.5,0.5,c_name,...
 
 % check that label has correct dimension
 sz = size(label);
-if sz(1) > sz(2)
+if sz(1)>sz(2)
   label = label';
 end
 
@@ -255,7 +248,6 @@ cg_progress('Init',n_perm,'Calculating','Permutations')
 % update interval for progress bar
 progress_step = max([1 round(n_perm/1000)]);
 
-% permutation loop
 while(i < n_perm)
 
   % add Stop button after 20 iterations
@@ -266,11 +258,11 @@ while(i < n_perm)
       'string','Stop',...
       'backgroundcolor',[1 .5 .5]); % light-red
   end
-  
-  % check Stop status
   if i>=20
     stopStatus = get(hStopButton,'value');
   end
+  
+  % check Stop status
   if (stopStatus == true)
     fprintf('Stopped after %d iterations.\n',i);
     break; % stop the permutation loop
@@ -324,18 +316,15 @@ while(i < n_perm)
   else
     % -----------------------------------------------------
     % -----------------------------------------------------
-% What about W for whitening the data??? Should this also permuted???
+  % What about W for whitening the data??? Should this also permuted???
     % -----------------------------------------------------
     % -----------------------------------------------------
     t = calc_glm(VY,Xperm,c,Vmask,vFWHM,TH,W);
   end
 
   % compute tfce
-  try
-      tfce = tfceMex(t, n_steps_tfce);
-  catch
-      tfce = tfceMex_noopenmp(t, n_steps_tfce);
-  end  
+  tfce = tfceMex(t, n_steps_tfce);
+
   tfce_max = [tfce_max max(tfce(:))];
   t_max   = [t_max max(t(:))];
   
@@ -343,19 +332,20 @@ while(i < n_perm)
   if ~isempty(tfce_gt0)
       tfce_hist = tfce_hist + hist(tfce_gt0, tfce_bins);
   end
-  t_gt0 = t(find(t>0));
+  t_gt0 = t(find(tfce>0));
   if ~isempty(t_gt0)
-      t_hist = t_hist + hist(t_gt0, t_bins);
+      t_hist = t_hist + hist(t(find(t>0)), t_bins);
   end
   
   % use cummulated sum to find threshold
   tfce_max = sort(tfce_max);
-  t_max    = sort(t_max);
+  t_max   = sort(t_max);
 
   % find corrected thresholds
-  ind_max  = ceil((1-alpha).*length(t_max));
+  ind_max = ceil((1-alpha).*length(t_max));
   t_max_th = [t_max_th; t_max(ind_max);];
-  ind_max     = ceil((1-alpha).*length(tfce_max));
+  
+  ind_max = ceil((1-alpha).*length(tfce_max));
   tfce_max_th = [tfce_max_th; tfce_max(ind_max);];
         
   % plot thresholds and histograms
@@ -378,7 +368,6 @@ while(i < n_perm)
     end
   end
     
-  % update progress information
   if ~rem(i,progress_step)
     cg_progress('Set',i)
     spm_progress_bar('Set',i);
@@ -395,9 +384,8 @@ spm_print
 % corrected threshold based on permutation distribution
 %---------------------------------------------------------------
 
-% use last estimated threshold values
 tfce_max_th_final = tfce_max_th(end,:);
-t_max_th_final    = t_max_th(end,:);
+t_max_th_final  = t_max_th(end,:);
 
 % allow thresholds depending on # of permutations
 n_alpha = 3;
@@ -405,7 +393,6 @@ sz_val_max = length(tfce_max);
 if sz_val_max < 1000, n_alpha = 2; end
 if sz_val_max <  100, n_alpha = 1; end
 
-% get final number of permutations
 n_perm = length(tfce_max);
 
 % pepare output files
@@ -422,8 +409,6 @@ else
   Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
 end
 spm_write_vol(Vt,tfce0);
-
-% save final number of permutations
 fid = fopen(fullfile(cwd,[name '.txt']),'w');
 fprintf(fid,'%d\n',n_perm);
 fclose(fid);
@@ -509,8 +494,8 @@ end
 spm_write_vol(Vt,uncorrP);
 
 return
-
 %---------------------------------------------------------------
+
 function plot_distribution(val_max,val_th,name,alpha,col,order,val0_min,val0_max)
 
 corr = 1;
@@ -673,4 +658,37 @@ for j=1:Vm.dim(3),
   pXY = reshape(pXY,[Vm.dim(1:2) m]);
   beta(:,:,j,:) = double(pXY);
  end
+end
+
+function [str] = estimate(t)
+% Gives an appropriately unitized string of a duration in seconds.
+%
+% [STR] = ESTIMATE(T)
+%
+
+% License:
+%=====================================================================
+%
+% This is part of the Princeton MVPA toolbox, released under
+% the GPL. See http://www.csbmb.princeton.edu/mvpa for more
+% information.
+% 
+% The Princeton MVPA toolbox is available free and
+% unsupported to those who might find it useful. We do not
+% take any responsibility whatsoever for any problems that
+% you have related to the use of the MVPA toolbox.
+%
+% ======================================================================
+minutes = t./60;
+hours = t./3600;
+days = hours./24;
+
+if days > 1
+  str = sprintf('%d days %02.1f hr', floor(days),24*(days-floor(days)));
+elseif hours > 1
+  str = sprintf('%d:%02.0f hr', floor(hours),60*(hours-floor(hours)));
+elseif minutes > 1
+  str = sprintf('%d:%02.0f min',floor(minutes),60*(minutes-floor(minutes)));
+else
+  str = sprintf('%02.1f sec',t);
 end

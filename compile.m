@@ -69,8 +69,12 @@ try % try OpenMP support
         movefile(['tfceMex.' mexext], ['tfceMex_noopenmp.' mexext],'f');
         mex CFLAGS='-fopenmp -m32 -fPIC -O3' -O /usr/lib/gcc/i486-linux-gnu/4.4/libgomp.a tfceMex.c 
     elseif strcmp(mexext,'mexw64')
+        mex CFLAGS='-m64 -fPIC -O3' -O tfceMex.c
+        movefile(['tfceMex.' mexext], ['tfceMex_noopenmp.' mexext],'f');
         mex CFLAGS='-fopenmp m64 -fPIC -O3' -O tfceMex.c
     elseif strcmp(mexext,'mexw32')
+        mex CFLAGS='-m32 -fPIC -O3' -O tfceMex.c
+        movefile(['tfceMex.' mexext], ['tfceMex_noopenmp.' mexext],'f');
         mex CFLAGS='-fopenmp m32 -fPIC -O3' -O tfceMex.c
     end
     disp('Compiling tfceMex with OpenMP')
@@ -80,7 +84,7 @@ catch
 end
 
 try
-    tfceMex(single(rand(10,10,10)),5);
+    tfceMex(rand(10,10,10),5);
     disp('Compilation of tfceMex successful')
 catch
     disp('Compilation of tfceMex not successful')

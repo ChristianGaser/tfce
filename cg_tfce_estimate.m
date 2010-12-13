@@ -196,7 +196,7 @@ t0 = calc_glm(VY,X,c,Vmask,vFWHM,TH,W);
 try
     tfce0 = tfceMex(t0, n_steps_tfce,1);
 catch
-    tfce0 = tfceMex_noopen(t0, n_steps_tfce);
+    tfce0 = tfceMex_noopenmp(t0, n_steps_tfce);
 end
 
 % get largest tfce
@@ -326,7 +326,7 @@ while(i < n_perm)
   try
     tfce = tfceMex(t, n_steps_tfce);
   catch
-    tfce = tfceMex_noopen(t, n_steps_tfce);
+    tfce = tfceMex_noopenmp(t, n_steps_tfce);
   end  
 
   tfce_max = [tfce_max max(tfce(:))];

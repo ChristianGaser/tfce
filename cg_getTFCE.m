@@ -377,8 +377,9 @@ catch
 end
 
 z_name  = fullfile(swd, sprintf('spm%s_%04d.img',stattype,Ic));
-Pz_name = fullfile(swd, sprintf('%s_P_%04d.img',stattype,Ic));
-Pu_name = fullfile(swd, sprintf('%s_corrP_%04d.img',stattype,Ic));
+Pz_name = fullfile(swd, sprintf('%s_log_p_%04d.img',stattype,Ic));
+Pu_name = fullfile(swd, sprintf('%s_log_pFWE_%04d.img',stattype,Ic));
+Qu_name = fullfile(swd, sprintf('%s_log_pFDR_%04d.img',stattype,Ic));
 
 % check that statistic for this contrast was estimated
 if ~exist(Pz_name)
@@ -393,19 +394,28 @@ if ~exist(Pz_name)
   end
 end
 
+VQu = spm_vol(Qu_name);
 VPu = spm_vol(Pu_name);
 VPz = spm_vol(Pz_name);
 Vz  = spm_vol(z_name);
 
 %-Compute SPM
 %--------------------------------------------------------------------------
+Qu = spm_get_data(VQu,XYZ);
 Pu = spm_get_data(VPu,XYZ);
 Pz = spm_get_data(VPz,XYZ);
-Z = spm_get_data(Vz,XYZ);
+Z  = spm_get_data(Vz,XYZ);
+
+% convert from -log10
+Qu = 1 - 10.^-Qu;
+Pu = 1 - 10.^-Pu;
+Pz = 1 - 10.^-Pz;
 
 switch thresDesc
     case 'FWE' 
         Zp = Pu;
+    case 'FDR' 
+        Zp = Qu;
     otherwise
         Zp = Pz;
 end
@@ -438,8 +448,6 @@ if STAT ~= 'P'
         %------------------------------------------------------------------
         u = spm_input('p value (FDR)','+0','r',0.05,1,[0,1]);
         thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
-        u = spm_uc_FDR(u,df,'P',n,sort(Zp'));
-        warning('FDR not yet working');
         u = 1 - u;
         
         case 'none'  % No adjustment
@@ -464,6 +472,7 @@ Q      = find(Zp > u);
 %-Apply height threshold
 %--------------------------------------------------------------------------
 Z      = Z(:,Q);
+Qu     = Qu(:,Q);
 Pu     = Pu(:,Q);
 Pz     = Pz(:,Q);
 XYZ    = XYZ(:,Q);
@@ -525,6 +534,7 @@ xSPM   = struct( ...
         'swd',      swd,...
         'title',    titlestr,...
         'Z',        Z,...
+        'Qu',       Qu,...
         'Pu',       Pu,...
         'Pz',       Pz,...
         'n',        n,...

@@ -390,15 +390,17 @@ switch lower(varargin{1}), case 'list'                            %-List
     Z             = Z - minz - 1;
     
     % find corresponding p-values for Z
+    Qu = zeros(size(Z));
     Pz = zeros(size(Z));
     Pu = zeros(size(Z));
     for i=1:length(Z)
       ind = min(find(Z(i)==varargin{2}.Z));
       if isempty(ind)
-      warning('warning');
+        warning('warning');
       end
       Pz(i) = 1 - varargin{2}.Pz(ind);
       Pu(i) = 1 - varargin{2}.Pu(ind);
+      Qu(i) = 1 - varargin{2}.Qu(ind);
     end
 
     %-Convert cluster sizes from voxels (N) to resels (K)
@@ -487,7 +489,6 @@ switch lower(varargin{1}), case 'list'                            %-List
         %-Compute cluster {k} and peak-level {u} p values for this cluster
         %------------------------------------------------------------------
         if STAT ~= 'P'
-            Qu      = [];
             Pk      = [];
             Pn      = [];
             Qc      = [];
@@ -529,10 +530,10 @@ switch lower(varargin{1}), case 'list'                            %-List
             'UserData',Pu(i),'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
         if topoFDR
-        h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qp),'FontWeight','Bold',...
+            h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qp),'FontWeight','Bold',...
             'UserData',Qp,'ButtonDownFcn','get(gcbo,''UserData'')');
         else
-        h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu),'FontWeight','Bold',...
+            h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu),'FontWeight','Bold',...
             'UserData',Qu,'ButtonDownFcn','get(gcbo,''UserData'')');
         end
         hPage = [hPage, h];
@@ -622,11 +623,11 @@ switch lower(varargin{1}), case 'list'                            %-List
                     hPage = [hPage, h];
 
                     if topoFDR
-                    h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qp),...
+                        h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qp),...
                         'UserData',Qp,...
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     else
-                    h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu),...
+                        h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu),...
                         'UserData',Qu,...
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     end
@@ -668,11 +669,11 @@ switch lower(varargin{1}), case 'list'                            %-List
                     D     = [D d];
                     y     = y - dy;
                     if topoFDR
-                    [TabDat.dat{TabLin,7:12}] = ...
-                        deal(Pu(d),Qp,Z(d),Ze,Pz(d),XYZmm(:,d));
+                        [TabDat.dat{TabLin,7:12}] = ...
+                            deal(Pu(d),Qp,Z(d),Ze,Pz(d),XYZmm(:,d));
                     else
-                    [TabDat.dat{TabLin,7:12}] = ...
-                        deal(Pu(d),Qu,Z(d),Ze,Pz(d),XYZmm(:,d));
+                        [TabDat.dat{TabLin,7:12}] = ...
+                            deal(Pu(d),Qu,Z(d),Ze,Pz(d),XYZmm(:,d));
                     end
                     TabLin = TabLin+1;
                 end

@@ -1,0 +1,91 @@
+
+M      cg_tfce_estimate.m
+M      cg_getTFCE.m
+D      CHANGES.txt
+M      tfceMex.mexmaci64
+
+Disabled whitening because of weird effects.
+------------------------------------------------------------------------
+r31 | gaser | 2010-10-13 17:23:20
+
+M      Makefile.tfce
+
+Removed make.m from svn.
+
+------------------------------------------------------------------------
+r32 | gaser | 2010-11-09 23:55:39
+
+M      cg_tfce_estimate.m
+
+Use now check that SPM.xX.K is a structure to decide that the model is a first-
+level analysis with temporal autocorrelations.
+
+
+------------------------------------------------------------------------
+r33 | gaser | 2010-11-09 23:56:19
+
+M      cg_tfce_estimate.m
+M      tfceMex.mexw64
+M      cg_glm_get_Beta_ResSS.mexw32
+A      tfceMex_noopenmp.mexw64
+A      tfceMex_noopenmp.mexmaci64
+M      cg_glm_get_Beta_ResSS.mexglx
+M      tfceMex.mexw32
+M      tfceMex.mexmaci64
+A      tfceMex_noopenmp.mexmaci
+M      cg_glm_get_Beta_ResSS.mexw64
+A      tfceMex_noopenmp.mexw32
+M      tfceMex.mexa64
+M      tfceMex.mexglx
+A      tfceMex_noopenmp.mexa64
+A      tfceMex_noopenmp.mexglx
+M      tfceMex.mexmaci
+
+Additionally provide tfceMex without multi-threading.
+------------------------------------------------------------------------
+r34 | gaser | 2010-12-13 10:20:00
+
+M      Makefile.tfce
+
+Updated Makefile.tfce to consider new files tfceMex_noopen.mex*
+------------------------------------------------------------------------
+r35 | gaser | 2010-12-13 10:32:46
+
+M      Makefile.tfce
+
+Updated Makefile.tfce to consider new files tfceMex_noopen.mex*
+------------------------------------------------------------------------
+r36 | gaser | 2010-12-13 10:34:38
+
+M      cg_tfce_estimate.m
+
+Corrected typo in cg_tfce_estimate.m.
+------------------------------------------------------------------------
+r37 | gaser | 2010-12-13 15:01:08
+
+M      cg_tfce_list.m
+M      cg_tfce_estimate.m
+M      tfceMex.mexw64
+M      cg_glm_get_Beta_ResSS.mexw32
+M      tfceMex_noopenmp.mexw64
+M      tfceMex.mexw32
+A      snpm_P_FDR.m
+M      cg_getTFCE.m
+M      cg_glm_get_Beta_ResSS.mexw64
+M      tfceMex_noopenmp.mexw32
+
+New claculation of p-values based on snpm8b.
+------------------------------------------------------------------------
+r38 | gaser | 2011-02-25 17:12:25
+
+M      cg_tfce_list.m
+M      cg_tfce_estimate.m
+M      Makefile.tfce
+M      cg_getTFCE.m
+A      CHANGES.txt
+M      cg_tfce_results.m
+
+Rather use old estimation of uncorrected p-values, because SnPM and
+randomize cause uncorrect p-values.
+------------------------------------------------------------------------
+r40 | gaser | 2011-02-28 17:04:09

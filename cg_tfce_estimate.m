@@ -1,7 +1,14 @@
-function cg_tfce_estimate(SPM, Ic, xCon, n_perm_max, vFWHM, n_perm_break)
+function cg_tfce_estimate(SPM, Ic, xCon, n_perm, vFWHM, n_perm_break)
+
+% do not use fast method from SnPM and randomize, which is fast, but causes uncorrect p-values
+use_fast_uncorr = 0;
 
 % define stepsize for tfce
 n_steps_tfce = 100;
+
+% define histogram bins
+% use value > 1000 to reliable estimate p<0.001 levels
+n_hist_bins = 1100;
 
 % colors and alpha levels
 col   = [0 0 1; 0 0.5 0; 1 0 0];
@@ -84,7 +91,8 @@ ind_con = find(c~=0);
 c_name  = deblank(xCon(Ic).name);
 
 % find exchangeability blocks using contrasts without zero values
-unique_con   = unique(c(ind_con));
+[unique_con, I, J]   = unique(c(ind_con));
+unique_con = unique_con(J);
 n_unique_con = length(unique_con);
 
 % check for exchangeability blocks and design matrix
@@ -195,7 +203,7 @@ clear SPM
 if nargin < 4
   n_perm = spm_input('How many permutations? ',1,'r',n_perm_full,1,[10 n_perm_full]);
 else
-  n_perm = min([n_perm n_perm_max]);
+  n_perm = min([n_perm n_perm_full]);
 end
 if nargin < 5
   vFWHM  = spm_input('Variance smoothing (for low DFs) ','+1','e',0);
@@ -220,7 +228,13 @@ tfce0_max = max(tfce0(:));
 t0_min  = min(t0(:));
 t0_max  = max(t0(:));
 
+% get vector for histogram bins
+tfce_bins = linspace(0, max(abs(tfce0(:))), n_hist_bins);
+t_bins    = linspace(0, max(abs(t0(:))), n_hist_bins);
+
 % prepare countings
+t_hist       = zeros(1, n_hist_bins);
+tfce_hist    = zeros(1, n_hist_bins);
 t_max        = [];
 t_max_th     = [];
 t_th         = [];
@@ -322,8 +336,10 @@ for i=1:n_perm
   if i==1
     t = t0;
     tfce = tfce0;
-    nPt = ones(size(t));
-    nPtfce = ones(size(t));
+    if use_fast_uncorr
+      nPt = ones(size(t));
+      nPtfce = ones(size(t));
+    end
   else
     % -----------------------------------------------------
     % -----------------------------------------------------
@@ -341,14 +357,26 @@ for i=1:n_perm
     end  
     
     % uncorrected p-values
-    nPt = nPt + (t>=t0);
-    nPtfce = nPtfce + (tfce>=tfce0);
+    if use_fast_uncorr
+      nPt = nPt + (t >= t0);
+      nPtfce = nPtfce + (tfce >= tfce0);
+    end
   end
 
-
+  % maximum statistic
   tfce_max = [tfce_max max(tfce(:))];
-  t_max   = [t_max max(t(:))];
+  t_max    = [t_max max(t(:))];
     
+  % cummulate histogram
+  tfce_gt0 = tfce(find(tfce>0));
+  if ~isempty(tfce_gt0)
+      tfce_hist = tfce_hist + hist(tfce_gt0, tfce_bins);
+  end
+  t_gt0 = t(find(tfce>0));
+  if ~isempty(t_gt0)
+      t_hist = t_hist + hist(t(find(t>0)), t_bins);
+  end
+  
   % use cummulated sum to find threshold
   tfce_max = sort(tfce_max);
   t_max    = sort(t_max);
@@ -391,10 +419,12 @@ spm_progress_bar('Clear')
 spm_print
 
 % get correct number of permutations in case that process was stopped
-n_perm = length(tfce_max);
+n_perm = length(tfce_max)
 
-nPt = nPt/n_perm;
-nPtfce = nPtfce/n_perm;
+if use_fast_uncorr
+  nPt = nPt/n_perm;
+  nPtfce = nPtfce/n_perm;
+end
 
 %---------------------------------------------------------------
 % corrected threshold based on permutation distribution
@@ -414,10 +444,12 @@ Vt.dt(1)    = 16;
 Vt.pinfo(1) = 1;
 
 % create mask
-mask_P = find(nPt<1);
+mask_P = find(t0~=0);
 
+%---------------------------------------------------------------
 % save unpermuted TFCE map
-name = sprintf('spmTFCE_%04d',Ic);
+%---------------------------------------------------------------
+name = sprintf('TFCE_%04d',Ic);
 Vt.fname = fullfile(cwd,[name '.img']);
 if vFWHM > 0
   Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
@@ -426,14 +458,83 @@ else
 end
 spm_write_vol(Vt,tfce0);
 
+%---------------------------------------------------------------
+% save unpermuted T map
+%---------------------------------------------------------------
+name = sprintf('T_%04d',Ic);
+Vt.fname = fullfile(cwd,[name '.img']);
+if vFWHM > 0
+  Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+else
+  Vt.descrip = sprintf('T Contrast %04d.img',Ic);
+end
+spm_write_vol(Vt,t0);
+
 % save ascii file with number of permutations
 fid = fopen(fullfile(cwd,[name '.txt']),'w');
 fprintf(fid,'%d\n',n_perm);
 fclose(fid);
 
+save all
+%---------------------------------------------------------------
+% save uncorrected p-values for TFCE
+%---------------------------------------------------------------
+fprintf('Save uncorrected p-values.\n');
+
+name = sprintf('TFCE_log_p_%04d',Ic);
+Vt.fname = fullfile(cwd,[name '.img']);
+if vFWHM > 0
+  Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+else
+  Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
+end
+
+if ~use_fast_uncorr
+  nPtfce = zeros(size(tfce0));
+
+  % estimate p-values
+  tfce_cumsum = cumsum(tfce_hist);
+  for j=n_hist_bins:-1:1
+    tmp = min(find(tfce_cumsum>=ceil(j/n_hist_bins*sum(tfce_hist))));
+    nPtfce((tfce0 >= tfce_bins(tmp)) & (nPtfce==0)) = j/n_hist_bins;
+  end
+  nPtfce(find(nPtfce==0)) = NaN;
+  nPtfce = 1 - nPtfce;
+end
+
+spm_write_vol(Vt,-log10(nPtfce));
+
+%---------------------------------------------------------------
+% save uncorrected p-values for T
+%---------------------------------------------------------------
+name = sprintf('T_log_p_%04d',Ic);
+Vt.fname = fullfile(cwd,[name '.img']);
+if vFWHM > 0
+  Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+else
+  Vt.descrip = sprintf('T Contrast %04d.img',Ic);
+end
+
+if ~use_fast_uncorr
+  nPt = zeros(size(t0));
+
+  % estimate p-values
+  t_cumsum = cumsum(t_hist);
+  for j=n_hist_bins:-1:1
+    tmp = min(find(t_cumsum>=ceil(j/n_hist_bins*sum(t_hist))));
+    nPt((t0 >= t_bins(tmp)) & (nPt==0)) = j/n_hist_bins;
+  end
+  nPt(find(nPt==0)) = NaN;
+  nPt = 1 - nPt;
+end
+
+spm_write_vol(Vt,-log10(nPt));
+
+%---------------------------------------------------------------
 % save corrected p-values for TFCE
+%---------------------------------------------------------------
 fprintf('Save corrected p-values.\n');
-corrP = ones(size(t));
+corrP = zeros(size(t));
 
 for t2 = tfce_max
 	%-FEW-corrected p is proportion of randomisation greater or
@@ -454,8 +555,10 @@ else
 end
 spm_write_vol(Vt,-log10(corrP_vol));
 
+%---------------------------------------------------------------
 % save corrected p-values for T
-corrP = ones(size(t));
+%---------------------------------------------------------------
+corrP = zeros(size(t));
 
 for t2 = t_max
 	%-FEW-corrected p is proportion of randomisation greater or
@@ -476,29 +579,9 @@ else
 end
 spm_write_vol(Vt,-log10(corrP_vol));
 
-% save uncorrected p-values for TFCE
-fprintf('Save uncorrected p-values.\n');
-
-name = sprintf('TFCE_log_p_%04d',Ic);
-Vt.fname = fullfile(cwd,[name '.img']);
-if vFWHM > 0
-  Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
-else
-  Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
-end
-spm_write_vol(Vt,-log10(nPtfce));
-
-% save uncorrected p-values for T
-name = sprintf('T_log_p_%04d',Ic);
-Vt.fname = fullfile(cwd,[name '.img']);
-if vFWHM > 0
-  Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
-else
-  Vt.descrip = sprintf('T Contrast %04d.img',Ic);
-end
-spm_write_vol(Vt,-log10(nPt));
-
+%---------------------------------------------------------------
 % save corrected FDR-values for TFCE
+%---------------------------------------------------------------
 fprintf('Save corrected FDR-values.\n');
 
 [snP_pos,I_pos]=sort(nPtfce(mask_P));
@@ -516,7 +599,9 @@ else
 end
 spm_write_vol(Vt,-log10(corrPfdr_pos_vol));
 
+%---------------------------------------------------------------
 % save corrected FDR-values for T
+%---------------------------------------------------------------
 [snP_pos,I_pos]=sort(nPt(mask_P));
 corrPfdr_pos=snpm_P_FDR([],[],'P',[],snP_pos);
 corrPfdr_pos(I_pos) = corrPfdr_pos;
@@ -700,37 +785,4 @@ for j=1:Vm.dim(3),
   pXY = reshape(pXY,[Vm.dim(1:2) m]);
   beta(:,:,j,:) = double(pXY);
  end
-end
-
-function [str] = estimate(t)
-% Gives an appropriately unitized string of a duration in seconds.
-%
-% [STR] = ESTIMATE(T)
-%
-
-% License:
-%=====================================================================
-%
-% This is part of the Princeton MVPA toolbox, released under
-% the GPL. See http://www.csbmb.princeton.edu/mvpa for more
-% information.
-% 
-% The Princeton MVPA toolbox is available free and
-% unsupported to those who might find it useful. We do not
-% take any responsibility whatsoever for any problems that
-% you have related to the use of the MVPA toolbox.
-%
-% ======================================================================
-minutes = t./60;
-hours = t./3600;
-days = hours./24;
-
-if days > 1
-  str = sprintf('%d days %02.1f hr', floor(days),24*(days-floor(days)));
-elseif hours > 1
-  str = sprintf('%d:%02.0f hr', floor(hours),60*(hours-floor(hours)));
-elseif minutes > 1
-  str = sprintf('%d:%02.0f min',floor(minutes),60*(minutes-floor(minutes)));
-else
-  str = sprintf('%02.1f sec',t);
 end

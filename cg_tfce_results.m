@@ -8,6 +8,9 @@ if nargin == 0, Action='SetUp'; else Action=varargin{1}; end
 %==========================================================================
 switch lower(Action), case 'setup'                         %-Set up results
 %==========================================================================
+    
+    spm('defaults','FMRI');
+    
     %-Initialise
     %----------------------------------------------------------------------
     SPMid      = spm('FnBanner',mfilename);

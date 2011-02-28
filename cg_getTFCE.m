@@ -376,7 +376,7 @@ catch
   n_perm = 0;
 end
 
-z_name  = fullfile(swd, sprintf('spm%s_%04d.img',stattype,Ic));
+z_name  = fullfile(swd, sprintf('%s_%04d.img',stattype,Ic));
 Pz_name = fullfile(swd, sprintf('%s_log_p_%04d.img',stattype,Ic));
 Pu_name = fullfile(swd, sprintf('%s_log_pFWE_%04d.img',stattype,Ic));
 Qu_name = fullfile(swd, sprintf('%s_log_pFDR_%04d.img',stattype,Ic));

@@ -527,7 +527,7 @@ switch lower(varargin{1}), case 'list'                            %-List
             'UserData',Qp,'ButtonDownFcn','get(gcbo,''UserData'')');
         else
             h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu(i)),'FontWeight','Bold',...
-            'UserData',Qu,'ButtonDownFcn','get(gcbo,''UserData'')');
+            'UserData',Qu(i),'ButtonDownFcn','get(gcbo,''UserData'')');
         end
         hPage = [hPage, h];
         h     = text(tCol(9),y,sprintf(TabDat.fmt{9},U),'FontWeight','Bold',...
@@ -620,7 +620,7 @@ switch lower(varargin{1}), case 'list'                            %-List
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     else
                         h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu(d)),...
-                        'UserData',Qu,...
+                        'UserData',Qu(d),...
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     end
                     hPage = [hPage, h];

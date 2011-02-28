@@ -382,35 +382,28 @@ switch lower(varargin{1}), case 'list'                            %-List
     %----------------------------------------------------------------------
     minz          = abs(min(min(varargin{2}.Z)));
     zscores       = 1 + minz + varargin{2}.Z;
-    try
-        [N Z XYZ A L] = spm_max(zscores,varargin{2}.XYZ);
-    catch
-        [N Z XYZ A] = spm_max(zscores,varargin{2}.XYZ);
-    end
-    Z             = Z - minz - 1;
+    [N Z XYZ A] = spm_max(zscores,varargin{2}.XYZ);
     
+    Z             = Z - minz - 1;
+
     % find corresponding p-values for Z
-    Qu = zeros(size(Z));
-    Pz = zeros(size(Z));
-    Pu = zeros(size(Z));
-    for i=1:length(Z)
-      ind = min(find(Z(i)==varargin{2}.Z));
-      if isempty(ind)
-        warning('warning');
-      end
-      Pz(i) = 1 - varargin{2}.Pz(ind);
-      Pu(i) = 1 - varargin{2}.Pu(ind);
-      Qu(i) = 1 - varargin{2}.Qu(ind);
-    end
+    Qu  = spm_get_data(varargin{2}.VQu,XYZ);
+    Pz  = spm_get_data(varargin{2}.VPz,XYZ);
+    Pu  = spm_get_data(varargin{2}.VPu,XYZ);
+    Qu(find(Qu<0)) = 0;
+    Pz(find(Pz<0)) = 0;
+    Pu(find(Pu<0)) = 0;
+    
+    % convert from -log10
+    Qu = 10.^-Qu;
+    Pu = 10.^-Pu;
+    Pz = 10.^-Pz;
 
     %-Convert cluster sizes from voxels (N) to resels (K)
     %----------------------------------------------------------------------
     c       = max(A);                                  %-Number of clusters
-    try
-        NONSTAT = spm_get_defaults('stats.rft.nonstat');
-    catch
-        NONSTAT = 0;
-    end
+
+    NONSTAT = 0;
     if STAT ~= 'P'
         if NONSTAT
             K     = zeros(c,1);
@@ -470,7 +463,7 @@ switch lower(varargin{1}), case 'list'                            %-List
 
             % added Fgraph term to paginate on Satellite window
             %--------------------------------------------------------------
-            h     = text(0.5,-5*dy,...
+            h     = text(0.5,-6*dy,...
                 sprintf('Page %d',spm_figure('#page',Fgraph)),...
                 'FontName',PF.helvetica,'FontAngle','Italic',...
                 'FontSize',FS(8));
@@ -533,7 +526,7 @@ switch lower(varargin{1}), case 'list'                            %-List
             h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qp),'FontWeight','Bold',...
             'UserData',Qp,'ButtonDownFcn','get(gcbo,''UserData'')');
         else
-            h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu),'FontWeight','Bold',...
+            h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu(i)),'FontWeight','Bold',...
             'UserData',Qu,'ButtonDownFcn','get(gcbo,''UserData'')');
         end
         hPage = [hPage, h];
@@ -590,7 +583,7 @@ switch lower(varargin{1}), case 'list'                            %-List
                     % Paginate if necessary
                     %------------------------------------------------------
                     if y < dy
-                        h = text(0.5,-5*dy,sprintf('Page %d',...
+                        h = text(0.5,-6*dy,sprintf('Page %d',...
                             spm_figure('#page',Fgraph)),...
                             'FontName',PF.helvetica,...
                             'FontAngle','Italic',...
@@ -604,7 +597,6 @@ switch lower(varargin{1}), case 'list'                            %-List
                     % voxel-level p values {Z}
                     %------------------------------------------------------
                     if STAT ~= 'P'
-                        Qu    = [];
                         Qp    = [];
                         if 0 
                             Ze    = spm_invNcdf(Z(d));
@@ -627,7 +619,7 @@ switch lower(varargin{1}), case 'list'                            %-List
                         'UserData',Qp,...
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     else
-                        h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu),...
+                        h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu(d)),...
                         'UserData',Qu,...
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     end
@@ -687,7 +679,7 @@ switch lower(varargin{1}), case 'list'                            %-List
     %-Changed to use Fgraph for numbering
     %----------------------------------------------------------------------
     if spm_figure('#page',Fgraph)>1
-        h = text(0.5,-5*dy,sprintf('Page %d/%d',spm_figure('#page',Fgraph)*[1,1]),...
+        h = text(0.5,-6*dy,sprintf('Page %d/%d',spm_figure('#page',Fgraph)*[1,1]),...
             'FontName',PF.helvetica,'FontSize',FS(8),'FontAngle','Italic');
         spm_figure('NewPage',[hPage,h])
     end
@@ -770,6 +762,7 @@ switch lower(varargin{1}), case 'list'                            %-List
             A         = spm_clusters(SPM.XYZ);
             j         = find(A == A(i));
             SPM.Z     = SPM.Z(j);
+            SPM.Qu    = SPM.Qu(j);
             SPM.Pu    = SPM.Pu(j);
             SPM.Pz    = SPM.Pz(j);
             SPM.XYZ   = SPM.XYZ(:,j);

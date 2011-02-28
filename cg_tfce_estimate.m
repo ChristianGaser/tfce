@@ -92,14 +92,26 @@ n_unique_con = length(unique_con);
 switch n_unique_con
   case 1 % check whether the contrast is defined at columns for condition effects
     n_cond = length(find(SPM.xX.iH==ind_con));
+    use_half_permutations = 1;
   case 2 % check whether the contrast is defined at columns for condition effects
     n_cond = 0;
+    n_subj_cond = [];
     for j=1:n_unique_con
       c_unique_con = find(c==unique_con(j));
       for k=1:length(c_unique_con)
         n_cond = n_cond + length(find(SPM.xX.iH==c_unique_con(k)));
+        n_subj_cond = [n_subj_cond sum(SPM.xX.X(:,find(SPM.xX.iH==c_unique_con(k))))];
       end
     end
+    
+    % check if sample size is equal for both conditions
+    if n_subj_cond(1) == n_subj_cond(2)
+      use_half_permutations = 1;
+      disp('Equal sample sizes: half of permutations could be used.');
+    else
+      use_half_permutations = 0;
+    end
+    
     % comparison of two regressors (=interaction) not fully tested
     if n_cond == 0
       warning('Interaction between two regressors should work, but is not yet fully tested.')
@@ -150,13 +162,13 @@ n_subj_with_contrast = length(find(label > 0));
 % estimate # of permutations
 % Anova/correlation: n_perm = (n1+n2+...+nk)!/(n1!*n2!*...*nk!)
 if n_cond ~=1  % Anova/correlation
-  n_perm = factorial(n_subj_with_contrast);
+  n_perm_full = factorial(n_subj_with_contrast);
   for i=1:n_cond
-    n_perm = n_perm/factorial(length(find(label == i)));
+    n_perm_full = n_perm_full/factorial(length(find(label == i)));
   end
-  n_perm = round(n_perm);
+  n_perm_full = round(n_perm_full);
 else  % one-sample t-test: n_perm = 2^n
-  n_perm = 2^n_subj_with_contrast;
+  n_perm_full = 2^n_subj_with_contrast;
 end
 
 VY = SPM.xY.VY;
@@ -172,12 +184,16 @@ Vmask = spm_vol(maskname);
 if ~exist(VY(1).fname);
   P = spm_select(size(SPM.xY.VY,1),'image','select images');
   VY = spm_vol(P);
+  SPM.xY.VY = VY;
+  
+  % update SPM
+  save(Pmat,'SPM');
 end
 clear SPM
 
 % choose number of permutations
 if nargin < 4
-  n_perm = spm_input('How many permutations? ',1,'r',n_perm,1,[10 n_perm]);
+  n_perm = spm_input('How many permutations? ',1,'r',n_perm_full,1,[10 n_perm_full]);
 else
   n_perm = min([n_perm n_perm_max]);
 end
@@ -205,13 +221,13 @@ t0_min  = min(t0(:));
 t0_max  = max(t0(:));
 
 % prepare countings
-t_max       = [];
-t_max_th    = [];
-t_th        = [];
-tfce_max    = [];
-tfce_max_th = [];
-tfce_th     = [];
-rand_vector = [];
+t_max        = [];
+t_max_th     = [];
+t_th         = [];
+tfce_max     = [];
+tfce_max_th  = [];
+tfce_th      = [];
+label_matrix = [];
 
 % general initialization
 Fgraph = spm_figure('GetWin','Graphics');
@@ -234,14 +250,42 @@ if sz(1)>sz(2)
 end
 
 stopStatus = false;
-i = 0;
 spm_progress_bar('Init',n_perm,'Calculating','Permutations')
 cg_progress('Init',n_perm,'Calculating','Permutations')
 
 % update interval for progress bar
 progress_step = max([1 round(n_perm/1000)]);
 
-while(i < n_perm)
+for i=1:n_perm
+
+  % randomize subject vector
+  if i==1 % first permutation is always unpermuted model
+    if n_cond == 1 % one-sample t-test
+      rand_label = ones(1,n_subj_with_contrast);
+    else % correlation or Anova
+      rand_order = 1:n_subj_with_contrast;
+      rand_label = label(ind_label(rand_order));
+    end
+  else
+    % init permutation and
+    % check that each permutation is used only once
+    if n_cond == 1 % one-sample t-test
+      rand_label = sign(randn(1,n_subj_with_contrast));
+      while any(ismember(label_matrix,rand_label,'rows'))
+        rand_label = sign(randn(1,n_subj_with_contrast));
+      end
+    else % correlation or Anova
+      rand_order = randperm(n_subj_with_contrast);
+      rand_label = label(ind_label(rand_order));
+      while any(ismember(label_matrix,rand_label,'rows'))
+        rand_order = randperm(n_subj_with_contrast);
+        rand_label = label(ind_label(rand_order));
+      end
+    end    
+  end   
+  
+  % update label_matrix and order_matrix for checking of unique permutations
+  label_matrix = [label_matrix; rand_label];
 
   % add Stop button after 20 iterations
   if i==20
@@ -260,36 +304,7 @@ while(i < n_perm)
     fprintf('Stopped after %d iterations.\n',i);
     break; % stop the permutation loop
   end
-
-  % randomize subject vector
-  if i==0 % first permutation is always unpermuted model
-    if n_cond == 1 % one-sample t-test
-      rand_label = ones(1,n_subj_with_contrast);
-    else % correlation or Anova
-      rand_order = 1:n_subj_with_contrast;
-      rand_label = label(ind_label(rand_order));
-    end
-  else
-    % init permutation and
-    % check that each permutation is used only once
-    if n_cond == 1 % one-sample t-test
-      rand_label = sign(randn(1,n_subj_with_contrast));
-      while any(ismember(rand_vector,rand_label,'rows'))
-        rand_label = sign(randn(1,n_subj_with_contrast));
-      end
-    else % correlation or Anova
-      rand_order = randperm(n_subj_with_contrast);
-      rand_label = label(ind_label(rand_order));
-      while any(ismember(rand_vector,rand_label,'rows'))
-        rand_order = randperm(n_subj_with_contrast);
-        rand_label = label(ind_label(rand_order));
-      end
-    end    
-  end   
-  
-  % update rand_vector for checking of unique permutations
-  rand_vector = [rand_vector; rand_label];
-  
+    
   % change design matrix according to permutation order
   % only permute columns, where contrast is defined
   Xperm = X;
@@ -304,7 +319,7 @@ while(i < n_perm)
   end
 
   % calculate permuted t-map
-  if i==0
+  if i==1
     t = t0;
     tfce = tfce0;
     nPt = ones(size(t));
@@ -315,13 +330,17 @@ while(i < n_perm)
     % What about W for whitening the data??? Should this also permuted???
     % -----------------------------------------------------
     % -----------------------------------------------------
+    
     t = calc_glm(VY,Xperm,c,Vmask,vFWHM,TH,W);
+    
     % compute tfce
     try
       tfce = tfceMex(t, n_steps_tfce);
     catch
       tfce = tfceMex_noopenmp(t, n_steps_tfce);
     end  
+    
+    % uncorrected p-values
     nPt = nPt + (t>=t0);
     nPtfce = nPtfce + (tfce>=tfce0);
   end
@@ -349,8 +368,6 @@ while(i < n_perm)
 
   drawnow
 
-  i = i + 1;
-
   % Check for suprathreshold values
   if nargin > 5
     if i > n_perm_break
@@ -373,6 +390,9 @@ spm_progress_bar('Clear')
 
 spm_print
 
+% get correct number of permutations in case that process was stopped
+n_perm = length(tfce_max);
+
 nPt = nPt/n_perm;
 nPtfce = nPtfce/n_perm;
 
@@ -385,11 +405,8 @@ t_max_th_final    = t_max_th(end,:);
 
 % allow thresholds depending on # of permutations
 n_alpha = 3;
-sz_val_max = length(tfce_max);
-if sz_val_max < 1000, n_alpha = 2; end
-if sz_val_max <  100, n_alpha = 1; end
-
-n_perm = length(tfce_max);
+if n_perm < 1000, n_alpha = 2; end
+if n_perm <  100, n_alpha = 1; end
 
 % pepare output files
 Vt = VY(1);
@@ -408,6 +425,8 @@ else
   Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
 end
 spm_write_vol(Vt,tfce0);
+
+% save ascii file with number of permutations
 fid = fopen(fullfile(cwd,[name '.txt']),'w');
 fprintf(fid,'%d\n',n_perm);
 fclose(fid);

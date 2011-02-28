@@ -401,15 +401,10 @@ Vz  = spm_vol(z_name);
 
 %-Compute SPM
 %--------------------------------------------------------------------------
-Qu = spm_get_data(VQu,XYZ);
-Pu = spm_get_data(VPu,XYZ);
-Pz = spm_get_data(VPz,XYZ);
-Z  = spm_get_data(Vz,XYZ);
-
-% convert from -log10
-Qu = 1 - 10.^-Qu;
-Pu = 1 - 10.^-Pu;
-Pz = 1 - 10.^-Pz;
+Z   = spm_get_data(Vz,XYZ);
+Qu  = spm_get_data(VQu,XYZ);
+Pz  = spm_get_data(VPz,XYZ);
+Pu  = spm_get_data(VPu,XYZ);
 
 switch thresDesc
     case 'FWE' 
@@ -473,8 +468,8 @@ Q      = find(Zp > u);
 %--------------------------------------------------------------------------
 Z      = Z(:,Q);
 Qu     = Qu(:,Q);
-Pu     = Pu(:,Q);
 Pz     = Pz(:,Q);
+Pu     = Pu(:,Q);
 XYZ    = XYZ(:,Q);
 if isempty(Q)
     fprintf('\n');                                                      %-#
@@ -511,6 +506,9 @@ if ~isempty(XYZ) && nc == 1
     % ...eliminate voxels
     %----------------------------------------------------------------------
     Z     = Z(:,Q);
+    Qu    = Qu(:,Q);
+    Pz    = Pz(:,Q);
+    Pu    = Pu(:,Q);
     XYZ   = XYZ(:,Q);
     if isempty(Q)
         fprintf('\n');                                                  %-#
@@ -537,6 +535,9 @@ xSPM   = struct( ...
         'Qu',       Qu,...
         'Pu',       Pu,...
         'Pz',       Pz,...
+        'VQu',      VQu,...
+        'VPu',      VPu,...
+        'VPz',      VPz,...
         'n',        n,...
         'STAT',     STAT,...
         'df',       df,...

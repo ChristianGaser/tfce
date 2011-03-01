@@ -95,3 +95,29 @@ M      cg_tfce_estimate.m
 Removed debug entries.
 ------------------------------------------------------------------------
 r41 | gaser | 2011-03-01 11:55:55
+
+M      cg_tfce_estimate.m
+M      tfceMex.mexw64
+M      cg_glm_get_Beta_ResSS.mexw32
+M      tfceMex_noopenmp.mexw64
+M      tfceMex_noopenmp.mexmaci64
+M      cg_glm_get_Beta_ResSS.mexa64
+M      cg_glm_get_Beta_ResSS.mexglx
+M      tfceMex.c
+M      tfceMex.mexw32
+M      tfceMex.mexmaci64
+M      tfceMex_noopenmp.mexmaci
+M      cg_glm_get_Beta_ResSS.mexw64
+M      tfceMex_noopenmp.mexw32
+M      tfceMex.mexa64
+M      tfceMex.mexglx
+M      tfceMex_noopenmp.mexa64
+M      tfceMex_noopenmp.mexglx
+M      tfceMex.mexmaci
+
+(1) Allow calculation of tfce-values for inverse contrast (= neg. t-values)
+    in tfceMex.c.
+(2) Recompiled tfceMex.c.
+(3) Allow to use half of permutations for equally sized samples.
+------------------------------------------------------------------------
+r42 | gaser | 2011-03-01 16:48:35

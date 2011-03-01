@@ -100,7 +100,7 @@ n_unique_con = length(unique_con);
 switch n_unique_con
   case 1 % check whether the contrast is defined at columns for condition effects
     n_cond = length(find(SPM.xX.iH==ind_con));
-    use_half_permutations = 1;
+    use_half_permutations = 0;
   case 2 % check whether the contrast is defined at columns for condition effects
     n_cond = 0;
     n_subj_cond = [];
@@ -115,7 +115,7 @@ switch n_unique_con
     % check if sample size is equal for both conditions
     if n_subj_cond(1) == n_subj_cond(2)
       use_half_permutations = 1;
-      disp('Equal sample sizes: half of permutations could be used.');
+      disp('Equal sample sizes: half of permutations are used.');
     else
       use_half_permutations = 0;
     end
@@ -123,6 +123,7 @@ switch n_unique_con
     % comparison of two regressors (=interaction) not fully tested
     if n_cond == 0
       warning('Interaction between two regressors should work, but is not yet fully tested.')
+      use_half_permutations = 0;
     end
   otherwise
     error('Maximal two exchangeability blocks allowed.')
@@ -223,10 +224,8 @@ catch
 end
 
 % get largest tfce
-tfce0_min = min(tfce0(:));
 tfce0_max = max(tfce0(:));
-t0_min  = min(t0(:));
-t0_max  = max(t0(:));
+t0_max    = max(t0(:));
 
 % get vector for histogram bins
 tfce_bins = linspace(0, max(abs(tfce0(:))), n_hist_bins);
@@ -270,7 +269,9 @@ cg_progress('Init',n_perm,'Calculating','Permutations')
 % update interval for progress bar
 progress_step = max([1 round(n_perm/1000)]);
 
-for i=1:n_perm
+i = 1;
+
+while i<=n_perm
 
   % randomize subject vector
   if i==1 % first permutation is always unpermuted model
@@ -298,18 +299,15 @@ for i=1:n_perm
     end    
   end   
   
-  % update label_matrix and order_matrix for checking of unique permutations
-  label_matrix = [label_matrix; rand_label];
-
   % add Stop button after 20 iterations
-  if i==20
+  if i==21
     hStopButton = uicontrol(Fgraph,...
       'position',[10 10 70 20],...
       'style','toggle',...
       'string','Stop',...
       'backgroundcolor',[1 .5 .5]); % light-red
   end
-  if i>=20
+  if i>=21
     stopStatus = get(hStopButton,'value');
   end
   
@@ -363,18 +361,40 @@ for i=1:n_perm
     end
   end
 
-  % maximum statistic
-  tfce_max = [tfce_max max(tfce(:))];
-  t_max    = [t_max max(t(:))];
+  % update label_matrix and order_matrix for checking of unique permutations
+  if use_half_permutations
+    label_matrix = [label_matrix; rand_label; 3-rand_label]
+
+    % maximum statistic
+    tfce_max = [tfce_max max(tfce(:)) -min(tfce(:))];
+    t_max    = [t_max max(t(:)) -min(t(:))];
+  else
+    label_matrix = [label_matrix; rand_label];
+
+    % maximum statistic
+    tfce_max = [tfce_max max(tfce(:))];
+    t_max    = [t_max max(t(:))];
+  end
     
   % cummulate histogram
   tfce_gt0 = tfce(find(tfce>0));
   if ~isempty(tfce_gt0)
-      tfce_hist = tfce_hist + hist(tfce_gt0, tfce_bins);
+    tfce_hist = tfce_hist + hist(tfce_gt0, tfce_bins);
   end
-  t_gt0 = t(find(tfce>0));
+  t_gt0 = t(find(t>0));
   if ~isempty(t_gt0)
-      t_hist = t_hist + hist(t(find(t>0)), t_bins);
+    t_hist = t_hist + hist(t_gt0, t_bins);
+  end
+  
+  if use_half_permutations
+    tfce_lt0 = tfce(find(tfce<0));
+    if ~isempty(tfce_lt0)
+        tfce_hist = tfce_hist + hist(-tfce_lt0, tfce_bins);
+    end
+    t_lt0 = t(find(t<0));
+    if ~isempty(t_lt0)
+      t_hist = t_hist + hist(-t_lt0, t_bins);
+    end
   end
   
   % use cummulated sum to find threshold
@@ -384,15 +404,21 @@ for i=1:n_perm
   % find corrected thresholds
   ind_max  = ceil((1-alpha).*length(t_max));
   t_max_th = [t_max_th; t_max(ind_max);];
-  
+  if use_half_permutations
+    t_max_th = [t_max_th; t_max(ind_max);];
+  end
+    
   ind_max     = ceil((1-alpha).*length(tfce_max));
   tfce_max_th = [tfce_max_th; tfce_max(ind_max);];
-        
+  if use_half_permutations
+    tfce_max_th = [tfce_max_th; tfce_max(ind_max);];
+  end
+
   % plot thresholds and histograms
   figure(Fgraph)
   h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
-  plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_min, tfce0_max);
-  plot_distribution(t_max ,t_max_th, 't-value', alpha, col, 2, t0_min, t0_max);
+  plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max);
+  plot_distribution(t_max, t_max_th, 't-value', alpha, col, 2, t0_max);
 
   drawnow
 
@@ -410,8 +436,15 @@ for i=1:n_perm
     cg_progress('Set',i)
     spm_progress_bar('Set',i);
   end
-  
+
+  if use_half_permutations  
+    i = i + 2;
+  else
+    i = i + 1;
+  end
+
 end
+t_max'
 
 cg_progress('Clear')
 spm_progress_bar('Clear')
@@ -419,7 +452,7 @@ spm_progress_bar('Clear')
 spm_print
 
 % get correct number of permutations in case that process was stopped
-n_perm = length(tfce_max)
+n_perm = length(tfce_max);
 
 if use_fast_uncorr
   nPt = nPt/n_perm;
@@ -429,9 +462,6 @@ end
 %---------------------------------------------------------------
 % corrected threshold based on permutation distribution
 %---------------------------------------------------------------
-
-tfce_max_th_final = tfce_max_th(end,:);
-t_max_th_final    = t_max_th(end,:);
 
 % allow thresholds depending on # of permutations
 n_alpha = 3;
@@ -619,7 +649,7 @@ spm_write_vol(Vt,-log10(corrPfdr_pos_vol));
 return
 %---------------------------------------------------------------
 
-function plot_distribution(val_max,val_th,name,alpha,col,order,val0_min,val0_max)
+function plot_distribution(val_max,val_th,name,alpha,col,order,val0_max)
 
 corr = 1;
 

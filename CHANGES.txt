@@ -127,3 +127,9 @@ M      cg_tfce_estimate.m
 Removed some debug code.
 ------------------------------------------------------------------------
 r43 | gaser | 2011-03-01 17:27:38
+
+M       cg_tfce_estimate.m
+
+Corrected estimation for interaction designs.
+------------------------------------------------------------------------
+r44 | gaser | 2011-03-01 22:54:13

@@ -1,5 +1,8 @@
 function cg_tfce_estimate(SPM, Ic, xCon, n_perm, vFWHM, n_perm_break)
 
+% use debug for displaying permuted design matrix
+debug = 0;
+
 % do not use fast method from SnPM and randomize, which is fast, but causes uncorrect p-values
 use_fast_uncorr = 0;
 
@@ -112,19 +115,20 @@ switch n_unique_con
       end
     end
     
-    % check if sample size is equal for both conditions
-    if n_subj_cond(1) == n_subj_cond(2)
-      use_half_permutations = 1;
-      disp('Equal sample sizes: half of permutations are used.');
-    else
-      use_half_permutations = 0;
-    end
-    
     % comparison of two regressors (=interaction) not fully tested
     if n_cond == 0
       warning('Interaction between two regressors should work, but is not yet fully tested.')
       use_half_permutations = 0;
+    else
+      % check if sample size is equal for both conditions
+      if n_subj_cond(1) == n_subj_cond(2)
+        use_half_permutations = 1;
+        disp('Equal sample sizes: half of permutations are used.');
+      else
+        use_half_permutations = 0;
+      end
     end
+    
   otherwise
     error('Maximal two exchangeability blocks allowed.')
 end
@@ -330,6 +334,12 @@ while i<=n_perm
     Xperm(ind_label,ind_con) = Xperm(ind_label(rand_order),ind_con);
   end
 
+  if debug
+    figure(11)
+    imagesc(Xperm);
+    drawnow
+  end
+  
   % calculate permuted t-map
   if i==1
     t = t0;

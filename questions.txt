@@ -1,3 +1,1 @@
-The uncorrected p-values are collected for TFCE and T-statistic. However, while for the T-statistic the inverse effects are also saved (resulting in p-values < 0.5), the TFCE-statistic only saves p-values > 0.5 for positive effects only. My TFCE-toolbox is also collecting p-values <0.5 for inverse effects for the TFCE-statistc. My question is whether this is relevant for the FDR?
-
-The one-sided p-value of the test is calculated as the proportion of sampled permutations where the difference in means was greater than or equal to T(obs). The two-sided p-value of the test is calculated as the proportion of sampled permutations where the absolute difference was greater than or equal to ABS(T(obs)).
+SnPM and randomize do not correctly estimate uncorrected p-values...

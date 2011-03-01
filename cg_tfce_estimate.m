@@ -475,7 +475,6 @@ fid = fopen(fullfile(cwd,[name '.txt']),'w');
 fprintf(fid,'%d\n',n_perm);
 fclose(fid);
 
-save all
 %---------------------------------------------------------------
 % save uncorrected p-values for TFCE
 %---------------------------------------------------------------

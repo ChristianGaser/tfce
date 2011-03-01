@@ -89,3 +89,9 @@ Rather use old estimation of uncorrected p-values, because SnPM and
 randomize cause uncorrect p-values.
 ------------------------------------------------------------------------
 r40 | gaser | 2011-02-28 17:04:09
+
+M      cg_tfce_estimate.m
+
+Removed debug entries.
+------------------------------------------------------------------------
+r41 | gaser | 2011-03-01 11:55:55

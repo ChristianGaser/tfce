@@ -363,7 +363,7 @@ while i<=n_perm
 
   % update label_matrix and order_matrix for checking of unique permutations
   if use_half_permutations
-    label_matrix = [label_matrix; rand_label; 3-rand_label]
+    label_matrix = [label_matrix; rand_label; 3-rand_label];
 
     % maximum statistic
     tfce_max = [tfce_max max(tfce(:)) -min(tfce(:))];
@@ -444,7 +444,6 @@ while i<=n_perm
   end
 
 end
-t_max'
 
 cg_progress('Clear')
 spm_progress_bar('Clear')

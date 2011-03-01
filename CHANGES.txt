@@ -121,3 +121,9 @@ M      tfceMex.mexmaci
 (3) Allow to use half of permutations for equally sized samples.
 ------------------------------------------------------------------------
 r42 | gaser | 2011-03-01 16:48:35
+
+M      cg_tfce_estimate.m
+
+Removed some debug code.
+------------------------------------------------------------------------
+r43 | gaser | 2011-03-01 17:27:38

@@ -195,12 +195,17 @@ Vmask = spm_vol(maskname);
 
 % if first image was not found you have to select all files again
 if ~exist(VY(1).fname);
+  n = size(SPM.xY.VY,1);
   P = spm_select(size(SPM.xY.VY,1),'image','select images');
   VY = spm_vol(P);
   SPM.xY.VY = VY;
   
   % update SPM
-  save(Pmat,'SPM');
+  if size(SPM.xY.VY,1)==n
+    save(Pmat,'SPM');
+  else
+    error('Number of files is not correct');
+  end
 end
 clear SPM
 
@@ -675,11 +680,12 @@ if sz_val_max >= 20
   alpha  = alpha(1:n_alpha);
   val_th = val_th(:,1:n_alpha);
 
-  [hmax, xmax] = hist(val_max, 10);
+  [hmax, xmax] = hist(val_max, 20);
     
   subplot(2,2,(2*order)-1)
   
-  bar(xmax,hmax)
+  h = bar(xmax,hmax);
+  set(h,'FaceColor',[.5 .5 .5],'EdgeColor',[.5 .5 .5]);
 
   avg_h = mean(hmax);
   max_h = max(hmax);

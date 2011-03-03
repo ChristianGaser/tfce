@@ -133,3 +133,11 @@ M       cg_tfce_estimate.m
 Corrected estimation for interaction designs.
 ------------------------------------------------------------------------
 r44 | gaser | 2011-03-01 22:54:13
+
+M      cg_tfce_estimate.m
+
+(1) Check that number of new filenames are correct before saving updated
+    SPM.mat in cg_tfce_estimate.m.
+(2) Graphical output of histograms slightly changed.
+------------------------------------------------------------------------
+r45 | gaser | 2011-03-03 16:22:56

@@ -141,3 +141,14 @@ M      cg_tfce_estimate.m
 (2) Graphical output of histograms slightly changed.
 ------------------------------------------------------------------------
 r45 | gaser | 2011-03-03 16:22:56
+
+D      cg_tfce_estimate.m
+D      cg_tfce_estimate_multi.m
+M      spm_tfce.m
+M      Makefile.tfce
+A      tbx_cfg_tfce_estimate.m
+A      cg_run_tfce_estimate.m
+
+Added batch mode for TFCE estimate.
+------------------------------------------------------------------------
+r46 | gaser | 2011-03-30 10:38:23

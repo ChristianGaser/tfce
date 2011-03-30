@@ -1,4 +1,21 @@
-function cg_tfce_estimate(SPM, Ic, xCon, n_perm, vFWHM, n_perm_break)
+function cg_tfce_estimate(job)
+
+load(job.spmmat{1});
+cwd = SPM.swd;
+
+Ic = job.conspec.contrasts;
+try
+  xCon = SPM.xCon(Ic);
+catch
+  [Ic,xCon] = spm_conman(SPM,'T',1,...
+        '  Select contrast...',' ',1);
+end
+
+n_perm = job.conspec.n_perm(1);
+if numel(job.conspec.n_perm) > 1
+  n_perm_break = job.conspec.n_perm(2);
+end
+vFWHM = job.conspec.vFWHM;
 
 % use debug for displaying permuted design matrix
 debug = 0;
@@ -22,15 +39,6 @@ rand('state',0);
 
 % tolerance for comparison
 tol = 1e-4;	% Tolerance for comparing real numbers
-
-% load SPM file
-if nargin < 1
-  Pmat = spm_select(1,'SPM.mat','Select SPM.mat');
-  load(Pmat)
-  cwd = fileparts(Pmat);
-else
-  cwd = SPM.swd;
-end
 
 %-Check that model has been estimated
 try
@@ -78,11 +86,6 @@ X  = SPM.xX.X;
 
 % threshold vector
 TH = SPM.xM.TH;
-
-if nargin < 3
-  [Ic,xCon] = spm_conman(SPM,'T',1,...
-        '  Select contrasts...',' for conjunction',1);
-end
 
 if length(Ic) > 1
   error('No conjunction allowed.');
@@ -184,6 +187,8 @@ else  % one-sample t-test: n_perm = 2^n
   n_perm_full = 2^n_subj_with_contrast;
 end
 
+n_perm = min([n_perm n_perm_full]);
+
 VY = SPM.xY.VY;
 
 % load mask file
@@ -208,16 +213,6 @@ if ~exist(VY(1).fname);
   end
 end
 clear SPM
-
-% choose number of permutations
-if nargin < 4
-  n_perm = spm_input('How many permutations? ',1,'r',n_perm_full,1,[10 n_perm_full]);
-else
-  n_perm = min([n_perm n_perm_full]);
-end
-if nargin < 5
-  vFWHM  = spm_input('Variance smoothing (for low DFs) ','+1','e',0);
-end
 
 W = sparse(eye(length(W)));
 warning('Whitening is not considered!');
@@ -436,17 +431,16 @@ while i<=n_perm
   plot_distribution(t_max, t_max_th, 't-value', alpha, col, 2, t0_max);
 
   drawnow
-
-  % Check for suprathreshold values
-  if nargin > 5
+    
+  if numel(job.conspec.n_perm) > 1
     if i > n_perm_break
       if isempty(find(tfce0_max > tfce_max_th(50:end,1)))
         fprintf('No FWE-corrected suprathreshold value after %d permutations found\n', n_perm_break);
         i = n_perm;
       end
-    end
+    end  
   end
-    
+
   if ~rem(i,progress_step)
     cg_progress('Set',i)
     spm_progress_bar('Set',i);

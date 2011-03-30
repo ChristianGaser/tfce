@@ -1,7 +1,7 @@
 function cg_tfce_estimate(job)
 
 load(job.spmmat{1});
-cwd = SPM.swd;
+cwd = fileparts(job.spmmat{1});
 
 Ic = job.conspec.contrasts;
 try
@@ -207,7 +207,7 @@ if ~exist(VY(1).fname);
   
   % update SPM
   if size(SPM.xY.VY,1)==n
-    save(Pmat,'SPM');
+    save(job.spmmat{1},'SPM');
   else
     error('Number of files is not correct');
   end

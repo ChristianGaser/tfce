@@ -152,3 +152,9 @@ A      cg_run_tfce_estimate.m
 Added batch mode for TFCE estimate.
 ------------------------------------------------------------------------
 r46 | gaser | 2011-03-30 10:38:23
+
+M      cg_run_tfce_estimate.m
+
+Corrected path of mask-image in cg_run_tfce_estimate.m if folder was changed.
+------------------------------------------------------------------------
+r47 | gaser | 2011-03-30 12:16:21

@@ -165,3 +165,9 @@ M      cg_getTFCE.m
 Corrected name of ascii-file, where number of permutations is saved.
 ------------------------------------------------------------------------
 r48 | gaser | 2011-03-31 08:39:32
+
+M      cg_run_tfce_estimate.m
+
+Removed debug code from cg_run_tfce_estimate.m.
+------------------------------------------------------------------------
+r49 | gaser | 2011-03-31 11:33:36

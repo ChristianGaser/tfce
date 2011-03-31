@@ -92,9 +92,9 @@ if length(Ic) > 1
 end
 
 % get contrast and find zero values in contrast
-c       = xCon(Ic).c;
+c       = xCon.c;
 ind_con = find(c~=0);
-c_name  = deblank(xCon(Ic).name);
+c_name  = deblank(xCon.name);
 
 % find exchangeability blocks using contrasts without zero values
 [unique_con, I, J]   = unique(c(ind_con));

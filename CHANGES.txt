@@ -158,3 +158,10 @@ M      cg_run_tfce_estimate.m
 Corrected path of mask-image in cg_run_tfce_estimate.m if folder was changed.
 ------------------------------------------------------------------------
 r47 | gaser | 2011-03-30 12:16:21
+
+M      cg_tfce_list.m
+M      cg_getTFCE.m
+
+Corrected name of ascii-file, where number of permutations is saved.
+------------------------------------------------------------------------
+r48 | gaser | 2011-03-31 08:39:32

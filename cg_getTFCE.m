@@ -371,7 +371,7 @@ end
 
 % get # of permutations
 try
-  n_perm = load(fullfile(swd, sprintf('spmTFCE_%04d.txt',Ic)));
+  n_perm = load(fullfile(swd, sprintf('T_%04d.txt',Ic)));
 catch
   n_perm = 0;
 end

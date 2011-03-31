@@ -357,7 +357,7 @@ switch lower(varargin{1}), case 'list'                            %-List
             'ButtonDownFcn','get(gcbo,''UserData'')')
         if n_perm > 0
             text(0.5,-5*dy,TabDat.ftr{5},...
-                'UserData',df,'ButtonDownFcn','get(gcbo,''UserData'')')
+                'UserData',n_perm,'ButtonDownFcn','get(gcbo,''UserData'')')
         end
     else
         TabDat.ftr = {};

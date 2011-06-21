@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 3251 2009-07-06 17:29:44Z guillaume $
+# $Id$
 #
 ###############################################################################
 #

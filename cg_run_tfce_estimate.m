@@ -1,4 +1,4 @@
-function cg_tfce_estimate(job)
+function cg_run_tfce_estimate(job)
 
 load(job.spmmat{1});
 cwd = fileparts(job.spmmat{1});
@@ -98,8 +98,8 @@ c_name  = deblank(xCon.name);
 
 % find exchangeability blocks using contrasts without zero values
 [unique_con, I, J]   = unique(c(ind_con));
-unique_con = unique_con(J);
 n_unique_con = length(unique_con);
+unique_con = unique_con(J);
 
 % check for exchangeability blocks and design matrix
 % maximal two exchangeability blocks allowed

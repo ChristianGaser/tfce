@@ -183,7 +183,7 @@ function [SPM,xSPM] = cg_getTFCE(varargin)
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
 %
 % based on
-% $Id: spm_getSPM.m 3465 2009-10-14 15:14:29Z guillaume $
+% $Id$
 
 
 %-GUI setup

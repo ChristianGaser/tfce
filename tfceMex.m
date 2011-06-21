@@ -2,9 +2,9 @@ tfce = tfceMex(t, n_steps, show_number_of_processors)
 % FORMAT tfce = tfceMex(t, n_steps, show_number_of_processors)
 
 % Christian Gaser
-% $Id: tfceMex.m 224 2009-12-02 23:39:15Z gaser $
+% $Id$
 
-rev = '$Rev: 224 $';
+rev = '$Rev$';
 
 disp('Compiling tfceMex.c')
 

@@ -115,7 +115,7 @@ function varargout = cg_tfce_list(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Andrew Holmes
-% $Id: cg_tfce_list.m 3342 2009-09-02 10:35:28Z guillaume $
+% $Id$
 
 % always voxel-wise FDR
 topoFDR = false;

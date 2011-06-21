@@ -3,9 +3,9 @@ function tfce_estimate = tbx_cfg_tfce_estimate
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: cg_cfg_tfce_estimate.m 20 2010-01-20 17:08:30Z gaser $
+% $Id$
 
-rev = '$Rev: 20 $';
+rev = '$Rev$';
 
 addpath(fileparts(which(mfilename)));
 

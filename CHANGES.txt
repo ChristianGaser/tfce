@@ -226,3 +226,10 @@ MM     spm_make_lookup.h
 Updated svn_ci_log to set svn properties.
 ------------------------------------------------------------------------
 r50 | gaser | 2011-06-21 17:01:43
+
+M      cg_getTFCE.m
+
+Removed bug in cg_getTFCE.m that caused, that also values below threshold were
+reported.
+------------------------------------------------------------------------
+r51 | gaser | 2011-07-25 12:44:59

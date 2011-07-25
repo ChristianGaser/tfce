@@ -246,14 +246,6 @@ R    = SPM.xVol.R;                  %-search Volume {resels}
 M    = SPM.xVol.M(1:3,1:3);         %-voxels to mm matrix
 VOX  = sqrt(diag(M'*M))';           %-voxel dimensions
 
-% check the data and other files have valid filenames
-%-----------------------------------------------------------------------
-try, SPM.xY.VY     = spm_check_filename(SPM.xY.VY);     end
-try, SPM.xVol.VRpv = spm_check_filename(SPM.xVol.VRpv); end
-try, SPM.Vbeta     = spm_check_filename(SPM.Vbeta);     end
-try, SPM.VResMS    = spm_check_filename(SPM.VResMS);    end
-try, SPM.VM        = spm_check_filename(SPM.VM);        end
-
 %-Contrast definitions
 %==========================================================================
 
@@ -405,6 +397,11 @@ Z   = spm_get_data(Vz,XYZ);
 Qu  = spm_get_data(VQu,XYZ);
 Pz  = spm_get_data(VPz,XYZ);
 Pu  = spm_get_data(VPu,XYZ);
+
+% convert from -log10
+Qu = 1-(10.^-Qu);
+Pu = 1-(10.^-Pu);
+Pz = 1-(10.^-Pz);
 
 switch thresDesc
     case 'FWE' 

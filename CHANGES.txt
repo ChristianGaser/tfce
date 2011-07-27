@@ -233,3 +233,11 @@ Removed bug in cg_getTFCE.m that caused, that also values below threshold were
 reported.
 ------------------------------------------------------------------------
 r51 | gaser | 2011-07-25 12:44:59
+
+A      tfce.fig
+M      Makefile.tfce
+A      tfce.m
+
+Changed GUI style from menubar to additional window.
+------------------------------------------------------------------------
+r52 | gaser | 2011-07-27 10:38:35

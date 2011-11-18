@@ -257,3 +257,11 @@ M       CHANGES.txt
 Removed cg_tfce_estimate from Makefile.
 ------------------------------------------------------------------------
 r53 | gaser | 2011-11-18 21:01:38
+
+MM      tfce.fig
+ M      tfce.m
+M       CHANGES.txt
+
+Corrected size of figure.
+------------------------------------------------------------------------
+r54 | gaser | 2011-11-18 21:48:31

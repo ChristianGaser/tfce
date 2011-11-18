@@ -241,3 +241,19 @@ A      tfce.m
 Changed GUI style from menubar to additional window.
 ------------------------------------------------------------------------
 r52 | gaser | 2011-07-27 10:38:35
+
+M       Makefile.tfce
+M       cg_getTFCE.m
+M       CHANGES.txt
+
+Removed cg_tfce_estimate from Makefile.
+------------------------------------------------------------------------
+r53 | gaser | 2011-11-18 21:01:14
+
+M       Makefile.tfce
+M       cg_getTFCE.m
+M       CHANGES.txt
+
+Removed cg_tfce_estimate from Makefile.
+------------------------------------------------------------------------
+r53 | gaser | 2011-11-18 21:01:38

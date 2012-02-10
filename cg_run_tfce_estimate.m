@@ -93,13 +93,13 @@ end
 
 % get contrast and find zero values in contrast
 c       = xCon.c;
-ind_con = find(c~=0);
+ind_con = find(c~=0)';
 c_name  = deblank(xCon.name);
 
 % find exchangeability blocks using contrasts without zero values
 [unique_con, I, J]   = unique(c(ind_con));
 n_unique_con = length(unique_con);
-unique_con = unique_con(J);
+%unique_con = unique_con(J); % does not work for some contrasts
 
 % check for exchangeability blocks and design matrix
 % maximal two exchangeability blocks allowed
@@ -124,7 +124,7 @@ switch n_unique_con
       use_half_permutations = 0;
     else
       % check if sample size is equal for both conditions
-      if n_subj_cond(1) == n_subj_cond(2)
+      if sum(n_subj_cond(find(c==unique_con(1)))) == sum(n_subj_cond(find(c==unique_con(2))))
         use_half_permutations = 1;
         disp('Equal sample sizes: half of permutations are used.');
       else

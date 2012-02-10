@@ -265,3 +265,10 @@ M       CHANGES.txt
 Corrected size of figure.
 ------------------------------------------------------------------------
 r54 | gaser | 2011-11-18 21:48:31
+
+M       CHANGES.txt
+M       cg_run_tfce_estimate.m
+
+Solved issues with Anovas with > 2 groups and contrasts for > 2 columns.
+------------------------------------------------------------------------
+r55 | gaser | 2012-02-10 01:08:52

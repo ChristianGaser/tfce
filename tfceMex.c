@@ -80,7 +80,7 @@ void tfce_thread(double *inData, double *outData, double thresh, double delta, c
                 growingCur += 3;
               }
               growingCur = 0;
-              valToAdd = pow(growingInd / 3.0f, E) * pow(thresh, H) * delta;
+              valToAdd = pow(growingInd / 3.0, E) * pow(thresh, H) * delta;
 
               while (growingCur < growingInd)
               {
@@ -127,7 +127,7 @@ void tfce_thread(double *inData, double *outData, double thresh, double delta, c
                 growingCur += 3;
               }
               growingCur = 0;
-              valToAdd = pow(growingInd / 3.0f, E) * pow(thresh, H) * delta;
+              valToAdd = pow(growingInd / 3.0, E) * pow(thresh, H) * delta;
 
               while (growingCur < growingInd)
               {
@@ -193,7 +193,7 @@ inData = (double*)mxGetPr(prhs[0]);
 
 ndim = mxGetNumberOfDimensions(prhs[0]);
 if (ndim!=3)
-  mxErrMsgTxt("Images does not have 3 dimensions.");
+  mexErrMsgTxt("Images does not have 3 dimensions.");
   
 dims = mxGetDimensions(prhs[0]);
 

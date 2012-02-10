@@ -11,7 +11,7 @@ TARGET2=/Volumes/UltraMax/spm8/toolbox/tfce
 STARGET=dbm.neuro.uni-jena.de:/Applications/xampp/htdocs/tfce
 
 MATLAB_FILES=Contents.m cg_getTFCE.m cg_tfce_results.m cg_tfce_list.m cg_tfce_update.m cg_progress.m tfce.m cg_glm_get_Beta_ResSS.m tfceMex.m snpm_P_FDR.m tbx_cfg_tfce_estimate.m cg_run_tfce_estimate.m
-C_FILES=cg_glm_get_Beta_ResSS.* tfceMex.* tfceMex_noopenmp.* spm_*.[ch]
+C_FILES=cg_glm_get_Beta_ResSS.* cg_glm_get_Beta_ResSS_noopenmp.* tfceMex.* tfceMex_noopenmp.* spm_*.[ch]
 MISC_FILES=tfce.man tfce.fig
 
 FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}

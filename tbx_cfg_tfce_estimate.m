@@ -35,11 +35,15 @@ titlestr.num     = [0 Inf];
 contrasts         = cfg_entry;
 contrasts.tag     = 'contrasts';
 contrasts.name    = 'Contrast';
-contrasts.help    = {
-                     'Index of contrast.'
+contrasts.help    = {'Index(es) of contrast according to the contrast manager.'
+                     ''
+                     'Each contrast in SPM is indicated by a sequential number that is displayed in the first column of the contrast manager.'
+                     ''
+                     'You can enter one or more contrasts. If only one number is entered, and this number is "Inf", you can select one or more contrasts using the contrast manager.'
 }';
 contrasts.strtype = 'e';
-contrasts.num     = [1 1];
+contrasts.val     = {Inf};
+contrasts.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % number of permutations
 % ---------------------------------------------------------------------
@@ -52,6 +56,7 @@ n_perm.help    = {
                      'If number of maximal possible permutations is smaller, then this number is used.'
 }';
 n_perm.strtype = 'e';
+n_perm.val     = {5000};
 n_perm.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % variance smoothing
@@ -76,11 +81,24 @@ conspec.name    = 'Contrast query';
 conspec.val     = {titlestr contrasts n_perm vFWHM};
 conspec.help    = {''};
 % ---------------------------------------------------------------------
+% multithreading
+% ---------------------------------------------------------------------
+openmp    = cfg_menu;
+openmp.tag = 'openmp';
+openmp.name = 'Use multi-threading to speed up calculations';
+openmp.labels = {'yes','no'};
+openmp.values = {1 0};
+openmp.val  = {1};
+openmp.help = {[...
+'OpenMP can be used to distribute calculations to multiple processors. ',...
+'This will minimize calculation time by a large amount, but makes sometimes trouble on Windows machines. ',...
+'In case of trouble deselect the multi-threading option.']};
+% ---------------------------------------------------------------------
 % results Results Report
 % ---------------------------------------------------------------------
 tfce_estimate          = cfg_exbranch;
 tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
-tfce_estimate.val      = {spmmat conspec};
+tfce_estimate.val      = {spmmat conspec openmp};
 tfce_estimate.help     = {''};
 tfce_estimate.prog     = @cg_run_tfce_estimate;

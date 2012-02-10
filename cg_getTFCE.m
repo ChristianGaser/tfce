@@ -378,7 +378,7 @@ if ~exist(Pz_name)
   strtmp = { 'No TFCE calculation for this contrast found.';...
       'Would you like to estimate it now?'};
   if spm_input(strtmp,1,'bd','yes|no',[1,0],1)
-    cg_run_tfce_estimate;
+    spm_jobman('interactive','','spm.tools.tfce_estimate');
   else
     SPM = [];
     xSPM = [];

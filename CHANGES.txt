@@ -272,3 +272,37 @@ M       cg_run_tfce_estimate.m
 Solved issues with Anovas with > 2 groups and contrasts for > 2 columns.
 ------------------------------------------------------------------------
 r55 | gaser | 2012-02-10 01:08:52
+
+M       cg_glm_get_Beta_ResSS.c
+M       tfceMex.mexw64
+M       cg_glm_get_Beta_ResSS.mexw32
+M       tfce.fig
+M       cg_glm_get_Beta_ResSS.mexmaci64
+M       Makefile.tfce
+M       tfceMex_noopenmp.mexw64
+M       tfceMex_noopenmp.mexmaci64
+M       tbx_cfg_tfce_estimate.m
+M       cg_glm_get_Beta_ResSS.mexglx
+M       cg_glm_get_Beta_ResSS.mexa64
+M       tfceMex.c
+M       tfceMex.mexw32
+M       compile.m
+M       cg_glm_get_Beta_ResSS.mexmaci
+M       cg_getTFCE.m
+M       CHANGES.txt
+M       tfceMex.mexmaci64
+M       tfceMex_noopenmp.mexmaci
+M       cg_glm_get_Beta_ResSS.mexw64
+M       tfceMex_noopenmp.mexw32
+M       tfceMex.mexa64
+M       tfceMex.mexglx
+M       cg_run_tfce_estimate.m
+M       tfceMex_noopenmp.mexa64
+M       tfceMex_noopenmp.mexglx
+M       tfceMex.mexmaci
+
+(1) Multi-threading using OpenMP!
+(2) Added some options for batch mode.
+(3) Many small changes in cg_run_tfce_estimate.m
+------------------------------------------------------------------------
+r56 | gaser | 2012-02-10 14:48:48

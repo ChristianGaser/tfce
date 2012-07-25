@@ -75,8 +75,8 @@ for con = 1:length(Ic0)
     % whitening matrix
     if isfield(SPM.xX,'W')
       W = SPM.xX.W;
-      if any(W>1)
-        warning('Whitening of the data is not yet supported');
+      if any(W~=1)
+        disp('Whitening of the data is not yet supported');
         W = speye(size(SPM.xX.X,1));
       end
     else
@@ -218,8 +218,8 @@ for con = 1:length(Ic0)
       end
     end
     
-    W = sparse(eye(length(W)));
-    warning('Whitening is not considered!');
+%    W = speye(length(W));
+%    warning('Whitening is not considered!');
     
     % compute unpermuted t-map
     t0 = calc_glm(VY,X,c,Vmask,vFWHM,TH,W,job.openmp);

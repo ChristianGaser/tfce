@@ -140,7 +140,8 @@ void tfce_thread(double *inData, double *outData, double thresh, double delta, c
    }
    
    free(flagUsed);
-   free(growing);}
+   free(growing);
+}
 
 void tfce(double *inData, double *outData, int numSteps, const int *dims)
 {
@@ -157,18 +158,16 @@ void tfce(double *inData, double *outData, int numSteps, const int *dims)
    delta = fmax/numSteps;
    thresh0 = delta/2.0;
 
-{
 #ifdef _OPENMP
-    /* this is faster than the default setting to the # of processors */
-    omp_set_num_threads(2*omp_get_num_procs());
-    # pragma omp parallel for default(shared) private(i,thresh)
+   /* this is faster than the default setting to the # of processors */
+   omp_set_num_threads(2*omp_get_num_procs());
+   # pragma omp parallel for default(shared) private(i,thresh)
 #endif
-    for (i = 0; i < numSteps; i++)
-    {
-       thresh = thresh0 + (double)i*delta;
-       tfce_thread(inData, outData, thresh, delta, dims);
-    }
-  }   
+   for (i = 0; i < numSteps; i++)
+   {
+      thresh = thresh0 + (double)i*delta;
+      tfce_thread(inData, outData, thresh, delta, dims);
+   }
 }
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])

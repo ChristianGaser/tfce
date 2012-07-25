@@ -306,3 +306,11 @@ M       tfceMex.mexmaci
 (3) Many small changes in cg_run_tfce_estimate.m
 ------------------------------------------------------------------------
 r56 | gaser | 2012-02-10 14:48:48
+
+M       tfceMex.c
+M       CHANGES.txt
+M       cg_run_tfce_estimate.m
+
+Removed 2nd warning for not yet supported whitening.
+------------------------------------------------------------------------
+r57 | gaser | 2012-07-25 10:51:06

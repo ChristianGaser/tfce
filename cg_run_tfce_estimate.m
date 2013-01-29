@@ -281,7 +281,7 @@ for con = 1:length(Ic0)
     
     if debug
       figure(11)
-      set(11,'Title','Echangebility blocks','Menubar','none','Position',[100,100,500,500]);
+      set(11,'Name','Exchangebility blocks','Menubar','none','Position',[100,100,500,500]);
     end
 
     while i<=n_perm

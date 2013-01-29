@@ -314,3 +314,10 @@ M       cg_run_tfce_estimate.m
 Removed 2nd warning for not yet supported whitening.
 ------------------------------------------------------------------------
 r57 | gaser | 2012-07-25 10:51:06
+
+M       CHANGES.txt
+M       cg_run_tfce_estimate.m
+
+Removed two typos in cg_run_tfce_estimate.m
+------------------------------------------------------------------------
+r58 | gaser | 2013-01-29 10:55:42

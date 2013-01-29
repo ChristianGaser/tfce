@@ -321,3 +321,11 @@ M       cg_run_tfce_estimate.m
 Removed two typos in cg_run_tfce_estimate.m
 ------------------------------------------------------------------------
 r58 | gaser | 2013-01-29 10:55:42
+
+M       CHANGES.txt
+M       cg_run_tfce_estimate.m
+
+Corrected calculation of # of permutations for large n's and designs with
+just one subject in cg_run_tfce_estimate.m
+------------------------------------------------------------------------
+r59 | gaser | 2013-01-29 16:45:18

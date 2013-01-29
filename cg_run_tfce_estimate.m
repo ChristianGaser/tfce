@@ -184,8 +184,21 @@ for con = 1:length(Ic0)
     % Anova/correlation: n_perm = (n1+n2+...+nk)!/(n1!*n2!*...*nk!)
     if n_cond ~=1  % Anova/correlation
       n_perm_full = factorial(n_subj_with_contrast);
+      single_subject = 0;
       for i=1:n_cond
+        % check whether only a single is in one group
+        if length(find(label == i)) == 1
+          single_subject = 1;
+        end
         n_perm_full = n_perm_full/factorial(length(find(label == i)));
+      end
+      if isnan(n_perm_full)
+        % correct number of permutations for large samples when factorial is not working
+        if (n_cond == 2) & (single_subject == 1)
+          n_perm_full = n_subj_with_contrast;
+        else
+          n_perm_full = realmax;
+        end
       end
       n_perm_full = round(n_perm_full);
     else  % one-sample t-test: n_perm = 2^n

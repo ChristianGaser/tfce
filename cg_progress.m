@@ -30,7 +30,7 @@ switch lower(action)
     % Set
     %-------------------------------------------------------------------
     case 'set'
-        error(nargchk(2,2,nargin));
+        error(nargchk(2,3,nargin));
         iter = varargin{1};
         
         % estimate time for remaining iterations
@@ -40,6 +40,20 @@ switch lower(action)
         str = sprintf('%.f%% (%s remaining)',iter/n_iterations*100,...
             time2str(avg_time*(n_iterations-iter)));
         fprintf('%-35s%-35s',repmat(sprintf('\b'),1,35),str);
+        
+        try
+
+            h = axes('position',[0.5 0 0.1 0.05],'Units','normalized','Parent',...
+                varargin{2},'Visible','off');
+
+            text(0.5,0.5,sprintf('%-5s%-15s%-5s',repmat(sprintf(' '),5),str,repmat(sprintf(' '),5)),...
+                'FontSize',spm('FontSize',8),...
+                'HorizontalAlignment','Center',...
+                'VerticalAlignment','middle',...
+                'EraseMode','Background',...
+                'BackgroundColor','white');
+
+        end
   
         % save old values
         time_old = clock;
@@ -48,9 +62,23 @@ switch lower(action)
     % Clear
     %-------------------------------------------------------------------
     case 'clear'
-        error(nargchk(1,1,nargin));
+        error(nargchk(1,2,nargin));
         fprintf('%-35s',repmat(sprintf('\b'),1,35));
         fprintf('Processing time for %d %s: %s\n',n_iterations,arg3,time2str(sum_time));
+
+        try
+
+            h = axes('position',[0.5 0 0.1 0.05],'Units','normalized','Parent',...
+                varargin{1},'Visible','off');
+
+            text(0.5,0.5,sprintf('Processing time for %d %s: %s\n',n_iterations,arg3,time2str(sum_time)),...
+                'FontSize',spm('FontSize',8),...
+                'HorizontalAlignment','Center',...
+                'VerticalAlignment','middle',...
+                'EraseMode','Background',...
+                'BackgroundColor','white');
+
+        end
 
     % Error
     %-------------------------------------------------------------------
@@ -75,5 +103,5 @@ elseif hours > 1
 elseif minutes > 1
   str = sprintf('%d:%02.0f min',floor(minutes),60*(minutes-floor(minutes)));
 else
-  str = sprintf('%02.1f s',t);
+  str = sprintf('%d s',round(t));
 end

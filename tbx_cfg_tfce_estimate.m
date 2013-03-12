@@ -39,7 +39,7 @@ contrasts.help    = {'Index(es) of contrast according to the contrast manager.'
                      ''
                      'Each contrast in SPM is indicated by a sequential number that is displayed in the first column of the contrast manager.'
                      ''
-                     'You can enter one or more contrasts. If only one number is entered, and this number is "Inf", you can select one or more contrasts using the contrast manager.'
+                     'You can enter one or more contrasts. If only one number is entered, and this number is "Inf", you can select one or more contrasts interactively using the contrast manager.'
 }';
 contrasts.strtype = 'e';
 contrasts.val     = {Inf};
@@ -50,10 +50,11 @@ contrasts.num     = [1 Inf];
 n_perm         = cfg_entry;
 n_perm.tag     = 'n_perm';
 n_perm.name    = 'Number of permutations';
-n_perm.help    = {
-                     'Number of permutations.'
+n_perm.help    = {'Number of permutations.'
                      ''
-                     'If number of maximal possible permutations is smaller, then this number is used.'
+                     'With 1000 permutations the smallest possible p-value is 0.001 (n=1/p). A useful strategy is to start with 1000 permutations and continue to 5000-10000 only if p is small enough to be interesting and/or for the final analysis.'
+                     ''
+                     'If number of maximal possible permutations is smaller, then this number is used resulting in an exact permutation test.'
 }';
 n_perm.strtype = 'e';
 n_perm.val     = {5000};

@@ -329,3 +329,13 @@ Corrected calculation of # of permutations for large n's and designs with
 just one subject in cg_run_tfce_estimate.m
 ------------------------------------------------------------------------
 r59 | gaser | 2013-01-29 16:45:18
+
+M       tbx_cfg_tfce_estimate.m
+M       cg_progress.m
+M       CHANGES.txt
+M       cg_run_tfce_estimate.m
+
+(1) Added some notes.
+(2) Figure now also prints analysis path and processing time.
+------------------------------------------------------------------------
+r60 | gaser | 2013-03-12 18:10:59

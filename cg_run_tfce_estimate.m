@@ -230,10 +230,7 @@ for con = 1:length(Ic0)
         error('Number of files is not correct');
       end
     end
-    
-%    W = speye(length(W));
-%    warning('Whitening is not considered!');
-    
+        
     % compute unpermuted t-map
     t0 = calc_glm(VY,X,c,Vmask,vFWHM,TH,W,job.openmp);
     
@@ -270,13 +267,18 @@ for con = 1:length(Ic0)
     
     h = axes('position',[0.45 0.95 0.1 0.05],'Units','normalized','Parent',...
         Fgraph,'Visible','off');
-    text(0.5,0.5,c_name,...
-        'FontSize',spm('FontSize',16),...
+        
+    text(0.5,0.6,c_name,...
+        'FontSize',spm('FontSize',10),...
         'FontWeight','Bold',...
-        'FontName',spm_platform('Font','times'),...
         'HorizontalAlignment','Center',...
         'VerticalAlignment','middle')
     
+    text(0.5,0.25,spm_str_manip(SPM.swd,'a50'),...
+        'FontSize',spm('FontSize',8),...
+        'HorizontalAlignment','Center',...
+        'VerticalAlignment','middle')
+
     % check that label has correct dimension
     sz = size(label);
     if sz(1)>sz(2)
@@ -457,12 +459,12 @@ for con = 1:length(Ic0)
 
       if use_half_permutations
         if ~rem(i,progress_step) || ~rem(i+1,progress_step)
-          cg_progress('Set',i)
+          cg_progress('Set',i,Fgraph)
           spm_progress_bar('Set',i);
         end
       else
         if ~rem(i,progress_step)
-          cg_progress('Set',i)
+          cg_progress('Set',i,Fgraph)
           spm_progress_bar('Set',i);
         end
       end
@@ -475,7 +477,7 @@ for con = 1:length(Ic0)
     
     end
     
-    cg_progress('Clear')
+    cg_progress('Clear',Fgraph)
     spm_progress_bar('Clear')
     
     spm_print

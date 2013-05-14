@@ -3,12 +3,9 @@ function spm_TFCE
 %_______________________________________________________________________
 % @(#)spm_TFCE.m Christian Gaser 2008/06/18
 
-addpath(fileparts(which(mfilename)));
-
-SPMid = spm('FnBanner',mfilename,'v1.02');
+SPMid = spm('FnBanner',mfilename,rev);
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TFCE Toolbox');
-spm_help('!ContextHelp',mfilename);
-spm_help('!Disp','tfce.man','',Fgraph,'Threshold-Free Cluster Enhancement Toolbox');
+spm_help('!Disp','TFCE.man','',Fgraph,'Threshold-Free Cluster Enhancement Toolbox');
 
 fig = spm_figure('GetWin','Interactive');
 h0  = uimenu(fig,...

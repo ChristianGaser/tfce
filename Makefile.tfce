@@ -5,14 +5,14 @@
 VERSION=`svn info |grep Revision|sed -e 's/Revision: //g'`
 DATE=`svn info |grep 'Last Changed Date: '|sed -e 's/Last Changed Date: //g'|cut -f1 -d' '`
 
-TARGET=/Users/gaser/spm/spm8/toolbox/tfce
-TARGET2=/Volumes/UltraMax/spm8/toolbox/tfce
+TARGET=/Users/gaser/spm/spm8/toolbox/TFCE
+TARGET2=/Volumes/UltraMax/spm8/toolbox/TFCE
 
 STARGET=dbm.neuro.uni-jena.de:/Applications/xampp/htdocs/tfce
 
-MATLAB_FILES=Contents.m cg_getTFCE.m cg_tfce_results.m cg_tfce_list.m cg_tfce_update.m cg_progress.m tfce.m cg_glm_get_Beta_ResSS.m tfceMex.m snpm_P_FDR.m tbx_cfg_tfce_estimate.m cg_run_tfce_estimate.m
+MATLAB_FILES=Contents.m cg_getTFCE.m cg_tfce_results.m cg_tfce_list.m cg_tfce_update.m cg_progress.m TFCE.m cg_glm_get_Beta_ResSS.m tfceMex.m snpm_P_FDR.m tbx_cfg_tfce_estimate.m cg_tfce_estimate.m
 C_FILES=cg_glm_get_Beta_ResSS.* cg_glm_get_Beta_ResSS_noopenmp.* tfceMex.* tfceMex_noopenmp.* spm_*.[ch]
-MISC_FILES=tfce.man tfce.fig
+MISC_FILES=TFCE.man TFCE.fig
 
 FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}
 
@@ -40,16 +40,16 @@ update:
 	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> Contents.m
 	-@cat Contents_info.txt >> Contents.m
 	-@echo '% __________________________________________________________________________' > TFCE.man
-	-@echo '% TFCE Toolbox for SPM5/SPM8' >> tfce.man
-	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> tfce.man
-	-@cat TFCE.txt >> tfce.man
+	-@echo '% TFCE Toolbox for SPM5/SPM8/SPM12' >> TFCE.man
+	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> TFCE.man
+	-@cat TFCE.txt >> TFCE.man
 
 zip: update
 	-@echo zip
-	-@test ! -d tfce || rm -r tfce
-	-@mkdir tfce
-	-@cp -rp ${FILES} tfce
-	-@zip ${ZIPFILE} -rm tfce
+	-@test ! -d TFCE || rm -r TFCE
+	-@mkdir TFCE
+	-@cp -rp ${FILES} TFCE
+	-@zip ${ZIPFILE} -rm TFCE
 
 scp: zip
 	-@echo scp to http://dbm.neuro.uni-jena.de/tfce/${ZIPFILE}

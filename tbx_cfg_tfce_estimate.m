@@ -102,4 +102,4 @@ tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
 tfce_estimate.val      = {spmmat conspec openmp};
 tfce_estimate.help     = {''};
-tfce_estimate.prog     = @cg_run_tfce_estimate;
+tfce_estimate.prog     = @cg_tfce_estimate;

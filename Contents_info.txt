@@ -1,5 +1,5 @@
 % __________________________________________________________________________
-% Copyright (C) 2009 Christian Gaser christian.gaser@uni-jena.de
+% Copyright (C) 2013 Christian Gaser christian.gaser@uni-jena.de
 %
 % $Id$
 % ==========================================================================
@@ -12,7 +12,9 @@
 % community under the terms of the GNU General Public License.
 %
 % General files
-%   tfce.man                    - notes on TFCE toolbox
+%   TFCE.m                      - GUI
+%   TFCE.fig                    - GUI figure
+%   TFCE.man                    - notes on TFCE toolbox
 %   CHANGES.txt                 - changes in revisions
 %
 % TFCE functions
@@ -21,9 +23,13 @@
 %   cg_tfce_results.m           - call results
 %   cg_getTFCE.m                - get TFCE information
 %   cg_tfce_update.m            - get TFCE update
+%   cg_tfce_progress.m          - display progress and remaining time
+%   tbx_cfg_tfce_estimate.m     - toolbox function
+%   snpm_P_FDR.m                - FDR correction from SnPMs
 %
 %
 % Mex- and c-functions
-%   cg_glm_get_Beta_ResSS.c     - Adaptive Maximum A Posteriori segmentation
+%   cg_glm_get_Beta_ResSS.c     - GLM estimation
 %   tfceMex.c                   - TFCE-transformation 
+%   spm_*.c                     - spm functions for volume mapping 
 %

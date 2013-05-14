@@ -339,3 +339,22 @@ M       cg_run_tfce_estimate.m
 (2) Figure now also prints analysis path and processing time.
 ------------------------------------------------------------------------
 r60 | gaser | 2013-03-12 18:10:59
+
+A  +    cg_tfce_estimate.m
+D       tfce.fig
+A  +    TFCE.fig
+M       Contents_info.txt
+D       spm_tfce.m
+A  +    spm_TFCE.m
+M       Makefile.tfce
+M       TFCE.txt
+M       tbx_cfg_tfce_estimate.m
+D       tfce.m
+A  +    TFCE.m
+M       CHANGES.txt
+D       cg_run_tfce_estimate.m
+
+(1) Renamed tfce to TFCE.
+(2) Renamed cg_run_tfce_estimate to cg_tfce_estimate.m.
+------------------------------------------------------------------------
+r61 | gaser | 2013-05-14 10:46:07

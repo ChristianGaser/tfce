@@ -381,3 +381,11 @@ M       CHANGES.txt
 Added update to install function in Makefile.tfce.
 ------------------------------------------------------------------------
 r63 | gaser | 2013-10-01 16:45:39
+
+M       spm_TFCE.m
+M       CHANGES.txt
+M       cg_get_tfce_results.m
+
+Removed some minor bugs.
+------------------------------------------------------------------------
+r64 | gaser | 2013-10-01 17:09:02

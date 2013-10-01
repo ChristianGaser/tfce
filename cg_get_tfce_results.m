@@ -1,4 +1,4 @@
-function [SPM,xSPM] = cg_getTFCE(varargin)
+function [SPM,xSPM] = cg_get_tfce_results(varargin)
 % Compute a specified and thresholded SPM/PPM following parameter estimation
 % FORMAT [SPM,xSPM] = cg_getTFCE;
 % Query SPM in interactive mode.

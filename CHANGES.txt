@@ -374,53 +374,10 @@ M       cg_tfce_results.m
 ------------------------------------------------------------------------
 r62 | gaser | 2013-10-01 16:24:53
 
-M       cg_tfce_estimate.m
-MM      TFCE.fig
-M       Contents_info.txt
-MM      spm_TFCE.m
+
 M       Makefile.tfce
-M       tbx_cfg_tfce_estimate.m
-MM      TFCE.m
-D       cg_getTFCE.m
 M       CHANGES.txt
-A  +    cg_get_tfce_results.m
-M       cg_tfce_results.m
 
-(1) Added option for additional mask image to provide SVC.
-(2) Changed GUI back to file menu.
+Added update to install function in Makefile.tfce.
 ------------------------------------------------------------------------
-r62 | gaser | 2013-10-01 16:25:11
-
-M       cg_tfce_estimate.m
-!M      TFCE.fig
-M       Contents_info.txt
-MM      spm_TFCE.m
-M       Makefile.tfce
-M       tbx_cfg_tfce_estimate.m
-!M      TFCE.m
-D       cg_getTFCE.m
-M       CHANGES.txt
-A  +    cg_get_tfce_results.m
-M       cg_tfce_results.m
-
-(1) Added option for additional mask image to provide SVC.
-(2) Changed GUI back to file menu.
-------------------------------------------------------------------------
-r62 | gaser | 2013-10-01 16:26:48
-
-M       cg_tfce_estimate.m
-D       TFCE.fig
-M       Contents_info.txt
-!M      spm_TFCE.m
-M       Makefile.tfce
-M       tbx_cfg_tfce_estimate.m
-D       TFCE.m
-D       cg_getTFCE.m
-M       CHANGES.txt
-A  +    cg_get_tfce_results.m
-M       cg_tfce_results.m
-
-(1) Added option for additional mask image to provide SVC.
-(2) Changed GUI back to file menu.
-------------------------------------------------------------------------
-r62 | gaser | 2013-10-01 16:29:15
+r63 | gaser | 2013-10-01 16:45:39

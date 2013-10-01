@@ -18,13 +18,13 @@ FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}
 
 ZIPFILE=tfce_r$(VERSION).zip
 
-install: 
+install: update
 	-@echo install
 	-@test ! -d ${TARGET} || rm -rf ${TARGET}
 	-@mkdir ${TARGET}
 	-@cp -R ${FILES} ${TARGET}
 
-install2: 
+install2: update
 	-@echo install2
 	-@test ! -d ${TARGET2} || rm -rf ${TARGET2}
 	-@mkdir ${TARGET2}

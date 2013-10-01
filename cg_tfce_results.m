@@ -24,7 +24,7 @@ switch lower(Action), case 'setup'                         %-Set up results
  
     %-Get thresholded xSPM data and parameters of design
     %======================================================================
-    [SPM,xSPM] = cg_getTFCE;
+    [SPM,xSPM] = cg_get_tfce_results;
  
     if isempty(xSPM) 
         varargout = {[],[],[]};

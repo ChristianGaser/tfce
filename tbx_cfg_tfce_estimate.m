@@ -20,6 +20,17 @@ spmmat.filter  = 'mat';
 spmmat.ufilter = '^SPM\.mat$';
 spmmat.num     = [1 1];
 % ---------------------------------------------------------------------
+% mask Select mask image to restrict analysis
+% ---------------------------------------------------------------------
+mask         = cfg_files;
+mask.tag     = 'mask';
+mask.name    = 'Select additional mask image';
+mask.help    = {'Select an additional mask image to restrict analysis. As default the mask image in the analysis folder is used. Here you can select a mask image to additionally restrict the analysis to regions of interest (i.e. small volume correction).'};
+mask.filter  = 'image';
+mask.val     = {''};
+mask.ufilter = '.*';
+mask.num     = [0 1];
+% ---------------------------------------------------------------------
 % titlestr Results Title
 % ---------------------------------------------------------------------
 titlestr         = cfg_entry;
@@ -100,6 +111,6 @@ openmp.help = {[...
 tfce_estimate          = cfg_exbranch;
 tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
-tfce_estimate.val      = {spmmat conspec openmp};
+tfce_estimate.val      = {spmmat mask conspec openmp};
 tfce_estimate.help     = {''};
 tfce_estimate.prog     = @cg_tfce_estimate;

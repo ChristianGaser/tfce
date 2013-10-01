@@ -1,4 +1,4 @@
-function cg_run_tfce_estimate(job)
+function cg_tfce_estimate(job)
 
 load(job.spmmat{1});
 cwd = fileparts(job.spmmat{1});
@@ -210,12 +210,17 @@ for con = 1:length(Ic0)
     VY = SPM.xY.VY;
     
     % load mask file
-    maskname = fullfile(cwd,'mask.img');
-    if ~exist(maskname)
-      maskname = spm_select(1,'image','select mask image');
+    if isempty(job.mask)
+      maskname = fullfile(cwd,'mask.img');
+    else
+      maskname = job.mask{1};
     end
-    Vmask = spm_vol(maskname);
-    
+    try
+      Vmask = spm_vol(maskname);
+    catch
+      maskname = spm_select(1,'image','select mask image');
+      Vmask = spm_vol(maskname);
+    end
     % if first image was not found you have to select all files again
     if ~exist(VY(1).fname);
       n = size(SPM.xY.VY,1);

@@ -94,8 +94,8 @@ for con = 1:length(Ic0)
       error('No conjunction allowed.');
     end
     
-    % get contrast and find zero values in contrast
-    c       = xCon.c;
+    % get contrast of interest and find zero values in contrast
+    c       = xCon.c(SPM.xX.iH);
     ind_con = find(c~=0)';
     c_name  = deblank(xCon.name);
 
@@ -140,7 +140,7 @@ for con = 1:length(Ic0)
       otherwise
         error('Maximal two exchangeability blocks allowed.')
     end
-    
+
     ind_unique_con = cell(n_unique_con,1);
     for j=1:n_unique_con
       ind_unique_con{j} = find(c==unique_con(j));
@@ -237,7 +237,7 @@ for con = 1:length(Ic0)
     end
         
     % compute unpermuted t-map
-    t0 = calc_glm(VY,X,c,Vmask,vFWHM,TH,W,job.openmp);
+    t0 = calc_glm(VY,X,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
     
     % calculate tfce of unpermuted t-map
     if job.openmp
@@ -353,19 +353,22 @@ for con = 1:length(Ic0)
       % change design matrix according to permutation order
       % only permute columns, where contrast is defined
       Xperm = X;
+      Xperm_debug = X;
       
       if n_cond==1 % one-sample t-test
         % only change sign in the design matrix
         for j=1:n_subj_with_contrast
           Xperm(ind_label(j),ind_con) = rand_label(j)*Xperm(ind_label(j),ind_con);
+          Xperm_debug(ind_label(j),ind_con) = 2*rand_label(j)*Xperm_debug(ind_label(j),ind_con);
         end
       else % correlation or Anova
         Xperm(ind_label,ind_con) = Xperm(ind_label(rand_order),ind_con);
+        Xperm_debug(ind_label,ind_con) = 2*Xperm_debug(ind_label(rand_order),ind_con);
       end
     
       if debug
         figure(11)
-        imagesc(Xperm);
+        imagesc(Xperm_debug);
         axis off
         drawnow
       end
@@ -381,7 +384,7 @@ for con = 1:length(Ic0)
         % -----------------------------------------------------
         % -----------------------------------------------------
         
-        t = calc_glm(VY,Xperm,c,Vmask,vFWHM,TH,W,job.openmp);
+        t = calc_glm(VY,Xperm,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
         
         % compute tfce
         if job.openmp

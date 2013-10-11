@@ -389,3 +389,12 @@ M       cg_get_tfce_results.m
 Removed some minor bugs.
 ------------------------------------------------------------------------
 r64 | gaser | 2013-10-01 17:09:02
+
+M       cg_tfce_estimate.m
+M       CHANGES.txt
+
+(1) Constrain contrasts (and exchangeability blocks) to effects of interest 
+    only.
+(2) Debug mode now shows color-coded exchangeability blocks).
+------------------------------------------------------------------------
+r65 | gaser | 2013-10-11 08:40:17

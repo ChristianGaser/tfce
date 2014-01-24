@@ -398,3 +398,14 @@ M       CHANGES.txt
 (2) Debug mode now shows color-coded exchangeability blocks).
 ------------------------------------------------------------------------
 r65 | gaser | 2013-10-11 08:40:17
+
+M       CHANGES.txt
+M       cg_glm_get_Beta_ResSS.mexmaci
+M       cg_tfce_estimate.m
+M       tfceMex.mexmaci
+M       tfceMex_noopenmp.mexmaci
+
+(1) Added support for multiple regression designs where spm.xX.iH is empty.
+(2) Compiled for mexmaci.
+------------------------------------------------------------------------
+r66 | gaser | 2014-01-24 16:36:57

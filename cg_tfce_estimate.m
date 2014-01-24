@@ -96,6 +96,11 @@ for con = 1:length(Ic0)
     
     % get contrast of interest and find zero values in contrast
     c       = xCon.c(SPM.xX.iH);
+    
+    % handle multiple regression designs
+    if isempty(c)
+      c       = xCon.c(SPM.xX.iC);
+    end
     ind_con = find(c~=0)';
     c_name  = deblank(xCon.name);
 

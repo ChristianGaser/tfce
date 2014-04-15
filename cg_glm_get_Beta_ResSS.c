@@ -200,8 +200,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   ResSS   = (double*)mxGetPr(plhs[1]);
   
   /* initialize Beta and ResSS with zeros */
-  memset(ResSS, 0, sizeof(ResSS));
-  memset(Beta, 0, sizeof(Beta));
+  memset(ResSS, 0, sizeof(double)*n_slices*n_values);
+  memset(Beta, 0, sizeof(double)*n_slices*n_values*n_beta);
 
   Nthreads = 1;
 

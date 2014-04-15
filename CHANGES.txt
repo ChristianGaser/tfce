@@ -409,3 +409,30 @@ M       tfceMex_noopenmp.mexmaci
 (2) Compiled for mexmaci.
 ------------------------------------------------------------------------
 r66 | gaser | 2014-01-24 16:36:57
+
+M       CHANGES.txt
+M       cg_glm_get_Beta_ResSS.c
+M       cg_glm_get_Beta_ResSS.mexa64
+M       cg_glm_get_Beta_ResSS.mexglx
+M       cg_glm_get_Beta_ResSS.mexmaci64
+M       cg_glm_get_Beta_ResSS.mexw32
+M       cg_glm_get_Beta_ResSS.mexw64
+M       cg_tfce_estimate.m
+M       compile.m
+M       tfceMex.c
+M       tfceMex.mexa64
+M       tfceMex.mexglx
+M       tfceMex.mexmaci64
+M       tfceMex.mexw32
+M       tfceMex.mexw64
+M       tfceMex_noopenmp.mexa64
+M       tfceMex_noopenmp.mexglx
+M       tfceMex_noopenmp.mexmaci64
+M       tfceMex_noopenmp.mexw32
+M       tfceMex_noopenmp.mexw64
+
+(1) Stepsize for TFCE is now estimated using unpermuted data and is then used
+    for all permuted data. Thanks to Chris Rorden for pointing to that issue.
+(2) Recompiled windows versions.
+------------------------------------------------------------------------
+r67 | gaser | 2014-04-15 14:27:48

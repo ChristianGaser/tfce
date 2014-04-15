@@ -244,11 +244,14 @@ for con = 1:length(Ic0)
     % compute unpermuted t-map
     t0 = calc_glm(VY,X,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
     
+    % get deltaT for unpermuted map
+    deltaT = max(t0(:))/n_steps_tfce;
+    
     % calculate tfce of unpermuted t-map
     if job.openmp
-        tfce0 = tfceMex(t0, n_steps_tfce,1);
+        tfce0 = tfceMex(t0, deltaT, 1);
     else
-        tfce0 = tfceMex_noopenmp(t0, n_steps_tfce);
+        tfce0 = tfceMex_noopenmp(t0, deltaT);
     end
     
     % get largest tfce
@@ -393,9 +396,9 @@ for con = 1:length(Ic0)
         
         % compute tfce
         if job.openmp
-          tfce = tfceMex(t, n_steps_tfce);
+          tfce = tfceMex(t, deltaT);
         else
-          tfce = tfceMex_noopenmp(t, n_steps_tfce);
+          tfce = tfceMex_noopenmp(t, deltaT);
         end  
         
       end

@@ -1,5 +1,6 @@
 function make
 
+disp('Compilerflag Šndern in /TC')
 % check for windows systems
 if strcmp(mexext,'mexw32') || strcmp(mexext,'mexw64')
     obj = '.obj';
@@ -9,7 +10,7 @@ else
     WIN32 = '';
 end
 
-if 1
+if 0
 mex CC='gcc-4.4' -O -c spm_vol_utils.c -DSPM_UNSIGNED_CHAR 
 movefile(['spm_vol_utils' obj], ['utils_uchar.' mexext obj],'f');
 mex CC='gcc-4.4' -I/usr/include -O -c spm_vol_utils.c -DSPM_SIGNED_SHORT 

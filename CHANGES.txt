@@ -436,3 +436,11 @@ M       tfceMex_noopenmp.mexw64
 (2) Recompiled windows versions.
 ------------------------------------------------------------------------
 r67 | gaser | 2014-04-15 14:27:48
+
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+M       compile.m
+
+Handle all multiple regression designs.
+------------------------------------------------------------------------
+r68 | gaser | 2014-07-28 14:34:23

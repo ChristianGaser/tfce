@@ -98,7 +98,7 @@ for con = 1:length(Ic0)
     c       = xCon.c(SPM.xX.iH);
     
     % handle multiple regression designs
-    if isempty(c)
+    if isempty(c) | all(c==0)
       c       = xCon.c(SPM.xX.iC);
     end
     ind_con = find(c~=0)';

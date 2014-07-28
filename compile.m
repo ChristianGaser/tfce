@@ -10,6 +10,8 @@ else
     WIN32 = '';
 end
 
+% mex -Dchar16_t=UINT16_T
+
 if 0
 mex CC='gcc-4.4' -O -c spm_vol_utils.c -DSPM_UNSIGNED_CHAR 
 movefile(['spm_vol_utils' obj], ['utils_uchar.' mexext obj],'f');

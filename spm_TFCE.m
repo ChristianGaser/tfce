@@ -7,7 +7,6 @@ rev = '$Rev$';
 
 SPMid = spm('FnBanner',mfilename,rev);
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TFCE Toolbox');
-spm_help('!ContextHelp',mfilename);
 spm_help('!Disp','TFCE.man','',Fgraph,'Threshold-Free Cluster Enhancement Toolbox');
 
 fig = spm_figure('GetWin','Interactive');

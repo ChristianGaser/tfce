@@ -31,14 +31,15 @@ void tfce_thread(double *inData, double *outData, double thresh, double delta, c
    
 #pragma omp critical (MALLOC) 
 {
-  flagUsed = (char*)malloc(numVoxels*sizeof(char));
+  flagUsed = (char*) malloc(numVoxels*sizeof(char));
   growing  = (short*)malloc(numVoxels*3*sizeof(short));
 }      
+
   for (i = 0; i < numVoxels; ++i) flagUsed[i] = 0;
     
   for (k = 0; k < dims[2]; ++k) for (j = 0; j < dims[1]; ++j) for (i = 0; i < dims[0]; ++i)
-  {
-    ind = k*(dims[0]*dims[1])+(j*dims[0])+i;
+{
+    ind = k*(dims[0]*dims[1]) + (j*dims[0]) + i;
             
     /* estimate positive tfce values */ 
     if (!flagUsed[ind] && inData[ind] >= thresh)
@@ -49,17 +50,21 @@ void tfce_thread(double *inData, double *outData, double thresh, double delta, c
       growing[0] = i;
       growing[1] = j;
       growing[2] = k;
+      
       while (growingCur < growingInd)
       {
         maxi = MIN(dims[0], growing[growingCur    ] + 2);
         maxj = MIN(dims[1], growing[growingCur + 1] + 2);
         maxk = MIN(dims[2], growing[growingCur + 2] + 2);
+        
         mini = MAX(0, growing[growingCur    ] - 1);
         minj = MAX(0, growing[growingCur + 1] - 1);
         mink = MAX(0, growing[growingCur + 2] - 1);
+        
         for (tk = mink; tk < maxk; ++tk) for (tj = minj; tj < maxj; ++tj) for (ti = mini; ti < maxi; ++ti)
         {
-          ind1 = tk*(dims[0]*dims[1])+(tj*dims[0])+ti;
+          ind1 = tk*(dims[0]*dims[1]) + (tj*dims[0]) + ti;
+          
           if (!flagUsed[ind1] && inData[ind1] >= thresh)
           {
             flagUsed[ind1] = 1;
@@ -71,6 +76,7 @@ void tfce_thread(double *inData, double *outData, double thresh, double delta, c
         }
         growingCur += 3;
       }
+      
       growingCur = 0;
       valToAdd = pow(growingInd / 3.0, E) * pow(thresh, H) * delta;
 
@@ -90,6 +96,7 @@ void tfce_thread(double *inData, double *outData, double thresh, double delta, c
       growing[0] = i;
       growing[1] = j;
       growing[2] = k;
+      
       while (growingCur < growingInd)
       {
         maxi = MIN(dims[0], growing[growingCur    ] + 2);
@@ -98,9 +105,11 @@ void tfce_thread(double *inData, double *outData, double thresh, double delta, c
         mini = MAX(0, growing[growingCur    ] - 1);
         minj = MAX(0, growing[growingCur + 1] - 1);
         mink = MAX(0, growing[growingCur + 2] - 1);
+        
         for (tk = mink; tk < maxk; ++tk) for (tj = minj; tj < maxj; ++tj) for (ti = mini; ti < maxi; ++ti)
         {
-          ind1 = tk*(dims[0]*dims[1])+(tj*dims[0])+ti;
+          ind1 = tk*(dims[0]*dims[1]) + (tj*dims[0]) + ti;
+          
           if (!flagUsed[ind1] && -inData[ind1] >= thresh)
           {
             flagUsed[ind1] = 1;
@@ -112,6 +121,7 @@ void tfce_thread(double *inData, double *outData, double thresh, double delta, c
         }
         growingCur += 3;
       }
+      
       growingCur = 0;
       valToAdd = pow(growingInd / 3.0, E) * pow(thresh, H) * delta;
 
@@ -134,13 +144,14 @@ void tfce_thread(double *inData, double *outData, double thresh, double delta, c
 
 void tfce(double *inData, double *outData, double deltaT, const int *dims)
 {
-  double fmax = 0.0, curThr;
+  double fmax = 0.0, curThr, tmp_value;
   int i, n_steps;
   int numVoxels = dims[0] * dims[1] * dims[2];
    
   for (i = 0; i < numVoxels; ++i)
   {
-     if (inData[i] > fmax) fmax = fabs(inData[i]);
+     tmp_value = fabs(inData[i]);
+     if (tmp_value > fmax) fmax = tmp_value;
      outData[i] = 0.0;
   }
    
@@ -151,6 +162,7 @@ void tfce(double *inData, double *outData, double deltaT, const int *dims)
   omp_set_num_threads(omp_get_num_procs());
   # pragma omp parallel for default(shared) private(i,curThr)
 #endif
+
   for (i = 0; i < n_steps; i++) 
   {
     curThr = (i+1)*deltaT;

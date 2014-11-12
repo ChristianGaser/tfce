@@ -1,5 +1,15 @@
 function cg_tfce_estimate(job)
 
+global Y initialized
+
+initialized = 0;
+
+if strcmp(spm('ver'),'SPM12')
+  spm12 = 1;
+else
+  spm12 = 0;
+end
+
 load(job.spmmat{1});
 cwd = fileparts(job.spmmat{1});
 
@@ -214,23 +224,61 @@ for con = 1:length(Ic0)
     
     VY = SPM.xY.VY;
     
+    % check for meshes
+    if spm12
+      if spm_mesh_detect(VY)
+        mesh_detected = 1;
+        file_ext = '.gii';
+        if vFWHM > 0
+          warning('Variance smoothing not yet prepared!');
+        end
+      else
+        mesh_detected = 0;
+        file_ext = spm_file_ext;
+      end
+    else
+      mesh_detected = 0;
+      file_ext = '.img';
+    end
+    
     % load mask file
     if isempty(job.mask)
-      maskname = fullfile(cwd,'mask.img');
+      maskname = fullfile(cwd,['mask' file_ext]);
     else
       maskname = job.mask{1};
     end
     try
-      Vmask = spm_vol(maskname);
+      if spm12
+        Vmask = spm_data_hdr_read(maskname);
+      else
+        Vmask = spm_vol(maskname);
+      end
     catch
-      maskname = spm_select(1,'image','select mask image');
-      Vmask = spm_vol(maskname);
+      if mesh_detected
+        maskname = spm_select(1,'mesh','select mask image');
+      else
+        maskname = spm_select(1,'image','select mask image');
+      end
+      if spm12
+        Vmask = spm_data_hdr_read(maskname);
+      else
+        Vmask = spm_vol(maskname);
+      end
     end
+    
     % if first image was not found you have to select all files again
     if ~exist(VY(1).fname);
       n = size(SPM.xY.VY,1);
-      P = spm_select(size(SPM.xY.VY,1),'image','select images');
-      VY = spm_vol(P);
+      if mesh_detected
+        P = spm_select(size(SPM.xY.VY,1),'mesh','select images');
+      else
+        P = spm_select(size(SPM.xY.VY,1),'image','select images');
+      end
+      if spm12
+        VY = spm_data_hdr_read(P);
+      else
+        VY = spm_vol(P);
+      end
       SPM.xY.VY = VY;
       
       % update SPM
@@ -245,13 +293,17 @@ for con = 1:length(Ic0)
     t0 = calc_glm(VY,X,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
     
     % get deltaT for unpermuted map
-    deltaT = max(t0(:))/n_steps_tfce;
+    deltaT = max(abs(t0(:)))/n_steps_tfce;
     
     % calculate tfce of unpermuted t-map
-    if job.openmp
-        tfce0 = tfceMex(t0, deltaT, 1);
+    if mesh_detected
+      tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, deltaT);
     else
+      if job.openmp
+        tfce0 = tfceMex(t0, deltaT, 1);
+      else
         tfce0 = tfceMex_noopenmp(t0, deltaT);
+      end
     end
     
     % get largest tfce
@@ -395,11 +447,15 @@ for con = 1:length(Ic0)
         t = calc_glm(VY,Xperm,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
         
         % compute tfce
-        if job.openmp
-          tfce = tfceMex(t, deltaT);
+        if mesh_detected
+          tfce = tfce_mesh(SPM.xVol.G.faces, t, deltaT);
         else
-          tfce = tfceMex_noopenmp(t, deltaT);
-        end  
+          if job.openmp
+            tfce = tfceMex(t, deltaT, 1);
+          else
+            tfce = tfceMex_noopenmp(t0, deltaT);
+          end
+        end
         
       end
     
@@ -522,25 +578,35 @@ for con = 1:length(Ic0)
     % save unpermuted TFCE map
     %---------------------------------------------------------------
     name = sprintf('TFCE_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name '.img']);
+    Vt.fname = fullfile(cwd,[name file_ext]);
     if vFWHM > 0
-      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
     else
-      Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
+      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
     end
-    spm_write_vol(Vt,tfce0);
+    if spm12
+      Vt = spm_data_hdr_write(Vt);
+      spm_data_write(Vt,tfce0);
+    else
+      spm_write_vol(Vt,tfce0);
+    end
     
     %---------------------------------------------------------------
     % save unpermuted T map
     %---------------------------------------------------------------
     name = sprintf('T_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name '.img']);
+    Vt.fname = fullfile(cwd,[name file_ext]);
     if vFWHM > 0
-      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
     else
-      Vt.descrip = sprintf('T Contrast %04d.img',Ic);
+      Vt.descrip = sprintf('T Contrast %04d',Ic);
     end
-    spm_write_vol(Vt,t0);
+    if spm12
+      Vt = spm_data_hdr_write(Vt);
+      spm_data_write(Vt,t0);
+    else
+      spm_write_vol(Vt,t0);
+    end
     
     % save ascii file with number of permutations
     fid = fopen(fullfile(cwd,[name '.txt']),'w');
@@ -553,11 +619,11 @@ for con = 1:length(Ic0)
     fprintf('Save uncorrected p-values.\n');
     
     name = sprintf('TFCE_log_p_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name '.img']);
+    Vt.fname = fullfile(cwd,[name file_ext]);
     if vFWHM > 0
-      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
     else
-      Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
+      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
     end
     
     nPtfce = zeros(size(tfce0));
@@ -571,17 +637,22 @@ for con = 1:length(Ic0)
     nPtfce(find(nPtfce==0)) = NaN;
     nPtfce = 1 - nPtfce;
     
-    spm_write_vol(Vt,-log10(nPtfce));
+    if spm12
+      Vt = spm_data_hdr_write(Vt);
+      spm_data_write(Vt,-log10(nPtfce));
+    else
+      spm_write_vol(Vt,-log10(nPtfce));
+    end
     
     %---------------------------------------------------------------
     % save uncorrected p-values for T
     %---------------------------------------------------------------
     name = sprintf('T_log_p_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name '.img']);
+    Vt.fname = fullfile(cwd,[name file_ext]);
     if vFWHM > 0
-      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
     else
-      Vt.descrip = sprintf('T Contrast %04d.img',Ic);
+      Vt.descrip = sprintf('T Contrast %04d',Ic);
     end
     
     nPt = zeros(size(t0));
@@ -595,7 +666,12 @@ for con = 1:length(Ic0)
     nPt(find(nPt==0)) = NaN;
     nPt = 1 - nPt;
     
-    spm_write_vol(Vt,-log10(nPt));
+    if spm12
+      Vt = spm_data_hdr_write(Vt);
+      spm_data_write(Vt,-log10(nPt));
+    else
+      spm_write_vol(Vt,-log10(nPt));
+    end
     
     %---------------------------------------------------------------
     % save corrected p-values for TFCE
@@ -614,13 +690,18 @@ for con = 1:length(Ic0)
     corrP_vol(mask_P) = corrP(mask_P) / n_perm;  
     
     name = sprintf('TFCE_log_pFWE_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name '.img']);
+    Vt.fname = fullfile(cwd,[name file_ext]);
     if vFWHM > 0
-      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
     else
-      Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
+      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
     end
-    spm_write_vol(Vt,-log10(corrP_vol));
+    if spm12
+      Vt = spm_data_hdr_write(Vt);
+      spm_data_write(Vt,-log10(corrP_vol));
+    else
+      spm_write_vol(Vt,-log10(corrP_vol));
+    end
     
     %---------------------------------------------------------------
     % save corrected p-values for T
@@ -638,33 +719,43 @@ for con = 1:length(Ic0)
     corrP_vol(mask_P) = corrP(mask_P) / n_perm;  
     
     name = sprintf('T_log_pFWE_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name '.img']);
+    Vt.fname = fullfile(cwd,[name file_ext]);
     if vFWHM > 0
-      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
     else
-      Vt.descrip = sprintf('T Contrast %04d.img',Ic);
+      Vt.descrip = sprintf('T Contrast %04d',Ic);
     end
-    spm_write_vol(Vt,-log10(corrP_vol));
+    if spm12
+      Vt = spm_data_hdr_write(Vt);
+      spm_data_write(Vt,-log10(corrP_vol));
+    else
+      spm_write_vol(Vt,-log10(corrP_vol));
+    end
     
     %---------------------------------------------------------------
     % save corrected FDR-values for TFCE
     %---------------------------------------------------------------
     fprintf('Save corrected FDR-values.\n');
     
-    [snP_pos,I_pos]=sort(nPtfce(mask_P));
-    corrPfdr_pos=snpm_P_FDR([],[],'P',[],snP_pos);
+    [snP_pos,I_pos] = sort(nPtfce(mask_P));
+    corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
     corrPfdr_pos(I_pos) = corrPfdr_pos;
     corrPfdr_pos_vol = NaN(size(t));
     corrPfdr_pos_vol(mask_P) = corrPfdr_pos;
     
     name = sprintf('TFCE_log_pFDR_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name '.img']);
+    Vt.fname = fullfile(cwd,[name file_ext]);
     if vFWHM > 0
-      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
     else
-      Vt.descrip = sprintf('TFCE Contrast %04d.img',Ic);
+      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
     end
-    spm_write_vol(Vt,-log10(corrPfdr_pos_vol));
+    if spm12
+      Vt = spm_data_hdr_write(Vt);
+      spm_data_write(Vt,-log10(corrPfdr_pos_vol));
+    else
+      spm_write_vol(Vt,-log10(corrPfdr_pos_vol));
+    end
     
     %---------------------------------------------------------------
     % save corrected FDR-values for T
@@ -676,17 +767,21 @@ for con = 1:length(Ic0)
     corrPfdr_pos_vol(mask_P) = corrPfdr_pos;
     
     name = sprintf('T_log_pFDR_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name '.img']);
+    Vt.fname = fullfile(cwd,[name file_ext]);
     if vFWHM > 0
-      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d.img',vFWHM,Ic);
+      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
     else
-      Vt.descrip = sprintf('T Contrast %04d.img',Ic);
+      Vt.descrip = sprintf('T Contrast %04d',Ic);
     end
-    spm_write_vol(Vt,-log10(corrPfdr_pos_vol));
+    if spm12
+      Vt = spm_data_hdr_write(Vt);
+      spm_data_write(Vt,-log10(corrPfdr_pos_vol));
+    else
+      spm_write_vol(Vt,-log10(corrPfdr_pos_vol));
+    end
 
 end
 
-return
 %---------------------------------------------------------------
 
 function plot_distribution(val_max,val_th,name,alpha,col,order,val0_max)
@@ -758,20 +853,30 @@ if sz_val_max >= 20
   ylabel('Threshold')
   xlabel('Permutations')   
 end
-return
+
 
 %---------------------------------------------------------------
 function t = calc_glm(V,X,c,Vmask,vFWHM,TH,W,openmp)
 % compute t-statistic using GLM
 %
-% V   - memory mapped files
-% X   - design structure
-% c   - contrast
-% Vmask - memory mapped mask image
-% vFWHM - filter width for variance smoothing
-% TH  - threshold vector
-% W   - whitening matrix
+% V      - memory mapped files
+% X      - design structure
+% c      - contrast
+% Vmask  - memory mapped mask image
+% vFWHM  - filter width for variance smoothing
+% TH     - threshold vector
+% W      - whitening matrix
 % openmp - use multi-threading
+
+if strcmp(spm('ver'),'SPM12')
+  if spm_mesh_detect(V)
+    mesh_detected = 1;
+  else
+    mesh_detected = 0;
+  end
+else
+  mesh_detected = 0;
+end
 
 n_subj = size(X,1);
 n_beta = size(X,2);
@@ -783,19 +888,23 @@ trRV = n_subj - rank(X);
 
 vx  = sqrt(sum(V(1).mat(1:3,1:3).^2));
 
-dim = V(1).dim(1:3);
-
 % try mex-file, which is faster
-if openmp
- [Beta, ResMS] = cg_glm_get_Beta_ResSS(V,Vmask,X,pKX,TH,W);
- ResMS = reshape(ResMS,dim);
+if mesh_detected
+   [Beta, ResSS] = calc_beta_mesh(V,Vmask,X,pKX,TH,W);
+   dim = V(1).dim(1:2);
 else
- [Beta, ResMS] = cg_glm_get_Beta_ResSS_noopenmp(V,Vmask,X,pKX,TH,W);
- ResMS = reshape(ResMS,dim);
+  dim = V(1).dim(1:3);
+  if openmp
+    [Beta, ResSS] = cg_glm_get_Beta_ResSS(V,Vmask,X,pKX,TH,W);
+    ResSS = reshape(ResSS,dim);
+  else
+    [Beta, ResSS] = cg_glm_get_Beta_ResSS_noopenmp(V,Vmask,X,pKX,TH,W);
+    ResSS = reshape(ResSS,dim);
+  end
 end
 
 Beta = reshape(Beta,[prod(dim) n_beta]);
-ResMS = ResMS/trRV;
+ResMS = ResSS/trRV;
 
 con = Beta*c;
 clear Beta
@@ -805,6 +914,7 @@ con = reshape(con,dim);
 % Blurred mask is used to truncate kernal to brain; if not
 % used variance at edges would be underestimated due to
 % convolution with zero activity out side the brain.
+
 if vFWHM > 0
   mask = spm_read_vols(Vmask);
   Q = find(mask > 0);
@@ -820,7 +930,46 @@ end
 
 t = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
 
-return
+%---------------------------------------------------------------
+% 
+function [beta, ResSS] = calc_beta_mesh(VY,Vm,X,pKX,TH,W);
+
+global Y initialized
+
+n = size(VY,1);
+m = size(pKX,1);
+beta = zeros([Vm.dim(1:2) m]);
+ResSS = zeros(Vm.dim(1:2));
+
+mask = spm_data_read(Vm);
+ind = find(mask>0);
+ 
+if ~isempty(ind)
+  pXY = zeros([prod(Vm.dim(1:2)) m],'single');
+  res = zeros(Vm.dim(1:2));
+  
+  % load data only the first time
+  if ~initialized
+    Y = zeros([length(ind) n],'single');
+
+    for i=1:n
+      tmp = spm_data_read(VY(i));
+      Y(:,i) = single(full(W(i,i)))*tmp(ind);
+    end
+    initialized = 1;
+  end
+  
+  pXY(ind,:) = Y*single(pKX'); 
+  
+  res0 = pXY(ind,:)*single(X') - Y; %-Residuals
+  res(ind) = double(sum(res0.^2,2));
+  ResSS(:,:) = res;   %-Residual SSQ
+
+  pXY = reshape(pXY,[Vm.dim(1:2) m]);
+  beta(:,:,:) = double(pXY);
+end
+ 
+
 
 %---------------------------------------------------------------
 % not used anymore

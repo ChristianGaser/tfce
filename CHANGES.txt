@@ -444,3 +444,35 @@ M       compile.m
 Handle all multiple regression designs.
 ------------------------------------------------------------------------
 r68 | gaser | 2014-07-28 14:34:23
+
+M       CHANGES.txt
+M       Makefile.tfce
+M       cg_get_tfce_results.m
+M       cg_glm_get_Beta_ResSS.mexmaci64
+!       cg_glm_get_Beta_ResSS.mexw32
+!       cg_glm_get_Beta_ResSS.mexw64
+M       cg_tfce_estimate.m
+M       cg_tfce_list.m
+M       cg_tfce_results.m
+M       compile.m
+M       spm_TFCE.m
+M       tbx_cfg_tfce_estimate.m
+M       tfceMex.c
+M       tfceMex.mexa64
+M       tfceMex.mexglx
+M       tfceMex.mexmaci64
+M       tfceMex.mexw32
+M       tfceMex.mexw64
+M       tfceMex_noopenmp.mexa64
+M       tfceMex_noopenmp.mexglx
+M       tfceMex_noopenmp.mexmaci64
+M       tfceMex_noopenmp.mexw32
+M       tfceMex_noopenmp.mexw64
+A       tfce_mesh.m
+
+(1) Added support for surfaces!
+(2) Made several changes according to new spm12 code.
+(3) TFCE is now running for SPM8 and SPM12.
+
+------------------------------------------------------------------------
+r69 | gaser | 2014-11-12 15:08:48

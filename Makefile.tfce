@@ -5,12 +5,12 @@
 VERSION=`svn info |grep Revision|sed -e 's/Revision: //g'`
 DATE=`svn info |grep 'Last Changed Date: '|sed -e 's/Last Changed Date: //g'|cut -f1 -d' '`
 
-TARGET=/Users/gaser/spm/spm8/toolbox/TFCE
-TARGET2=/Volumes/UltraMax/spm8/toolbox/TFCE
+TARGET=/Users/gaser/spm/spm12/toolbox/TFCE
+TARGET2=/Volumes/UltraMax/spm12/toolbox/TFCE
 
 STARGET=dbm.neuro.uni-jena.de:/Applications/xampp/htdocs/tfce
 
-MATLAB_FILES=Contents.m cg_get_tfce_results.m cg_tfce_results.m cg_tfce_list.m cg_tfce_update.m cg_progress.m spm_TFCE.m cg_glm_get_Beta_ResSS.m tfceMex.m snpm_P_FDR.m tbx_cfg_tfce_estimate.m cg_tfce_estimate.m
+MATLAB_FILES=Contents.m cg_get_tfce_results.m cg_tfce_results.m cg_tfce_list.m cg_tfce_update.m cg_progress.m spm_TFCE.m cg_glm_get_Beta_ResSS.m tfceMex.m tfce_mesh.m snpm_P_FDR.m tbx_cfg_tfce_estimate.m cg_tfce_estimate.m
 C_FILES=cg_glm_get_Beta_ResSS.* cg_glm_get_Beta_ResSS_noopenmp.* tfceMex.* tfceMex_noopenmp.* spm_*.[ch]
 MISC_FILES=TFCE.man
 
@@ -40,7 +40,7 @@ update:
 	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> Contents.m
 	-@cat Contents_info.txt >> Contents.m
 	-@echo '% __________________________________________________________________________' > TFCE.man
-	-@echo '% TFCE Toolbox for SPM5/SPM8/SPM12' >> TFCE.man
+	-@echo '% TFCE Toolbox for SPM8/SPM12' >> TFCE.man
 	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> TFCE.man
 	-@cat TFCE.txt >> TFCE.man
 

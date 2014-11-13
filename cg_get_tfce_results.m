@@ -366,7 +366,6 @@ VspmSv   = cat(1,xCon(Ic).Vspm);
 
 % check that statistic for this contrast was estimated
 %--------------------------------------------------------------------------
-fullfile(swd, sprintf('T_log_p_%04d%s',Ic,file_ext))
 if ~exist(fullfile(swd, sprintf('T_log_p_%04d%s',Ic,file_ext)))
   strtmp = { 'No TFCE calculation for this contrast found.';...
       'Would you like to estimate it now?'};

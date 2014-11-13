@@ -224,21 +224,28 @@ for con = 1:length(Ic0)
     
     VY = SPM.xY.VY;
     
+    if exist(fullfile(cwd, 'mask.img'))
+      file_ext = '.img';
+    elseif exist(fullfile(cwd, 'mask.nii'))
+      file_ext = '.nii';
+    elseif exist(fullfile(cwd, 'mask.gii'))
+      file_ext = '.gii';
+    else
+      error('No mask file found.');
+    end
+
     % check for meshes
     if spm12
       if spm_mesh_detect(VY)
         mesh_detected = 1;
-        file_ext = '.gii';
         if vFWHM > 0
           warning('Variance smoothing not yet prepared!');
         end
       else
         mesh_detected = 0;
-        file_ext = spm_file_ext;
       end
     else
       mesh_detected = 0;
-      file_ext = '.img';
     end
     
     % load mask file

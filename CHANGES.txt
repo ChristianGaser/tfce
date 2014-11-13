@@ -476,3 +476,13 @@ A       tfce_mesh.m
 
 ------------------------------------------------------------------------
 r69 | gaser | 2014-11-12 15:08:48
+
+M       CHANGES.txt
+M       cg_get_tfce_results.m
+M       cg_tfce_estimate.m
+
+Corrected issues with different file extensions. Now the extension of the 
+previous analysis will be used.
+
+------------------------------------------------------------------------
+r70 | gaser | 2014-11-13 11:44:49

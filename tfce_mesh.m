@@ -2,7 +2,7 @@ function tfce = tfce_mesh(faces, t, deltaT)
 % FORMAT tfce = tfce_mesh(faces, t, deltaT)
 %
 % Christian Gaser
-% $Id: tfce_mesh.m 50 2011-06-21 15:01:54Z gaser $
+% $Id$
 
 E = 0.5;
 H = 2.0;

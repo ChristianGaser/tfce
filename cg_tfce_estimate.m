@@ -2,13 +2,16 @@ function cg_tfce_estimate(job)
 
 global Y initialized
 
-initialized = 0;
+% use debug for displaying permuted design matrix
+debug = 0;
 
 if strcmp(spm('ver'),'SPM12')
   spm12 = 1;
 else
   spm12 = 0;
 end
+
+initialized = 0;
 
 load(job.spmmat{1});
 cwd = fileparts(job.spmmat{1});
@@ -31,11 +34,9 @@ for con = 1:length(Ic0)
     if numel(job.conspec.n_perm) > 1
       n_perm_break = job.conspec.n_perm(2);
     end
+    
     vFWHM = job.conspec.vFWHM;
-    
-    % use debug for displaying permuted design matrix
-    debug = 0;
-    
+        
     % define stepsize for tfce
     n_steps_tfce = 100;
     
@@ -45,7 +46,7 @@ for con = 1:length(Ic0)
     
     % colors and alpha levels
     col   = [0 0 1; 0 0.5 0; 1 0 0];
-    alpha = [0.05 0.01 0.001];
+    alpha = [0.05   0.01     0.001];
     
     % give same results each time
     rand('state',0);
@@ -105,46 +106,46 @@ for con = 1:length(Ic0)
     end
     
     % get contrast of interest and find zero values in contrast
-    c       = xCon.c(SPM.xX.iH);
+    c = xCon.c(xX.iH);
     
-    % handle multiple regression designs
+    % handle multiple regression designs if condition effects iH are empty
     if isempty(c) | all(c==0)
-      c       = xCon.c(SPM.xX.iC);
+      c = xCon.c([xX.iH xX.iC]);
     end
+    
     ind_con = find(c~=0)';
     c_name  = deblank(xCon.name);
 
     % find exchangeability blocks using contrasts without zero values
-    [unique_con, I, J]   = unique(c(ind_con));
-    n_unique_con = length(unique_con);
-    %unique_con = unique_con(J); % does not work for some contrasts
+    [exch_blocks, I, J]   = unique(c(ind_con));
+    n_exch_blocks = length(exch_blocks);
+    %exch_blocks = exch_blocks(J); % does not work for some contrasts
     
     % check for exchangeability blocks and design matrix
     % maximal two exchangeability blocks allowed
-    switch n_unique_con
+    switch n_exch_blocks
       case 1 % check whether the contrast is defined at columns for condition effects
-        n_cond = length(find(SPM.xX.iH==ind_con));
+        n_cond = length(find(xX.iH==ind_con));
         use_half_permutations = 0;
       case 2 % check whether the contrast is defined at columns for condition effects
         n_cond = 0;
         n_subj_cond = [];
-        for k=1:length(SPM.xX.iH)
-          n_subj_cond = [n_subj_cond sum(SPM.xX.X(:,SPM.xX.iH(k)))];
+        for k=1:length(xX.iH)
+          n_subj_cond = [n_subj_cond sum(xX.X(:,xX.iH(k)))];
         end
-        for j=1:n_unique_con
-          c_unique_con = find(c==unique_con(j));
-          for k=1:length(c_unique_con)
-            n_cond = n_cond + length(find(SPM.xX.iH==c_unique_con(k)));
+        for j=1:n_exch_blocks
+          c_exch_blocks = find(c==exch_blocks(j));
+          for k=1:length(c_exch_blocks)
+            n_cond = n_cond + length(find(xX.iH==c_exch_blocks(k)));
           end
         end
         
         % comparison of two regressors (=interaction) not fully tested
         if n_cond == 0
-          warning('Interaction between two regressors should work, but is not yet fully tested.')
           use_half_permutations = 0;
         else
           % check if sample size is equal for both conditions
-          if sum(n_subj_cond(find(c==unique_con(1)))) == sum(n_subj_cond(find(c==unique_con(2))))
+          if sum(n_subj_cond(find(c==exch_blocks(1)))) == sum(n_subj_cond(find(c==exch_blocks(2))))
             use_half_permutations = 1;
             disp('Equal sample sizes: half of permutations are used.');
           else
@@ -156,9 +157,10 @@ for con = 1:length(Ic0)
         error('Maximal two exchangeability blocks allowed.')
     end
 
-    ind_unique_con = cell(n_unique_con,1);
-    for j=1:n_unique_con
-      ind_unique_con{j} = find(c==unique_con(j));
+    % find exchangeability blocks using contrast
+    ind_exch_blocks = cell(n_exch_blocks,1);
+    for j=1:n_exch_blocks
+      ind_exch_blocks{j} = find(c==exch_blocks(j));
     end
     
     n_subj = size(X,1);
@@ -166,24 +168,28 @@ for con = 1:length(Ic0)
     % check design
     switch n_cond
     case 0 % correlation
-      fprintf('Correlational design found\n');
+      if n_exch_blocks == 2
+        warning('Interaction design between two regressors found.\nThis should work, but is not yet fully tested and I am unsure whether the # of max. permutations is correctly estimated.')
+      else
+        fprintf('Multiple regression design found\n');
+      end
       label = 1:n_subj;
     case 1 % one-sample t-test
       fprintf('One sample t-test found\n');
       % use exchangeability blocks for labels
       label = zeros(1,n_subj);
-      for j=1:n_unique_con
-        for k=1:length(ind_unique_con{j})
-          label(find(xX.X(:,ind_unique_con{j}(k))==1)) = j;
+      for j=1:n_exch_blocks
+        for k=1:length(ind_exch_blocks{j})
+          label(find(xX.X(:,ind_exch_blocks{j}(k))==1)) = j;
         end
       end
     otherwise  % Anova with at least 2 groups
       fprintf('Anova found\n');
       % use exchangeability blocks for labels
       label = zeros(1,n_subj);
-      for j=1:n_unique_con
-        for k=1:length(ind_unique_con{j})
-          label(find(xX.X(:,ind_unique_con{j}(k))==1)) = j;
+      for j=1:n_exch_blocks
+        for k=1:length(ind_exch_blocks{j})
+          label(find(xX.X(:,ind_exch_blocks{j}(k))==1)) = j;
         end
       end
     end
@@ -201,10 +207,11 @@ for con = 1:length(Ic0)
       n_perm_full = factorial(n_subj_with_contrast);
       single_subject = 0;
       for i=1:n_cond
-        % check whether only a single is in one group
+        % check whether only a single subject is in one group
         if length(find(label == i)) == 1
           single_subject = 1;
         end
+        % not sure whether this also works for interaction???
         n_perm_full = n_perm_full/factorial(length(find(label == i)));
       end
       if isnan(n_perm_full)
@@ -218,6 +225,16 @@ for con = 1:length(Ic0)
       n_perm_full = round(n_perm_full);
     else  % one-sample t-test: n_perm = 2^n
       n_perm_full = 2^n_subj_with_contrast;
+    end
+    
+    if debug
+      fprintf('# full permutations: %d\n',n_perm_full);
+      fprintf('exchangeability blocks: \n');
+      for j=1:n_exch_blocks
+        fprintf('%d ',ind_exch_blocks{j});
+      end
+      fprintf('\n');
+      fprintf('n# of conditions: %d\n',n_cond);
     end
     
     n_perm = min([n_perm n_perm_full]);
@@ -458,7 +475,7 @@ for con = 1:length(Ic0)
           tfce = tfce_mesh(SPM.xVol.G.faces, t, deltaT);
         else
           if job.openmp
-            tfce = tfceMex(t, deltaT, 1);
+            tfce = tfceMex(t, deltaT);
           else
             tfce = tfceMex_noopenmp(t0, deltaT);
           end
@@ -475,7 +492,7 @@ for con = 1:length(Ic0)
         t_max    = [t_max max(t(:)) -min(t(:))];
       else
         label_matrix = [label_matrix; rand_label];
-    
+
         % maximum statistic
         tfce_max = [tfce_max max(tfce(:))];
         t_max    = [t_max max(t(:))];
@@ -558,6 +575,7 @@ for con = 1:length(Ic0)
     
     cg_progress('Clear',Fgraph)
     spm_progress_bar('Clear')
+    delete(hStopButton);
     
     spm_print
     
@@ -687,11 +705,11 @@ for con = 1:length(Ic0)
     corrP = zeros(size(t));
     
     for t2 = tfce_max
-        %-FEW-corrected p is proportion of randomisation greater or
+        %-FWE-corrected p is proportion of randomisation greater or
         % equal to statistic.
         %-Use a > b -tol rather than a >= b to avoid comparing
         % two reals for equality.
-        corrP = corrP + (t2 > tfce0-tol);
+        corrP = corrP + (t2 > tfce0 - tol);
     end
     corrP_vol = NaN(size(t));
     corrP_vol(mask_P) = corrP(mask_P) / n_perm;  
@@ -716,11 +734,11 @@ for con = 1:length(Ic0)
     corrP = zeros(size(t));
     
     for t2 = t_max
-        %-FEW-corrected p is proportion of randomisation greater or
+        %-FWE-corrected p is proportion of randomisation greater or
         % equal to statistic.
         %-Use a > b -tol rather than a >= b to avoid comparing
         % two reals for equality.
-        corrP = corrP + (t2 > t0-tol);
+        corrP = corrP + (t2 > t0 - tol);
     end
     corrP_vol = NaN(size(t));
     corrP_vol(mask_P) = corrP(mask_P) / n_perm;  

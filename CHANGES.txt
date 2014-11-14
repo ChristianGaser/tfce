@@ -486,3 +486,15 @@ previous analysis will be used.
 
 ------------------------------------------------------------------------
 r70 | gaser | 2014-11-13 11:44:49
+
+M       CHANGES.txt
+M       cg_progress.m
+M       cg_tfce_estimate.m
+MM      tfce_mesh.m
+
+(1) Some cosmetic changes to cg_tfce_estimate.m.
+(2) cg_tfce_estimate can now also deal with correlational designs with single
+    regressor and dummy block before covariate.
+
+------------------------------------------------------------------------
+r71 | gaser | 2014-11-14 10:41:25

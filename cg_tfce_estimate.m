@@ -2,20 +2,50 @@ function cg_tfce_estimate(job)
 
 global Y initialized
 
+initialized = 0;
+
 % use debug for displaying permuted design matrix
 debug = 0;
+    
+% define stepsize for tfce
+n_steps_tfce = 100;
+    
+% define histogram bins
+% use value > 1000 to reliable estimate p<0.001 levels
+n_hist_bins = 1100;
+    
+% colors and alpha levels
+col   = [0 0 1; 0 0.5 0; 1 0 0];
+alpha = [0.05   0.01     0.001];
+    
+% give same results each time
+rand('state',0);
 
+% tolerance for comparing real numbers
+tol = 1e-4;
+    
+% check spm version
 if strcmp(spm('ver'),'SPM12')
   spm12 = 1;
 else
   spm12 = 0;
 end
 
-initialized = 0;
-
 load(job.spmmat{1});
 cwd = fileparts(job.spmmat{1});
 
+%-Check that model has been estimated
+if ~isfield(SPM, 'xVol')
+    str = { 'This model has not been estimated.';...
+              'Would you like to estimate it now?'};
+    if spm_input(str,1,'bd','yes|no',[1,0],1)
+        cd(cwd)
+        SPM = spm_spm(SPM);
+    else
+        return
+    end
+end
+    
 Ic0 = job.conspec.contrasts;
 try
   xCon0 = SPM.xCon(Ic0(1));
@@ -25,10 +55,59 @@ catch
   SPM.xCon = xCon;
 end
 
+% check that no temporal filter was used
+if isstruct(SPM.xX.K)
+    fprintf('ERROR: No first level analysis with temporal correlations allowed.\n');
+    return
+end
+    
+% whitening matrix
+if isfield(SPM.xX,'W')
+    W = SPM.xX.W;
+    if any(W~=1)
+        fprintf('Whitening of the data is not yet supported.\n');
+        W = speye(size(SPM.xX.X,1));
+    end
+else
+    W = speye(size(SPM.xX.X,1));
+end
+    
+% get some parameters from SPM
+xX     = SPM.xX;
+TH     = SPM.xM.TH;
+VY     = SPM.xY.VY;
+n_data = size(xX.X,1);
+
+% find exchangeability block labels for longitudinal designs (paired t-test, flexible factorial)
+repeated_anova = ~isempty(xX.iB);
+if repeated_anova
+    ind1 = find(any(diff(xX.I,1),1) == 1); % find columns that have no constant values of "1"
+    exch_block_labels = xX.I(:,ind1(1));   % 1st column is the subject factor
+
+    % check that labels are defined for each block
+    for i=1:n_data
+        groupListed(exch_block_labels(i))=true;
+    end
+    for i = 1: max(exch_block_labels)
+        if ~groupListed(i) 
+            fprintf('Error: block %d must be assigned to at least one design row in the blocks file.\n',i);
+            return
+        end
+   end
+else
+    exch_block_labels = ones(1,n_data);
+end
+
+% go through all contrasts
 for con = 1:length(Ic0)
 
     Ic = Ic0(con);
     xCon = SPM.xCon(Ic);
+    
+    if ~strcmp(xCon.STAT,'T')
+      fprintf('ERROR: Only T-contrasts allowed.\n');
+      return
+    end
     
     n_perm = job.conspec.n_perm(1);
     if numel(job.conspec.n_perm) > 1
@@ -36,73 +115,10 @@ for con = 1:length(Ic0)
     end
     
     vFWHM = job.conspec.vFWHM;
-        
-    % define stepsize for tfce
-    n_steps_tfce = 100;
-    
-    % define histogram bins
-    % use value > 1000 to reliable estimate p<0.001 levels
-    n_hist_bins = 1100;
-    
-    % colors and alpha levels
-    col   = [0 0 1; 0 0.5 0; 1 0 0];
-    alpha = [0.05   0.01     0.001];
-    
-    % give same results each time
-    rand('state',0);
-    
-    % tolerance for comparison
-    tol = 1e-4;	% Tolerance for comparing real numbers
-    
-    %-Check that model has been estimated
-    try
-      xX  = SPM.xX;         %-Design definition structure
-      XYZ = SPM.xVol.XYZ;      %-XYZ coordinates
-      S   = SPM.xVol.S;       %-search Volume {voxels}
-      R   = SPM.xVol.R;       %-search Volume {resels}
-      M   = SPM.xVol.M(1:3,1:3);   %-voxels to mm matrix
-      VOX = sqrt(diag(M'*M))';    %-voxel dimensions
-    catch
-      str = { 'This model has not been estimated.';...
-              'Would you like to estimate it now?'};
-      if spm_input(str,1,'bd','yes|no',[1,0],1)
-         SPM = spm_spm(SPM);
-         xX  = SPM.xX;          %-Design definition structure
-         XYZ = SPM.xVol.XYZ;       %-XYZ coordinates
-         S   = SPM.xVol.S;        %-search Volume {voxels}
-         R   = SPM.xVol.R;        %-search Volume {resels}
-         M   = SPM.xVol.M(1:3,1:3);   %-voxels to mm matrix
-         VOX = sqrt(diag(M'*M))';    %-voxel dimensions
-      else
-        return
-      end
-    end
-    
-    % check that no temporal filter was used
-    if isstruct(SPM.xX.K)
-      error('No first level analysis with temporal correlations allowed');
-    end
-    
-    % whitening matrix
-    if isfield(SPM.xX,'W')
-      W = SPM.xX.W;
-      if any(W~=1)
-        disp('Whitening of the data is not yet supported');
-        W = speye(size(SPM.xX.X,1));
-      end
-    else
-      W = speye(size(SPM.xX.X,1));
-    end
-    
-    % design matrix
-    xX = SPM.xX;
-    X  = SPM.xX.X;
-    
-    % threshold vector
-    TH = SPM.xM.TH;
     
     if length(Ic) > 1
-      error('No conjunction allowed.');
+      fprintf('ERROR: No conjunction allowed.\n');
+      return
     end
     
     % get contrast of interest and find zero values in contrast
@@ -119,52 +135,44 @@ for con = 1:length(Ic0)
     % find exchangeability blocks using contrasts without zero values
     [exch_blocks, I, J]   = unique(c(ind_con));
     n_exch_blocks = length(exch_blocks);
-    %exch_blocks = exch_blocks(J); % does not work for some contrasts
+    exch_blocks = exch_blocks(I);
     
     % check for exchangeability blocks and design matrix
-    % maximal two exchangeability blocks allowed
-    switch n_exch_blocks
-      case 1 % check whether the contrast is defined at columns for condition effects
-        n_cond = length(find(xX.iH==ind_con));
-        use_half_permutations = 0;
-      case 2 % check whether the contrast is defined at columns for condition effects
+    if n_exch_blocks == 1
+        n_cond = length(find(xX.iH==ind_con)); % check whether the contrast is defined at columns for condition effects
+    else
         n_cond = 0;
-        n_subj_cond = [];
+        n_data_cond = [];
         for k=1:length(xX.iH)
-          n_subj_cond = [n_subj_cond sum(xX.X(:,xX.iH(k)))];
+          n_data_cond = [n_data_cond sum(xX.X(:,xX.iH(k)))];
         end
         for j=1:n_exch_blocks
           c_exch_blocks = find(c==exch_blocks(j));
           for k=1:length(c_exch_blocks)
             n_cond = n_cond + length(find(xX.iH==c_exch_blocks(k)));
           end
-        end
-        
-        % comparison of two regressors (=interaction) not fully tested
-        if n_cond == 0
-          use_half_permutations = 0;
-        else
-          % check if sample size is equal for both conditions
-          if sum(n_subj_cond(find(c==exch_blocks(1)))) == sum(n_subj_cond(find(c==exch_blocks(2))))
-            use_half_permutations = 1;
-            disp('Equal sample sizes: half of permutations are used.');
-          else
-            use_half_permutations = 0;
-          end
-        end
-        
-      otherwise
-        error('Maximal two exchangeability blocks allowed.')
+        end       
     end
 
-    % find exchangeability blocks using contrast
+    use_half_permutations = 0;
+    % check if sample size is equal for both conditions
+    if n_cond == 2
+        if sum(n_data_cond(find(c==exch_blocks(1)))) == sum(n_data_cond(find(c==exch_blocks(2))))
+            use_half_permutations = 1;
+            fprintf('Equal sample sizes: half of permutations are used.\n');
+        end
+    end
+
+    % repated Anova does not allow to use only half of the permutions
+    if repeated_anova
+      use_half_permutations = 0;
+    end
+    
     ind_exch_blocks = cell(n_exch_blocks,1);
     for j=1:n_exch_blocks
       ind_exch_blocks{j} = find(c==exch_blocks(j));
     end
-    
-    n_subj = size(X,1);
-    
+        
     % check design
     switch n_cond
     case 0 % correlation
@@ -173,20 +181,24 @@ for con = 1:length(Ic0)
       else
         fprintf('Multiple regression design found\n');
       end
-      label = 1:n_subj;
+      label = 1:n_data;
     case 1 % one-sample t-test
       fprintf('One sample t-test found\n');
       % use exchangeability blocks for labels
-      label = zeros(1,n_subj);
+      label = zeros(1,n_data);
       for j=1:n_exch_blocks
         for k=1:length(ind_exch_blocks{j})
           label(find(xX.X(:,ind_exch_blocks{j}(k))==1)) = j;
         end
       end
     otherwise  % Anova with at least 2 groups
-      fprintf('Anova found\n');
+      if repeated_anova
+        fprintf('Repeated Anova found\n');
+      else
+        fprintf('Anova found\n');
+      end
       % use exchangeability blocks for labels
-      label = zeros(1,n_subj);
+      label = zeros(1,n_data);
       for j=1:n_exch_blocks
         for k=1:length(ind_exch_blocks{j})
           label(find(xX.X(:,ind_exch_blocks{j}(k))==1)) = j;
@@ -199,13 +211,14 @@ for con = 1:length(Ic0)
     % get index for label values > 0
     ind_label = find(label > 0);
     
-    n_subj_with_contrast = length(find(label > 0));
+    n_data_with_contrast = length(find(label > 0));
     
     % estimate # of permutations
     % Anova/correlation: n_perm = (n1+n2+...+nk)!/(n1!*n2!*...*nk!)
     if n_cond ~=1  % Anova/correlation
-      n_perm_full = factorial(n_subj_with_contrast);
+      n_perm_full = factorial(n_data_with_contrast);
       single_subject = 0;
+      
       for i=1:n_cond
         % check whether only a single subject is in one group
         if length(find(label == i)) == 1
@@ -214,33 +227,43 @@ for con = 1:length(Ic0)
         % not sure whether this also works for interaction???
         n_perm_full = n_perm_full/factorial(length(find(label == i)));
       end
+      
       if isnan(n_perm_full)
         % correct number of permutations for large samples when factorial is not working
         if (n_cond == 2) & (single_subject == 1)
-          n_perm_full = n_subj_with_contrast;
+          n_perm_full = n_data_with_contrast;
         else
           n_perm_full = realmax;
         end
       end
-      n_perm_full = round(n_perm_full);
+      
+      % Repated Anova: n_perm = (n_cond!)^n_subj
+      if repeated_anova
+        n_subj = max(exch_block_labels);
+        n_perm_full = factorial(n_cond)^n_subj;
+      else
+        n_perm_full = round(n_perm_full);
+      end
+      
     else  % one-sample t-test: n_perm = 2^n
-      n_perm_full = 2^n_subj_with_contrast;
+      n_perm_full = 2^n_data_with_contrast;
     end
     
     if debug
       fprintf('# full permutations: %d\n',n_perm_full);
-      fprintf('exchangeability blocks: \n');
+      if use_half_permutations
+        fprintf('Equal sample size found: Use half permutations.\n');
+      end
+      fprintf('exchangeability blocks: ');
       for j=1:n_exch_blocks
         fprintf('%d ',ind_exch_blocks{j});
       end
       fprintf('\n');
-      fprintf('n# of conditions: %d\n',n_cond);
+      fprintf('# of conditions: %d\n',n_cond);
     end
     
     n_perm = min([n_perm n_perm_full]);
-    
-    VY = SPM.xY.VY;
-    
+        
     if exist(fullfile(cwd, 'mask.img'))
       file_ext = '.img';
     elseif exist(fullfile(cwd, 'mask.nii'))
@@ -248,7 +271,8 @@ for con = 1:length(Ic0)
     elseif exist(fullfile(cwd, 'mask.gii'))
       file_ext = '.gii';
     else
-      error('No mask file found.');
+      fprintf('ERROR: No mask file found.\n');
+      return
     end
 
     % check for meshes
@@ -265,12 +289,14 @@ for con = 1:length(Ic0)
       mesh_detected = 0;
     end
     
-    % load mask file
+    % get mask file
     if isempty(job.mask)
       maskname = fullfile(cwd,['mask' file_ext]);
     else
       maskname = job.mask{1};
     end
+    
+    % load mask
     try
       if spm12
         Vmask = spm_data_hdr_read(maskname);
@@ -309,12 +335,13 @@ for con = 1:length(Ic0)
       if size(SPM.xY.VY,1)==n
         save(job.spmmat{1},'SPM');
       else
-        error('Number of files is not correct');
+        fprintf('ERROR: Number of files is not correct\n');
+        return
       end
     end
         
     % compute unpermuted t-map
-    t0 = calc_glm(VY,X,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
+    t0 = calc_glm(VY,xX.X,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
     
     % get deltaT for unpermuted map
     deltaT = max(abs(t0(:)))/n_steps_tfce;
@@ -393,25 +420,39 @@ for con = 1:length(Ic0)
       % randomize subject vector
       if i==1 % first permutation is always unpermuted model
         if n_cond == 1 % one-sample t-test
-          rand_label = ones(1,n_subj_with_contrast);
+          rand_label = ones(1,n_data_with_contrast);
         else % correlation or Anova
-          rand_order = 1:n_subj_with_contrast;
+          rand_order = 1:n_data_with_contrast;
           rand_label = label(ind_label(rand_order));
         end
       else
         % init permutation and
         % check that each permutation is used only once
         if n_cond == 1 % one-sample t-test
-          rand_label = sign(randn(1,n_subj_with_contrast));
+          rand_label = sign(randn(1,n_data_with_contrast));
           while any(ismember(label_matrix,rand_label,'rows'))
-            rand_label = sign(randn(1,n_subj_with_contrast));
+            rand_label = sign(randn(1,n_data_with_contrast));
           end
         else % correlation or Anova
-          rand_order = randperm(n_subj_with_contrast);
-          rand_label = label(ind_label(rand_order));
+          
+          % permute inside exchangeability blocks only
+          rand_order = ones(1,n_data_with_contrast);
+          rand_label = ones(1,n_data_with_contrast);
+          for k = 1:max(exch_block_labels)
+            ind_block   = find(exch_block_labels == k);
+            n_per_block = length(ind_block);
+            rand_order(ind_block) = randperm(n_per_block);
+            rand_label(ind_block) = label(ind_label(rand_order(ind_block)));
+          end
+
+          % check whether this permutation was already used
           while any(ismember(label_matrix,rand_label,'rows'))
-            rand_order = randperm(n_subj_with_contrast);
-            rand_label = label(ind_label(rand_order));
+          for k = 1:max(exch_block_labels)
+            ind_block   = find(exch_block_labels == k);
+            n_per_block = length(ind_block);
+            rand_order(ind_block) = randperm(n_per_block);
+            rand_label(ind_block) = label(ind_label(rand_order(ind_block)));
+          end
           end
         end    
       end   
@@ -424,6 +465,7 @@ for con = 1:length(Ic0)
           'string','Stop',...
           'backgroundcolor',[1 .5 .5]); % light-red
       end
+      
       if i>=21
         stopStatus = get(hStopButton,'value');
       end
@@ -436,12 +478,12 @@ for con = 1:length(Ic0)
         
       % change design matrix according to permutation order
       % only permute columns, where contrast is defined
-      Xperm = X;
-      Xperm_debug = X;
+      Xperm = xX.X;
+      Xperm_debug = xX.X;
       
       if n_cond==1 % one-sample t-test
         % only change sign in the design matrix
-        for j=1:n_subj_with_contrast
+        for j=1:n_data_with_contrast
           Xperm(ind_label(j),ind_con) = rand_label(j)*Xperm(ind_label(j),ind_con);
           Xperm_debug(ind_label(j),ind_con) = 2*rand_label(j)*Xperm_debug(ind_label(j),ind_con);
         end
@@ -449,7 +491,8 @@ for con = 1:length(Ic0)
         Xperm(ind_label,ind_con) = Xperm(ind_label(rand_order),ind_con);
         Xperm_debug(ind_label,ind_con) = 2*Xperm_debug(ind_label(rand_order),ind_con);
       end
-    
+      
+      % plot permuted design matrix
       if debug
         figure(11)
         imagesc(Xperm_debug);
@@ -595,10 +638,11 @@ for con = 1:length(Ic0)
     Vt = VY(1);
     Vt.dt(1)    = 16;
     Vt.pinfo(1) = 1;
-    
-    % create mask
-    mask_P = find(t0~=0);
-    
+        
+    mask_0 = find(t0 == 0);
+    mask_P = find(t0 > 0);
+    mask_N = find(t0 < 0);
+
     %---------------------------------------------------------------
     % save unpermuted TFCE map
     %---------------------------------------------------------------
@@ -642,7 +686,7 @@ for con = 1:length(Ic0)
     % save uncorrected p-values for TFCE
     %---------------------------------------------------------------
     fprintf('Save uncorrected p-values.\n');
-    
+
     name = sprintf('TFCE_log_p_%04d',Ic);
     Vt.fname = fullfile(cwd,[name file_ext]);
     if vFWHM > 0
@@ -657,16 +701,24 @@ for con = 1:length(Ic0)
     tfce_cumsum = cumsum(tfce_hist);
     for j=n_hist_bins:-1:1
       tmp = min(find(tfce_cumsum>=ceil(j/n_hist_bins*sum(tfce_hist))));
-      nPtfce((tfce0 >= tfce_bins(tmp)) & (nPtfce==0)) = j/n_hist_bins;
+      nPtfce((tfce0  > tfce_bins(tmp)) & (nPtfce==0)) =  j/n_hist_bins;
+      nPtfce((-tfce0 > tfce_bins(tmp)) & (nPtfce==0)) = -j/n_hist_bins;
     end
-    nPtfce(find(nPtfce==0)) = NaN;
-    nPtfce = 1 - nPtfce;
     
+    nPtfce(mask_P) = 1 - nPtfce(mask_P);
+    nPtfce(mask_N) = 1 + nPtfce(mask_N);
+    nPtfce(mask_0) = NaN;
+
+    nPtfcelog10 = zeros(size(tfce0));
+    nPtfcelog10(mask_P) = -log10(nPtfce(mask_P));
+    nPtfcelog10(mask_N) =  log10(nPtfce(mask_N));
+    nPtfcelog10(mask_0) = NaN;
+
     if spm12
       Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,-log10(nPtfce));
+      spm_data_write(Vt,nPtfcelog10);
     else
-      spm_write_vol(Vt,-log10(nPtfce));
+      spm_write_vol(Vt,nPtfcelog10);
     end
     
     %---------------------------------------------------------------
@@ -681,27 +733,44 @@ for con = 1:length(Ic0)
     end
     
     nPt = zeros(size(t0));
+    nPtlog10 = zeros(size(t0));
     
     % estimate p-values
     t_cumsum = cumsum(t_hist);
     for j=n_hist_bins:-1:1
       tmp = min(find(t_cumsum>=ceil(j/n_hist_bins*sum(t_hist))));
-      nPt((t0 >= t_bins(tmp)) & (nPt==0)) = j/n_hist_bins;
+      nPt((t0  > t_bins(tmp)) & (nPt==0)) =  j/n_hist_bins;
+      nPt((-t0 > t_bins(tmp)) & (nPt==0)) = -j/n_hist_bins;
     end
-    nPt(find(nPt==0)) = NaN;
-    nPt = 1 - nPt;
     
+    nPt(mask_P) = 1 - nPt(mask_P);
+    nPt(mask_N) = 1 + nPt(mask_N);
+    nPt(mask_0) = NaN;
+
+    nPtlog10(mask_P) = -log10(nPt(mask_P));
+    nPtlog10(mask_N) =  log10(nPt(mask_N));
+    nPtlog10(mask_0) = NaN;
+
     if spm12
       Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,-log10(nPt));
+      spm_data_write(Vt,nPtlog10);
     else
-      spm_write_vol(Vt,-log10(nPt));
+      spm_write_vol(Vt,nPtlog10);
     end
     
     %---------------------------------------------------------------
     % save corrected p-values for TFCE
     %---------------------------------------------------------------
     fprintf('Save corrected p-values.\n');
+
+    name = sprintf('TFCE_log_pFWE_%04d',Ic);
+    Vt.fname = fullfile(cwd,[name file_ext]);
+    if vFWHM > 0
+      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
+    else
+      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
+    end
+
     corrP = zeros(size(t));
     
     for t2 = tfce_max
@@ -710,27 +779,37 @@ for con = 1:length(Ic0)
         %-Use a > b -tol rather than a >= b to avoid comparing
         % two reals for equality.
         corrP = corrP + (t2 > tfce0 - tol);
+        corrP = corrP - (t2 > -tfce0 - tol);
     end
-    corrP_vol = NaN(size(t));
-    corrP_vol(mask_P) = corrP(mask_P) / n_perm;  
-    
-    name = sprintf('TFCE_log_pFWE_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name file_ext]);
-    if vFWHM > 0
-      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-    else
-      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
-    end
+    corrP = corrP / n_perm;  
+
+    corrP(mask_P) = 1 + corrP(mask_P);
+    corrP(mask_N) = 1 - corrP(mask_N);
+    corrP(mask_0) = NaN;
+
+    corrPlog10 = zeros(size(tfce0));
+    corrPlog10(mask_P) = -log10(corrP(mask_P));
+    corrPlog10(mask_N) =  log10(corrP(mask_N));
+    corrPlog10(mask_0) = NaN;
+
     if spm12
       Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,-log10(corrP_vol));
+      spm_data_write(Vt,corrPlog10);
     else
-      spm_write_vol(Vt,-log10(corrP_vol));
+      spm_write_vol(Vt,corrPlog10);
     end
     
     %---------------------------------------------------------------
     % save corrected p-values for T
     %---------------------------------------------------------------
+    name = sprintf('T_log_pFWE_%04d',Ic);
+    Vt.fname = fullfile(cwd,[name file_ext]);
+    if vFWHM > 0
+      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
+    else
+      Vt.descrip = sprintf('T Contrast %04d',Ic);
+    end
+
     corrP = zeros(size(t));
     
     for t2 = t_max
@@ -739,34 +818,30 @@ for con = 1:length(Ic0)
         %-Use a > b -tol rather than a >= b to avoid comparing
         % two reals for equality.
         corrP = corrP + (t2 > t0 - tol);
+        corrP = corrP - (t2 > -t0 - tol);
     end
-    corrP_vol = NaN(size(t));
-    corrP_vol(mask_P) = corrP(mask_P) / n_perm;  
+    corrP = corrP / n_perm;  
+
+    corrP(mask_P) = 1 + corrP(mask_P);
+    corrP(mask_N) = 1 - corrP(mask_N);
+    corrP(mask_0) = NaN;
+
+    corrPlog10 = zeros(size(tfce0));
+    corrPlog10(mask_P) = -log10(corrP(mask_P));
+    corrPlog10(mask_N) =  log10(corrP(mask_N));
+    corrPlog10(mask_0) = NaN;
     
-    name = sprintf('T_log_pFWE_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name file_ext]);
-    if vFWHM > 0
-      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-    else
-      Vt.descrip = sprintf('T Contrast %04d',Ic);
-    end
     if spm12
       Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,-log10(corrP_vol));
+      spm_data_write(Vt,corrPlog10);
     else
-      spm_write_vol(Vt,-log10(corrP_vol));
+      spm_write_vol(Vt,corrPlog10);
     end
     
     %---------------------------------------------------------------
     % save corrected FDR-values for TFCE
     %---------------------------------------------------------------
     fprintf('Save corrected FDR-values.\n');
-    
-    [snP_pos,I_pos] = sort(nPtfce(mask_P));
-    corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
-    corrPfdr_pos(I_pos) = corrPfdr_pos;
-    corrPfdr_pos_vol = NaN(size(t));
-    corrPfdr_pos_vol(mask_P) = corrPfdr_pos;
     
     name = sprintf('TFCE_log_pFDR_%04d',Ic);
     Vt.fname = fullfile(cwd,[name file_ext]);
@@ -775,22 +850,34 @@ for con = 1:length(Ic0)
     else
       Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
     end
+
+    [snP_pos,I_pos] = sort(nPtfce(mask_P));
+    corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
+    corrPfdr_pos(I_pos) = corrPfdr_pos;
+    
+    [snP_neg,I_neg] = sort(nPtfce(mask_N));
+    corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
+    corrPfdr_neg(I_neg) = corrPfdr_neg;
+
+    corrPfdr = NaN(size(t));
+    corrPfdr(mask_P) = corrPfdr_pos;
+    corrPfdr(mask_N) = corrPfdr_neg;
+    
+    corrPfdrlog10 = zeros(size(tfce0));
+    corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
+    corrPfdrlog10(mask_N) =  log10(corrPfdr(mask_N));
+    corrPfdrlog10(mask_0) = NaN;
+
     if spm12
       Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,-log10(corrPfdr_pos_vol));
+      spm_data_write(Vt,corrPfdrlog10);
     else
-      spm_write_vol(Vt,-log10(corrPfdr_pos_vol));
+      spm_write_vol(Vt,corrPfdrlog10);
     end
     
     %---------------------------------------------------------------
     % save corrected FDR-values for T
     %---------------------------------------------------------------
-    [snP_pos,I_pos]=sort(nPt(mask_P));
-    corrPfdr_pos=snpm_P_FDR([],[],'P',[],snP_pos);
-    corrPfdr_pos(I_pos) = corrPfdr_pos;
-    corrPfdr_pos_vol = NaN(size(t));
-    corrPfdr_pos_vol(mask_P) = corrPfdr_pos;
-    
     name = sprintf('T_log_pFDR_%04d',Ic);
     Vt.fname = fullfile(cwd,[name file_ext]);
     if vFWHM > 0
@@ -798,11 +885,30 @@ for con = 1:length(Ic0)
     else
       Vt.descrip = sprintf('T Contrast %04d',Ic);
     end
+
+    [snP_pos,I_pos] = sort(nPt(mask_P));
+    corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
+    corrPfdr_pos(I_pos) = corrPfdr_pos;
+    
+    [snP_neg,I_neg] = sort(nPt(mask_N));
+    corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
+    corrPfdr_neg(I_neg) = corrPfdr_neg;
+
+    corrPfdr = NaN(size(t));
+    corrPfdr(mask_P) = corrPfdr_pos;
+    corrPfdr(mask_N) = corrPfdr_neg;
+    
+    
+    corrPfdrlog10 = zeros(size(tfce0));
+    corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
+    corrPfdrlog10(mask_N) =  log10(corrPfdr(mask_N));
+    corrPfdrlog10(mask_0) = NaN;
+
     if spm12
       Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,-log10(corrPfdr_pos_vol));
+      spm_data_write(Vt,corrPfdrlog10);
     else
-      spm_write_vol(Vt,-log10(corrPfdr_pos_vol));
+      spm_write_vol(Vt,corrPfdrlog10);
     end
 
 end
@@ -903,13 +1009,13 @@ else
   mesh_detected = 0;
 end
 
-n_subj = size(X,1);
+n_data = size(X,1);
 n_beta = size(X,2);
 
 X = W*X;
 pKX  = pinv(X);
 Bcov = pinv(X'*X);
-trRV = n_subj - rank(X);
+trRV = n_data - rank(X);
 
 vx  = sqrt(sum(V(1).mat(1:3,1:3).^2));
 

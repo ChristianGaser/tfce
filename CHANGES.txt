@@ -498,3 +498,14 @@ MM      tfce_mesh.m
 
 ------------------------------------------------------------------------
 r71 | gaser | 2014-11-14 10:41:25
+
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+(1) Added opportunity to estimate exchaneability block labels for repeated
+    Anova designs.
+(2) Corrected estimation of # of permutations for repeated anova.
+
+
+------------------------------------------------------------------------
+r72 | gaser | 2014-11-28 17:28:52

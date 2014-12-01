@@ -5,7 +5,7 @@ global Y initialized
 initialized = 0;
 
 % use debug for displaying permuted design matrix
-debug = 0;
+debug = 1;
     
 % define stepsize for tfce
 n_steps_tfce = 100;
@@ -93,7 +93,8 @@ if repeated_anova
             fprintf('Error: block %d must be assigned to at least one design row in the blocks file.\n',i);
             return
         end
-   end
+    end
+    fprintf('Please note that permutation is only done within subjects for repeated Anova.\n',i);
 else
     exch_block_labels = ones(1,n_data);
 end
@@ -133,7 +134,7 @@ for con = 1:length(Ic0)
     c_name  = deblank(xCon.name);
 
     % find exchangeability blocks using contrasts without zero values
-    [exch_blocks, I, J]   = unique(c(ind_con));
+    [exch_blocks, I, J]   = unique(c(ind_con),'first');
     n_exch_blocks = length(exch_blocks);
     exch_blocks = exch_blocks(I);
     
@@ -177,7 +178,7 @@ for con = 1:length(Ic0)
     switch n_cond
     case 0 % correlation
       if n_exch_blocks == 2
-        warning('Interaction design between two regressors found.\nThis should work, but is not yet fully tested and I am unsure whether the # of max. permutations is correctly estimated.')
+        warning('Interaction design between two regressors found. This should work, but is not yet fully tested and I am unsure whether the # of max. permutations is correctly estimated.')
       else
         fprintf('Multiple regression design found\n');
       end
@@ -224,7 +225,6 @@ for con = 1:length(Ic0)
         if length(find(label == i)) == 1
           single_subject = 1;
         end
-        % not sure whether this also works for interaction???
         n_perm_full = n_perm_full/factorial(length(find(label == i)));
       end
       
@@ -237,10 +237,16 @@ for con = 1:length(Ic0)
         end
       end
       
-      % Repated Anova: n_perm = (n_cond!)^n_subj
+      % Repated Anova: n_perm = n_cond1!*n_cond2!*...*n_condk!
+      % for a full model where each condition is defined fro all subjects the easier
+      % estimation is: n_perm = (n_cond!)^n_subj
       if repeated_anova
         n_subj = max(exch_block_labels);
-        n_perm_full = factorial(n_cond)^n_subj;
+        n_perm_full = 1;
+        for k=1:n_subj
+          n_cond_subj = length(find(exch_block_labels == k)); 
+          n_perm_full = n_perm_full*factorial(n_cond_subj);
+        end
       else
         n_perm_full = round(n_perm_full);
       end
@@ -248,7 +254,7 @@ for con = 1:length(Ic0)
     else  % one-sample t-test: n_perm = 2^n
       n_perm_full = 2^n_data_with_contrast;
     end
-    
+
     if debug
       fprintf('# full permutations: %d\n',n_perm_full);
       if use_half_permutations
@@ -410,11 +416,6 @@ for con = 1:length(Ic0)
     
     i = 1;
     
-    if debug
-      figure(11)
-      set(11,'Name','Exchangebility blocks','Menubar','none','Position',[100,100,500,500]);
-    end
-
     while i<=n_perm
     
       % randomize subject vector
@@ -441,18 +442,18 @@ for con = 1:length(Ic0)
           for k = 1:max(exch_block_labels)
             ind_block   = find(exch_block_labels == k);
             n_per_block = length(ind_block);
-            rand_order(ind_block) = randperm(n_per_block);
+            rand_order(ind_block) = ind_block(randperm(n_per_block));
             rand_label(ind_block) = label(ind_label(rand_order(ind_block)));
           end
 
           % check whether this permutation was already used
           while any(ismember(label_matrix,rand_label,'rows'))
-          for k = 1:max(exch_block_labels)
-            ind_block   = find(exch_block_labels == k);
-            n_per_block = length(ind_block);
-            rand_order(ind_block) = randperm(n_per_block);
-            rand_label(ind_block) = label(ind_label(rand_order(ind_block)));
-          end
+            for k = 1:max(exch_block_labels)
+              ind_block   = find(exch_block_labels == k);
+              n_per_block = length(ind_block);
+              rand_order(ind_block) = ind_block(randperm(n_per_block));
+              rand_label(ind_block) = label(ind_label(rand_order(ind_block)));
+            end
           end
         end    
       end   
@@ -481,23 +482,81 @@ for con = 1:length(Ic0)
       Xperm = xX.X;
       Xperm_debug = xX.X;
       
+      if debug
+        % scale covariates and nuisance variables to a range 0.8..1
+        % to properly display these variables with indicated colors
+        if ~isempty(xX.iC)
+          val = Xperm_debug(:,xX.iC);
+          mn = repmat(min(val),length(val),1); mx = repmat(max(val),length(val),1);
+          val = 0.8 + 0.2*(val-mn)./(mx-mn);
+          Xperm_debug(:,xX.iC) = val;
+        end
+        if ~isempty(xX.iG)
+          val = Xperm_debug(:,xX.iG);
+          mn = repmat(min(val),length(val),1); mx = repmat(max(val),length(val),1);
+          val = 0.8 + 0.2*(val-mn)./(mx-mn);
+          Xperm_debug(:,xX.iG) = val;
+        end
+        
+        % use different colors for indicated columns
+        Xperm_debug(:,xX.iH) = 16*Xperm_debug(:,xX.iH);
+        Xperm_debug(:,xX.iC) = 24*Xperm_debug(:,xX.iC);
+        Xperm_debug(:,xX.iB) = 32*Xperm_debug(:,xX.iB);
+        Xperm_debug(:,xX.iG) = 48*Xperm_debug(:,xX.iG);
+      end
+      
       if n_cond==1 % one-sample t-test
         % only change sign in the design matrix
         for j=1:n_data_with_contrast
           Xperm(ind_label(j),ind_con) = rand_label(j)*Xperm(ind_label(j),ind_con);
-          Xperm_debug(ind_label(j),ind_con) = 2*rand_label(j)*Xperm_debug(ind_label(j),ind_con);
+          Xperm_debug(ind_label(j),ind_con) = Xperm(ind_label(j),ind_con);
+          
+          if rand_label(j) > 0
+            Xperm_debug(ind_label(j),ind_con) = 60*rand_label(j)*Xperm_debug(ind_label(j),ind_con);
+          else
+            Xperm_debug(ind_label(j),ind_con) = 56*rand_label(j)*Xperm_debug(ind_label(j),ind_con);
+          end
         end
       else % correlation or Anova
         Xperm(ind_label,ind_con) = Xperm(ind_label(rand_order),ind_con);
-        Xperm_debug(ind_label,ind_con) = 2*Xperm_debug(ind_label(rand_order),ind_con);
+        Xperm_debug(ind_label,ind_con) = Xperm(ind_label,ind_con);
+        
+        % scale exchangeability blocks also to values 0.8..1
+        val = Xperm_debug(:,ind_con);
+        ind0 = find(val==0);
+        mn = repmat(min(val),length(val),1); mx = repmat(max(val),length(val),1);
+        val = 0.8 + 0.2*(val-mn)./(mx-mn);
+        
+        % rescue zero entries
+        val(ind0) = 0;
+        
+        Xperm_debug(:,ind_con) = 60*val;
       end
       
-      % plot permuted design matrix
+      % display permuted design matrix
       if debug
-        figure(11)
-        imagesc(Xperm_debug);
-        axis off
+        subplot(2,2,3);
+        image(Xperm_debug); axis off
+        title('Permuted design matrix','FontWeight','bold');
         drawnow
+        
+        % use different colormap for permuted design matrix
+        cmap = jet(64);
+        
+        % zero values should be always black
+        cmap(1,:) = [0 0 0];
+        colormap(cmap)
+        
+        subplot(2,2,4); axis off
+        
+        % color-coded legend
+        y = 1.0;
+        text(-0.2,y, 'Columns of design matrix: '                                    ,'Color',cmap(1, :),'FontWeight','Bold','FontSize',12); y = y - 0.10;
+        text(-0.2,y,['Exchangeability blocks: ' num2str(cell2mat(ind_exch_blocks)')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',12); y = y - 0.05;
+        if ~isempty(xX.iH) text(-0.2,y, ['iH - Indicator variables: ' num2str(xX.iH)],'Color',cmap(16,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+        if ~isempty(xX.iC) text(-0.2,y, ['iC: Covariates: ' num2str(xX.iC)],          'Color',cmap(24,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+        if ~isempty(xX.iB) text(-0.2,y, ['iB: Block effects: ' num2str(xX.iB)],       'Color',cmap(32,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+        if ~isempty(xX.iG) text(-0.2,y, ['iG: Nuisance variables: ' num2str(xX.iG)],  'Color',cmap(48,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
       end
       
       % calculate permuted t-map
@@ -583,7 +642,9 @@ for con = 1:length(Ic0)
       figure(Fgraph)
       h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
       plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max);
-      plot_distribution(t_max, t_max_th, 't-value', alpha, col, 2, t0_max);
+      if ~debug
+        plot_distribution(t_max, t_max_th, 't-value', alpha, col, 2, t0_max);
+      end
     
       drawnow
         
@@ -912,6 +973,8 @@ for con = 1:length(Ic0)
     end
 
 end
+
+colormap(gray)
 
 %---------------------------------------------------------------
 

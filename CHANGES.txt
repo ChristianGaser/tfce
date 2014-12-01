@@ -509,3 +509,14 @@ M       cg_tfce_estimate.m
 
 ------------------------------------------------------------------------
 r72 | gaser | 2014-11-28 17:28:52
+
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+(1) Always display permuted design matrix now instead of t-stuff.
+(3) Corrected # of permutations for sparse long. design where not all
+    time points are defined.
+
+
+------------------------------------------------------------------------
+r73 | gaser | 2014-12-01 13:26:58

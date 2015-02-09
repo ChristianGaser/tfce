@@ -136,7 +136,7 @@ for con = 1:length(Ic0)
     % find exchangeability blocks using contrasts without zero values
     [exch_blocks, I, J]   = unique(c(ind_con),'first');
     n_exch_blocks = length(exch_blocks);
-    exch_blocks = exch_blocks(I);
+%    exch_blocks = exch_blocks(I);
     
     % check for exchangeability blocks and design matrix
     if n_exch_blocks == 1

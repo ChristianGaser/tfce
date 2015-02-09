@@ -20,6 +20,9 @@
 #define MIN(A,B) ((A) > (B) ? (B) : (A))
 #endif
 
+/*
+  clustering based on BrainModelVolumeTFCE.cxx from caret
+*/
 void tfce_thread(double *inData, double *outData, double thresh, double delta, const int *dims)
 {
   double valToAdd;

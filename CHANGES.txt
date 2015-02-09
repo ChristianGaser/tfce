@@ -520,3 +520,14 @@ M       cg_tfce_estimate.m
 
 ------------------------------------------------------------------------
 r73 | gaser | 2014-12-01 13:26:58
+
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+M       tfceMex.c
+
+Corrected bug with exch_blocks in cg_tfce_estimate.m.
+
+
+
+------------------------------------------------------------------------
+r74 | gaser | 2015-02-09 09:05:39

@@ -531,3 +531,13 @@ Corrected bug with exch_blocks in cg_tfce_estimate.m.
 
 ------------------------------------------------------------------------
 r74 | gaser | 2015-02-09 09:05:39
+
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Corrected bug with exch_blocks in cg_tfce_estimate.m for repeated measurements.
+
+
+
+------------------------------------------------------------------------
+r75 | gaser | 2015-06-15 11:03:39

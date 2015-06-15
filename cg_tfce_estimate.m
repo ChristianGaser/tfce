@@ -81,12 +81,12 @@ n_data = size(xX.X,1);
 % find exchangeability block labels for longitudinal designs (paired t-test, flexible factorial)
 repeated_anova = ~isempty(xX.iB);
 if repeated_anova
-    ind1 = find(any(diff(xX.I,1),1) == 1); % find columns that have no constant values of "1"
-    exch_block_labels = xX.I(:,ind1(1));   % 1st column is the subject factor
+    [rw,cl] = find(xX.I == length(xX.iB)); % find column which codes subject factor (length(xX.iB) -> n_subj)
+    exch_block_labels = xX.I(:,cl(1));      % column from above contains the subject factor
 
     % check that labels are defined for each block
     for i=1:n_data
-        groupListed(exch_block_labels(i))=true;
+        groupListed(exch_block_labels(i)) = true;
     end
     for i = 1: max(exch_block_labels)
         if ~groupListed(i) 
@@ -241,10 +241,16 @@ for con = 1:length(Ic0)
       % for a full model where each condition is defined fro all subjects the easier
       % estimation is: n_perm = (n_cond!)^n_subj
       if repeated_anova
-        n_subj = max(exch_block_labels);
+        % find where data are defined for that contrast
+        ind_data_defined = find(any(xX.X(:,xX.iH(ind_con)),2));
+        
+        % and restrict exchangeability block labels to those rows
+        exch_block_labels_new = exch_block_labels(ind_data_defined);
+        
+        n_subj = max(exch_block_labels_new);
         n_perm_full = 1;
         for k=1:n_subj
-          n_cond_subj = length(find(exch_block_labels == k)); 
+          n_cond_subj = length(find(exch_block_labels_new == k)); 
           n_perm_full = n_perm_full*factorial(n_cond_subj);
         end
       else
@@ -439,8 +445,8 @@ for con = 1:length(Ic0)
           % permute inside exchangeability blocks only
           rand_order = ones(1,n_data_with_contrast);
           rand_label = ones(1,n_data_with_contrast);
-          for k = 1:max(exch_block_labels)
-            ind_block   = find(exch_block_labels == k);
+          for k = 1:max(exch_block_labels_new)
+            ind_block   = find(exch_block_labels_new == k);
             n_per_block = length(ind_block);
             rand_order(ind_block) = ind_block(randperm(n_per_block));
             rand_label(ind_block) = label(ind_label(rand_order(ind_block)));
@@ -448,8 +454,8 @@ for con = 1:length(Ic0)
 
           % check whether this permutation was already used
           while any(ismember(label_matrix,rand_label,'rows'))
-            for k = 1:max(exch_block_labels)
-              ind_block   = find(exch_block_labels == k);
+            for k = 1:max(exch_block_labels_new)
+              ind_block   = find(exch_block_labels_new == k);
               n_per_block = length(ind_block);
               rand_order(ind_block) = ind_block(randperm(n_per_block));
               rand_label(ind_block) = label(ind_label(rand_order(ind_block)));
@@ -551,12 +557,12 @@ for con = 1:length(Ic0)
         
         % color-coded legend
         y = 1.0;
-        text(-0.2,y, 'Columns of design matrix: '                                    ,'Color',cmap(1, :),'FontWeight','Bold','FontSize',12); y = y - 0.10;
-        text(-0.2,y,['Exchangeability blocks: ' num2str(cell2mat(ind_exch_blocks)')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',12); y = y - 0.05;
-        if ~isempty(xX.iH) text(-0.2,y, ['iH - Indicator variables: ' num2str(xX.iH)],'Color',cmap(16,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
-        if ~isempty(xX.iC) text(-0.2,y, ['iC: Covariates: ' num2str(xX.iC)],          'Color',cmap(24,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
-        if ~isempty(xX.iB) text(-0.2,y, ['iB: Block effects: ' num2str(xX.iB)],       'Color',cmap(32,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
-        if ~isempty(xX.iG) text(-0.2,y, ['iG: Nuisance variables: ' num2str(xX.iG)],  'Color',cmap(48,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+        text(-0.2,y, 'Columns of design matrix: ',                                          'Color',cmap(1, :),'FontWeight','Bold','FontSize',12); y = y - 0.10;
+        text(-0.2,y,['Exchangeability blocks: ' num2str(sort(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',12); y = y - 0.05;
+        if ~isempty(xX.iH) text(-0.2,y, ['iH - Indicator variables: ' num2str(xX.iH)],      'Color',cmap(16,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+        if ~isempty(xX.iC) text(-0.2,y, ['iC: Covariates: ' num2str(xX.iC)],                'Color',cmap(24,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+        if ~isempty(xX.iB) text(-0.2,y, ['iB: Block effects: ' num2str(xX.iB)],             'Color',cmap(32,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+        if ~isempty(xX.iG) text(-0.2,y, ['iG: Nuisance variables: ' num2str(xX.iG)],        'Color',cmap(48,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
       end
       
       % calculate permuted t-map

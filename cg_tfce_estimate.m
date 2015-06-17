@@ -237,16 +237,16 @@ for con = 1:length(Ic0)
         end
       end
       
+      % find where data are defined for that contrast
+      ind_data_defined = find(any(xX.X(:,xX.iH(ind_con)),2));
+
+      % and restrict exchangeability block labels to those rows
+      exch_block_labels_new = exch_block_labels(ind_data_defined);
+
       % Repated Anova: n_perm = n_cond1!*n_cond2!*...*n_condk!
       % for a full model where each condition is defined fro all subjects the easier
       % estimation is: n_perm = (n_cond!)^n_subj
       if repeated_anova
-        % find where data are defined for that contrast
-        ind_data_defined = find(any(xX.X(:,xX.iH(ind_con)),2));
-        
-        % and restrict exchangeability block labels to those rows
-        exch_block_labels_new = exch_block_labels(ind_data_defined);
-        
         n_subj = max(exch_block_labels_new);
         n_perm_full = 1;
         for k=1:n_subj
@@ -259,6 +259,7 @@ for con = 1:length(Ic0)
       
     else  % one-sample t-test: n_perm = 2^n
       n_perm_full = 2^n_data_with_contrast;
+      exch_block_labels_new = exch_block_labels;
     end
 
     if debug

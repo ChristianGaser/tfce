@@ -541,3 +541,13 @@ Corrected bug with exch_blocks in cg_tfce_estimate.m for repeated measurements.
 
 ------------------------------------------------------------------------
 r75 | gaser | 2015-06-15 11:03:39
+
+M       CHANGES.txt
+A       SPM-Designs-Permutation.doc
+M       cg_tfce_estimate.m
+
+(1) Again corrected bug with exch_blocks in cg_tfce_estimate.m.
+(2) Added SPM-Designs-Permutation.doc.
+
+------------------------------------------------------------------------
+r76 | gaser | 2015-06-17 11:00:02

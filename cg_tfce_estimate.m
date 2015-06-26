@@ -238,8 +238,14 @@ for con = 1:length(Ic0)
       end
       
       % find where data are defined for that contrast
-      ind_data_defined = find(any(xX.X(:,xX.iH(ind_con)),2));
-
+      if ~isempty(find(xX.iH == ind_con(1)))
+        % first checking whether contrasts are defined for iH
+        ind_data_defined = find(any(xX.X(:,xX.iH(ind_con)),2));
+      else
+        % if not check iC
+        ind_data_defined = find(any(xX.X(:,xX.iC(ind_con)),2));
+      end
+      
       % and restrict exchangeability block labels to those rows
       exch_block_labels_new = exch_block_labels(ind_data_defined);
 

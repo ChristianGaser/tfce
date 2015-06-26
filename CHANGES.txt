@@ -551,3 +551,12 @@ M       cg_tfce_estimate.m
 
 ------------------------------------------------------------------------
 r76 | gaser | 2015-06-17 11:00:02
+
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed bug in cg_tfce_estimate.m for multiple regressions (Thanks to Marcel
+Zwiers).
+
+------------------------------------------------------------------------
+r77 | gaser | 2015-06-26 15:32:05

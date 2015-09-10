@@ -19,6 +19,7 @@ spmmat.help    = {'Select the SPM.mat file that contains the design specificatio
 spmmat.filter  = 'mat';
 spmmat.ufilter = '^SPM\.mat$';
 spmmat.num     = [1 1];
+
 % ---------------------------------------------------------------------
 % mask Select mask image to restrict analysis
 % ---------------------------------------------------------------------
@@ -30,6 +31,7 @@ mask.filter  = {'image','mesh'};
 mask.val     = {''};
 mask.ufilter = '.*';
 mask.num     = [0 1];
+
 % ---------------------------------------------------------------------
 % titlestr Results Title
 % ---------------------------------------------------------------------
@@ -40,6 +42,7 @@ titlestr.help    = {'Heading on results page - determined automatically if left 
 titlestr.val     = {''};
 titlestr.strtype = 's';
 titlestr.num     = [0 Inf];
+
 % ---------------------------------------------------------------------
 % contrasts Contrast
 % ---------------------------------------------------------------------
@@ -55,6 +58,7 @@ contrasts.help    = {'Index(es) of contrast according to the contrast manager.'
 contrasts.strtype = 'e';
 contrasts.val     = {Inf};
 contrasts.num     = [1 Inf];
+
 % ---------------------------------------------------------------------
 % number of permutations
 % ---------------------------------------------------------------------
@@ -70,6 +74,19 @@ n_perm.help    = {'Number of permutations.'
 n_perm.strtype = 'e';
 n_perm.val     = {5000};
 n_perm.num     = [1 Inf];
+
+% ---------------------------------------------------------------------
+% two-dimensional processing
+% ---------------------------------------------------------------------
+tbss    = cfg_menu;
+tbss.tag = 'tbss';
+tbss.name = 'TBSS data';
+tbss.labels = {'yes','no'};
+tbss.values = {1 0};
+tbss.val  = {0};
+tbss.help = {[...
+'Use 2D optimization (e.g. for TBSS data) with internal TFCE parameters H=2, E=1.']};
+
 % ---------------------------------------------------------------------
 % variance smoothing
 % ---------------------------------------------------------------------
@@ -84,6 +101,7 @@ vFWHM.help    = {
 vFWHM.strtype = 'e';
 vFWHM.val     = {0};
 vFWHM.num     = [0 Inf];
+
 % ---------------------------------------------------------------------
 % conspec Contrast query
 % ---------------------------------------------------------------------
@@ -92,6 +110,7 @@ conspec.tag     = 'conspec';
 conspec.name    = 'Contrast query';
 conspec.val     = {titlestr contrasts n_perm vFWHM};
 conspec.help    = {''};
+
 % ---------------------------------------------------------------------
 % multithreading
 % ---------------------------------------------------------------------
@@ -105,12 +124,13 @@ openmp.help = {[...
 'OpenMP can be used to distribute calculations to multiple processors. ',...
 'This will minimize calculation time by a large amount, but makes sometimes trouble on Windows machines. ',...
 'In case of trouble deselect the multi-threading option.']};
+
 % ---------------------------------------------------------------------
 % results Results Report
 % ---------------------------------------------------------------------
 tfce_estimate          = cfg_exbranch;
 tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
-tfce_estimate.val      = {spmmat mask conspec openmp};
+tfce_estimate.val      = {spmmat mask conspec tbss openmp};
 tfce_estimate.help     = {''};
 tfce_estimate.prog     = @cg_tfce_estimate;

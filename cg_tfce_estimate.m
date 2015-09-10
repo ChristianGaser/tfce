@@ -370,9 +370,9 @@ for con = 1:length(Ic0)
       tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, deltaT);
     else
       if job.openmp
-        tfce0 = tfceMex(t0, deltaT, 1);
+        tfce0 = tfceMex(t0, deltaT, job.tbss, 1);
       else
-        tfce0 = tfceMex_noopenmp(t0, deltaT);
+        tfce0 = tfceMex_noopenmp(t0, deltaT, job.tbss);
       end
     end
     
@@ -590,9 +590,9 @@ for con = 1:length(Ic0)
           tfce = tfce_mesh(SPM.xVol.G.faces, t, deltaT);
         else
           if job.openmp
-            tfce = tfceMex(t, deltaT);
+            tfce = tfceMex(t, deltaT, job.tbss);
           else
-            tfce = tfceMex_noopenmp(t0, deltaT);
+            tfce = tfceMex_noopenmp(t0, deltaT, job.tbss);
           end
         end
         

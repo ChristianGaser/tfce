@@ -560,3 +560,29 @@ Zwiers).
 
 ------------------------------------------------------------------------
 r77 | gaser | 2015-06-26 15:32:05
+
+M       CHANGES.txt
+ M      SPM-Designs-Permutation.doc
+M       cg_glm_get_Beta_ResSS.mexw32
+M       cg_glm_get_Beta_ResSS.mexw64
+M       cg_tfce_estimate.m
+M       tbx_cfg_tfce_estimate.m
+M       tfceMex.c
+M       tfceMex.m
+M       tfceMex.mexa64
+M       tfceMex.mexglx
+M       tfceMex.mexmaci64
+M       tfceMex.mexw32
+M       tfceMex.mexw64
+M       tfceMex_noopenmp.mexa64
+M       tfceMex_noopenmp.mexglx
+M       tfceMex_noopenmp.mexmaci64
+M       tfceMex_noopenmp.mexw32
+M       tfceMex_noopenmp.mexw64
+M       tfce_mesh.m
+
+(1) Added option for TBSS data with 2D optimization.
+(2) Changed E-parameter for meshes to 1 in tfce_mesh.m.
+
+------------------------------------------------------------------------
+r78 | gaser | 2015-09-10 12:22:56

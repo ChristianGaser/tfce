@@ -23,7 +23,7 @@
 /*
   clustering based on BrainModelVolumeTFCE.cxx from caret
 */
-void tfce_thread(double *inData, double *outData, double thresh, double delta, const int *dims)
+void tfce_thread(double *inData, double *outData, double thresh, double delta, const int *dims, int tbss)
 {
   double valToAdd;
   double E = 0.5, H = 2.0;
@@ -38,10 +38,13 @@ void tfce_thread(double *inData, double *outData, double thresh, double delta, c
   growing  = (short*)malloc(numVoxels*3*sizeof(short));
 }      
 
+  /* change parameter E for 2D data such as TBSS */
+  if (tbss) E = 1.0;
+  
   for (i = 0; i < numVoxels; ++i) flagUsed[i] = 0;
     
   for (k = 0; k < dims[2]; ++k) for (j = 0; j < dims[1]; ++j) for (i = 0; i < dims[0]; ++i)
-{
+  {
     ind = k*(dims[0]*dims[1]) + (j*dims[0]) + i;
             
     /* estimate positive tfce values */ 
@@ -145,7 +148,7 @@ void tfce_thread(double *inData, double *outData, double thresh, double delta, c
 }
 }
 
-void tfce(double *inData, double *outData, double deltaT, const int *dims)
+void tfce(double *inData, double *outData, double deltaT, const int *dims, int tbss)
 {
   double fmax = 0.0, curThr, tmp_value;
   int i, n_steps;
@@ -169,7 +172,7 @@ void tfce(double *inData, double *outData, double deltaT, const int *dims)
   for (i = 0; i < n_steps; i++) 
   {
     curThr = (i+1)*deltaT;
-    tfce_thread(inData, outData, curThr, deltaT, dims);
+    tfce_thread(inData, outData, curThr, deltaT, dims, tbss);
   }
 
 }
@@ -179,7 +182,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 /* Declarations */
 double *inData, *outData, deltaT;
-int ndim;
+int ndim, tbss;
 const int *dims;
 
 /* check inputs */
@@ -203,9 +206,14 @@ dims = mxGetDimensions(prhs[0]);
 /* get parameters */
 deltaT = (double)(mxGetScalar(prhs[1]));
 
+if (nrhs>2) 
+  tbss = (int)(mxGetScalar(prhs[2]));
+else
+  tbss = 0;
+
 #ifdef _OPENMP
 //    omp_set_dynamic(0);
-    if (nrhs>2) printf("%d processors found\n",omp_get_num_procs());
+    if (nrhs>3) printf("%d processors found\n",omp_get_num_procs());
 #endif
 
 /* Allocate memory and assign output pointer */
@@ -214,7 +222,7 @@ plhs[0] = mxCreateNumericArray(ndim,dims,mxDOUBLE_CLASS, mxREAL);
 /* Get a pointer to the data space in our newly allocated memory */
 outData = mxGetPr(plhs[0]);
 
-tfce(inData, outData, deltaT, dims); 
+tfce(inData, outData, deltaT, dims, tbss); 
 
 return;
 }

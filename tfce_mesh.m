@@ -4,7 +4,7 @@ function tfce = tfce_mesh(faces, t, deltaT)
 % Christian Gaser
 % $Id$
 
-E = 0.5;
+E = 1.0;
 H = 2.0;
 
 tfce = zeros(size(t));

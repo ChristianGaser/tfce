@@ -396,24 +396,26 @@ for con = 1:length(Ic0)
     label_matrix = [];
     
     % general initialization
-    Fgraph = spm_figure('GetWin','Graphics');
-    spm_figure('Clear',Fgraph);
-    figure(Fgraph)
+    try % use try commands to allow batch mode without graphical output
+      Fgraph = spm_figure('GetWin','Graphics');
+      spm_figure('Clear',Fgraph);
+      figure(Fgraph)
     
-    h = axes('position',[0.45 0.95 0.1 0.05],'Units','normalized','Parent',...
+      h = axes('position',[0.45 0.95 0.1 0.05],'Units','normalized','Parent',...
         Fgraph,'Visible','off');
         
-    text(0.5,0.6,c_name,...
+      text(0.5,0.6,c_name,...
         'FontSize',spm('FontSize',10),...
         'FontWeight','Bold',...
         'HorizontalAlignment','Center',...
         'VerticalAlignment','middle')
     
-    text(0.5,0.25,spm_str_manip(SPM.swd,'a50'),...
+      text(0.5,0.25,spm_str_manip(SPM.swd,'a50'),...
         'FontSize',spm('FontSize',8),...
         'HorizontalAlignment','Center',...
         'VerticalAlignment','middle')
-
+    end
+    
     % check that label has correct dimension
     sz = size(label);
     if sz(1)>sz(2)
@@ -421,7 +423,7 @@ for con = 1:length(Ic0)
     end
     
     stopStatus = false;
-    spm_progress_bar('Init',n_perm,'Calculating','Permutations')
+    try, spm_progress_bar('Init',n_perm,'Calculating','Permutations'); end
     cg_progress('Init',n_perm,'Calculating','Permutations')
     
     % update interval for progress bar
@@ -472,22 +474,24 @@ for con = 1:length(Ic0)
       end   
       
       % add Stop button after 20 iterations
-      if i==21
-        hStopButton = uicontrol(Fgraph,...
-          'position',[10 10 70 20],...
-          'style','toggle',...
-          'string','Stop',...
-          'backgroundcolor',[1 .5 .5]); % light-red
-      end
+      try % use try commands to allow batch mode without graphical output
+        if i==21
+          hStopButton = uicontrol(Fgraph,...
+            'position',[10 10 70 20],...
+            'style','toggle',...
+            'string','Stop',...
+            'backgroundcolor',[1 .5 .5]); % light-red
+        end
       
-      if i>=21
-        stopStatus = get(hStopButton,'value');
-      end
+        if i>=21
+          stopStatus = get(hStopButton,'value');
+        end
       
-      % check Stop status
+        % check Stop status
       if (stopStatus == true)
-        fprintf('Stopped after %d iterations.\n',i);
-        break; % stop the permutation loop
+          fprintf('Stopped after %d iterations.\n',i);
+          break; % stop the permutation loop
+        end
       end
         
       % change design matrix according to permutation order
@@ -547,29 +551,31 @@ for con = 1:length(Ic0)
       end
       
       % display permuted design matrix
-      if debug
-        subplot(2,2,3);
-        image(Xperm_debug); axis off
-        title('Permuted design matrix','FontWeight','bold');
-        drawnow
+      try
+        if debug
+          subplot(2,2,3);
+          image(Xperm_debug); axis off
+          title('Permuted design matrix','FontWeight','bold');
+          drawnow
         
-        % use different colormap for permuted design matrix
-        cmap = jet(64);
+          % use different colormap for permuted design matrix
+          cmap = jet(64);
         
-        % zero values should be always black
-        cmap(1,:) = [0 0 0];
-        colormap(cmap)
+          % zero values should be always black
+          cmap(1,:) = [0 0 0];
+          colormap(cmap)
         
-        subplot(2,2,4); axis off
+          subplot(2,2,4); axis off
         
-        % color-coded legend
-        y = 1.0;
-        text(-0.2,y, 'Columns of design matrix: ',                                          'Color',cmap(1, :),'FontWeight','Bold','FontSize',12); y = y - 0.10;
-        text(-0.2,y,['Exchangeability blocks: ' num2str(sort(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',12); y = y - 0.05;
-        if ~isempty(xX.iH) text(-0.2,y, ['iH - Indicator variables: ' num2str(xX.iH)],      'Color',cmap(16,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
-        if ~isempty(xX.iC) text(-0.2,y, ['iC: Covariates: ' num2str(xX.iC)],                'Color',cmap(24,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
-        if ~isempty(xX.iB) text(-0.2,y, ['iB: Block effects: ' num2str(xX.iB)],             'Color',cmap(32,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
-        if ~isempty(xX.iG) text(-0.2,y, ['iG: Nuisance variables: ' num2str(xX.iG)],        'Color',cmap(48,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+          % color-coded legend
+          y = 1.0;
+          text(-0.2,y, 'Columns of design matrix: ',                                          'Color',cmap(1, :),'FontWeight','Bold','FontSize',12); y = y - 0.10;
+          text(-0.2,y,['Exchangeability blocks: ' num2str(sort(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',12); y = y - 0.05;
+          if ~isempty(xX.iH) text(-0.2,y, ['iH - Indicator variables: ' num2str(xX.iH)],      'Color',cmap(16,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+          if ~isempty(xX.iC) text(-0.2,y, ['iC: Covariates: ' num2str(xX.iC)],                'Color',cmap(24,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+          if ~isempty(xX.iB) text(-0.2,y, ['iB: Block effects: ' num2str(xX.iB)],             'Color',cmap(32,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+          if ~isempty(xX.iG) text(-0.2,y, ['iG: Nuisance variables: ' num2str(xX.iG)],        'Color',cmap(48,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+        end
       end
       
       % calculate permuted t-map
@@ -652,14 +658,15 @@ for con = 1:length(Ic0)
       end
     
       % plot thresholds and histograms
-      figure(Fgraph)
-      h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
-      plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max);
-      if ~debug
-        plot_distribution(t_max, t_max_th, 't-value', alpha, col, 2, t0_max);
+      try
+        figure(Fgraph)
+        h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
+        plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max);
+        if ~debug
+          plot_distribution(t_max, t_max_th, 't-value', alpha, col, 2, t0_max);
+        end
+        drawnow
       end
-    
-      drawnow
         
       if numel(job.conspec.n_perm) > 1
         if i > n_perm_break
@@ -670,15 +677,16 @@ for con = 1:length(Ic0)
         end  
       end
 
+      
       if use_half_permutations
         if ~rem(i,progress_step) || ~rem(i+1,progress_step)
           cg_progress('Set',i,Fgraph)
-          spm_progress_bar('Set',i);
+          try, spm_progress_bar('Set',i); end
         end
       else
         if ~rem(i,progress_step)
           cg_progress('Set',i,Fgraph)
-          spm_progress_bar('Set',i);
+          try, spm_progress_bar('Set',i); end
         end
       end
     
@@ -691,10 +699,12 @@ for con = 1:length(Ic0)
     end
     
     cg_progress('Clear',Fgraph)
-    spm_progress_bar('Clear')
-    delete(hStopButton);
+    try
+      spm_progress_bar('Clear');
+      delete(hStopButton);
+      spm_print;
+    end
     
-    spm_print
     
     % get correct number of permutations in case that process was stopped
     n_perm = length(tfce_max);
@@ -925,17 +935,26 @@ for con = 1:length(Ic0)
       Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
     end
 
-    [snP_pos,I_pos] = sort(nPtfce(mask_P));
-    corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
-    corrPfdr_pos(I_pos) = corrPfdr_pos;
+    if ~isempty(mask_P)
+      [snP_pos,I_pos] = sort(nPtfce(mask_P));
+      corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
+      corrPfdr_pos(I_pos) = corrPfdr_pos;
+    end
     
-    [snP_neg,I_neg] = sort(nPtfce(mask_N));
-    corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
-    corrPfdr_neg(I_neg) = corrPfdr_neg;
-
+    
+    if ~isempty(mask_N)
+      [snP_neg,I_neg] = sort(nPtfce(mask_N));
+      corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
+      corrPfdr_neg(I_neg) = corrPfdr_neg;
+    end
+    
     corrPfdr = NaN(size(t));
-    corrPfdr(mask_P) = corrPfdr_pos;
-    corrPfdr(mask_N) = corrPfdr_neg;
+    if ~isempty(mask_P)
+      corrPfdr(mask_P) = corrPfdr_pos;
+    end
+    if ~isempty(mask_N)
+      corrPfdr(mask_N) = corrPfdr_neg;
+    end
     
     corrPfdrlog10 = zeros(size(tfce0));
     corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
@@ -960,18 +979,25 @@ for con = 1:length(Ic0)
       Vt.descrip = sprintf('T Contrast %04d',Ic);
     end
 
-    [snP_pos,I_pos] = sort(nPt(mask_P));
-    corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
-    corrPfdr_pos(I_pos) = corrPfdr_pos;
+    if ~isempty(mask_P)
+      [snP_pos,I_pos] = sort(nPt(mask_P));
+      corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
+      corrPfdr_pos(I_pos) = corrPfdr_pos;
+    end
     
-    [snP_neg,I_neg] = sort(nPt(mask_N));
-    corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
-    corrPfdr_neg(I_neg) = corrPfdr_neg;
-
+    if ~isempty(mask_N)
+      [snP_neg,I_neg] = sort(nPt(mask_N));
+      corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
+      corrPfdr_neg(I_neg) = corrPfdr_neg;
+    end
+    
     corrPfdr = NaN(size(t));
-    corrPfdr(mask_P) = corrPfdr_pos;
-    corrPfdr(mask_N) = corrPfdr_neg;
-    
+    if ~isempty(mask_P)
+      corrPfdr(mask_P) = corrPfdr_pos;
+    end
+    if ~isempty(mask_N)
+      corrPfdr(mask_N) = corrPfdr_neg;
+    end  
     
     corrPfdrlog10 = zeros(size(tfce0));
     corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));

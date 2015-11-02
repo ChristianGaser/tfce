@@ -1,12 +1,10 @@
 
 Changed paths:
 M       CHANGES.txt
-M       SPM-Designs-Permutation.doc
 M       cg_tfce_estimate.m
-M       tbx_cfg_tfce_estimate.m
 
 (1) In cg_tfce_estimate.m ind_data_defined was not correctly estimated for
     some designs.
 (2) Updated table.
 ------------------------------------------------------------------------
-r80 | gaser | 2015-11-02 22:22:11
+r81 | gaser | 2015-11-02 22:29:28

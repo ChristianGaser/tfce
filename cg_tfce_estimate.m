@@ -243,7 +243,7 @@ for con = 1:length(Ic0)
         ind_data_defined = find(any(xX.X(:,xX.iH(ind_con)),2));
       else
         % if not check iC
-        ind_data_defined = find(any(xX.X(:,xX.iC(ind_con)),2));
+        ind_data_defined = find(any(xX.X(:,ind_con),2))
       end
       
       % and restrict exchangeability block labels to those rows

@@ -1,12 +1,12 @@
 
 Changed paths:
 M       CHANGES.txt
+M       SPM-Designs-Permutation.doc
 M       cg_tfce_estimate.m
-M       svn_ci_log
+M       tbx_cfg_tfce_estimate.m
 
-(1) If either no positive or negative T or TFCE-values are found FDR
-    correction crashed This is now solved (thanks to Nikolaos Koustlsouleris
-    for pointing to that issue).
-(2) Use try-commands to allow batch mode without graphical output.
+(1) In cg_tfce_estimate.m ind_data_defined was not correctly estimated for
+    some designs.
+(2) Updated table.
 ------------------------------------------------------------------------
-r79 | gaser | 2015-10-29 09:19:15
+r80 | gaser | 2015-11-02 22:22:11

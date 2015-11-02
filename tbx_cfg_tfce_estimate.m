@@ -48,12 +48,14 @@ titlestr.num     = [0 Inf];
 % ---------------------------------------------------------------------
 contrasts         = cfg_entry;
 contrasts.tag     = 'contrasts';
-contrasts.name    = 'Contrast';
+contrasts.name    = 'Contrast index';
 contrasts.help    = {'Index(es) of contrast according to the contrast manager.'
                      ''
                      'Each contrast in SPM is indicated by a sequential number that is displayed in the first column of the contrast manager.'
                      ''
                      'You can enter one or more contrasts. If only one number is entered, and this number is "Inf", you can select one or more contrasts interactively using the contrast manager.'
+                     ''
+                     'Do not define here the contrast itself. This should be done in the contrast manager, that is called if "Inf" is kept as entry.'
 }';
 contrasts.strtype = 'e';
 contrasts.val     = {Inf};

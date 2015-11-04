@@ -27,7 +27,11 @@ mask         = cfg_files;
 mask.tag     = 'mask';
 mask.name    = 'Select additional mask image';
 mask.help    = {'Select an additional mask image to restrict analysis. As default the mask image in the analysis folder is used. Here you can select a mask image to additionally restrict the analysis to regions of interest (i.e. small volume correction).'};
-mask.filter  = {'image','mesh'};
+if strcmp(spm('ver'),'SPM12')
+  mask.filter  = {'image','mesh'};
+else
+  mask.filter  = {'image'};
+end
 mask.val     = {''};
 mask.ufilter = '.*';
 mask.num     = [0 1];
@@ -55,7 +59,7 @@ contrasts.help    = {'Index(es) of contrast according to the contrast manager.'
                      ''
                      'You can enter one or more contrasts. If only one number is entered, and this number is "Inf", you can select one or more contrasts interactively using the contrast manager.'
                      ''
-                     'Do not define here the contrast itself. This should be done in the contrast manager, that is called if "Inf" is kept as entry.'
+                     'Do not define here the contrast itself. This should be done in the contrast manager, that is automatically called if "Inf" is kept as entry.'
 }';
 contrasts.strtype = 'e';
 contrasts.val     = {Inf};
@@ -67,9 +71,7 @@ contrasts.num     = [1 Inf];
 n_perm         = cfg_entry;
 n_perm.tag     = 'n_perm';
 n_perm.name    = 'Number of permutations';
-n_perm.help    = {'Number of permutations.'
-                     ''
-                     'With 1000 permutations the smallest possible p-value is 0.001 (n=1/p). A useful strategy is to start with 1000 permutations and continue to 5000-10000 only if p is small enough to be interesting and/or for the final analysis.'
+n_perm.help    = {'With 1000 permutations the smallest possible p-value is 0.001 (n=1/p). A useful strategy is to start with 1000 permutations and continue to 5000-10000 only if p is small enough to be interesting and/or for the final analysis.'
                      ''
                      'If number of maximal possible permutations is smaller, then this number is used resulting in an exact permutation test.'
 }';
@@ -95,10 +97,7 @@ tbss.help = {[...
 vFWHM         = cfg_entry;
 vFWHM.tag     = 'vFWHM';
 vFWHM.name    = 'Variance smoothing (for low DFs)';
-vFWHM.help    = {
-                     'Variance smoothing (for low DFs).'
-                     ''
-                     'For low DFs this option allows to smooth the variance.'
+vFWHM.help    = {'For low degrees of freedom (n<20) the variance is estimated poorly and smoothing the variance can help in obtaining a more reliable estimate. By smoothing the variance the noise from the variance will be smoothed, but not the signal which results in a so-called pseudo t-statistics.'
 }';
 vFWHM.strtype = 'e';
 vFWHM.val     = {0};

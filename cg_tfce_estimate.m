@@ -359,6 +359,12 @@ for con = 1:length(Ic0)
       end
     end
         
+    % check whether mask images fits to the data
+    if mesh_detected, dim_index = 1; else dim_index=1:3; end
+    if sum(sum((Vmask.mat-VY(1).mat).^2)) > 1e-6 || any(Vmask.dim(dim_index) ~= VY(1).dim(dim_index))
+        error('Mask must have the same dimensions and orientation as the data.');
+    end
+
     % compute unpermuted t-map
     t0 = calc_glm(VY,xX.X,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
     

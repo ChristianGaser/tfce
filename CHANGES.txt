@@ -1,10 +1,13 @@
 
 Changed paths:
 M       CHANGES.txt
+M       SPM-Designs-Permutation.doc
 M       cg_tfce_estimate.m
+M       tbx_cfg_tfce_estimate.m
 
-(1) In cg_tfce_estimate.m ind_data_defined was not correctly estimated for
-    some designs.
-(2) Updated table.
+(1) tbx_cfg_tfce_estimate.m had some entries that were only working for SPM12.
+    This is now solved. Thanks to Lindsay Hanford for pointing to that error.
+(2) Updated help text.
+(3) Added check whether size of mask image and data fit.
 ------------------------------------------------------------------------
-r81 | gaser | 2015-11-02 22:29:28
+r82 | gaser | 2015-11-04 14:07:17

@@ -1,13 +1,13 @@
 
 Changed paths:
 M       CHANGES.txt
-M       SPM-Designs-Permutation.doc
-M       cg_tfce_estimate.m
-M       tbx_cfg_tfce_estimate.m
+A       cg_glm_get_Beta_ResSS_noopenmp.mexa64
+A       cg_glm_get_Beta_ResSS_noopenmp.mexglx
+A       cg_glm_get_Beta_ResSS_noopenmp.mexmaci
+A       cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+A       cg_glm_get_Beta_ResSS_noopenmp.mexw32
+A       cg_glm_get_Beta_ResSS_noopenmp.mexw64
 
-(1) tbx_cfg_tfce_estimate.m had some entries that were only working for SPM12.
-    This is now solved. Thanks to Lindsay Hanford for pointing to that error.
-(2) Updated help text.
-(3) Added check whether size of mask image and data fit.
+Added cg_glm_get_Beta_ResSS_noopenmp.mex* files.
 ------------------------------------------------------------------------
-r82 | gaser | 2015-11-04 14:07:17
+r83 | gaser | 2015-11-24 13:26:20

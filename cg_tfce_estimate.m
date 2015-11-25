@@ -6,7 +6,10 @@ initialized = 0;
 
 % use debug for displaying permuted design matrix
 debug = 1;
-    
+
+% allow to test permutations with analyzing data
+test_mode = 0;
+
 % define stepsize for tfce
 n_steps_tfce = 100;
     
@@ -78,6 +81,9 @@ TH     = SPM.xM.TH;
 VY     = SPM.xY.VY;
 n_data = size(xX.X,1);
 
+% sometimes xX.iB and xX.iH are not correct and cannot be used to reliably recognize the design
+xX = correct_xX(xX);
+
 % find exchangeability block labels for longitudinal designs (paired t-test, flexible factorial)
 repeated_anova = ~isempty(xX.iB);
 if repeated_anova
@@ -122,21 +128,14 @@ for con = 1:length(Ic0)
       return
     end
     
-    % get contrast of interest and find zero values in contrast
-    c = xCon.c(xX.iH);
-    
-    % handle multiple regression designs if condition effects iH are empty
-    if isempty(c) | all(c==0)
-      c = xCon.c([xX.iH xX.iC]);
-    end
-    
+    % get contrast and name
+    c = xCon.c
     ind_con = find(c~=0)';
     c_name  = deblank(xCon.name);
 
     % find exchangeability blocks using contrasts without zero values
     [exch_blocks, I, J]   = unique(c(ind_con),'first');
     n_exch_blocks = length(exch_blocks);
-%    exch_blocks = exch_blocks(I);
     
     % check for exchangeability blocks and design matrix
     if n_exch_blocks == 1
@@ -180,7 +179,11 @@ for con = 1:length(Ic0)
       if n_exch_blocks == 2
         warning('Interaction design between two regressors found. This should work, but is not yet fully tested and I am unsure whether the # of max. permutations is correctly estimated.')
       else
-        fprintf('Multiple regression design found\n');
+        if repeated_anova
+          fprintf('Repeated Anova with contrast for covariate found\n');
+        else
+          fprintf('Multiple regression design found\n');
+        end
       end
       label = 1:n_data;
     case 1 % one-sample t-test
@@ -243,7 +246,11 @@ for con = 1:length(Ic0)
         ind_data_defined = find(any(xX.X(:,xX.iH(ind_con)),2));
       else
         % if not check iC
-        ind_data_defined = find(any(xX.X(:,ind_con),2));
+        if length(ind_con) == 1 % for one contrast covariate column use all subjects
+          ind_data_defined = 1:size(xX.X,1);
+        else % check wehere contrast is defined
+          ind_data_defined = find(any(xX.X(:,ind_con),2));
+        end
       end
       
       % and restrict exchangeability block labels to those rows
@@ -252,11 +259,12 @@ for con = 1:length(Ic0)
       % Repated Anova: n_perm = n_cond1!*n_cond2!*...*n_condk!
       % for a full model where each condition is defined fro all subjects the easier
       % estimation is: n_perm = (n_cond!)^n_subj
-      if repeated_anova
+      % check that no regression analysis inside repeated anova is used
+      if repeated_anova & n_cond~=0
         n_subj = max(exch_block_labels_new);
         n_perm_full = 1;
         for k=1:n_subj
-          n_cond_subj = length(find(exch_block_labels_new == k)); 
+          n_cond_subj = length(find(exch_block_labels_new == k));
           n_perm_full = n_perm_full*factorial(n_cond_subj);
         end
       else
@@ -283,6 +291,7 @@ for con = 1:length(Ic0)
     
     n_perm = min([n_perm n_perm_full]);
         
+    % check for mask image that should exist for any analysis
     if exist(fullfile(cwd, 'mask.img'))
       file_ext = '.img';
     elseif exist(fullfile(cwd, 'mask.nii'))
@@ -308,97 +317,101 @@ for con = 1:length(Ic0)
       mesh_detected = 0;
     end
     
-    % get mask file
-    if isempty(job.mask)
-      maskname = fullfile(cwd,['mask' file_ext]);
-    else
-      maskname = job.mask{1};
-    end
+    if ~test_mode
+      % get mask file
+      if isempty(job.mask)
+        maskname = fullfile(cwd,['mask' file_ext]);
+      else
+        maskname = job.mask{1};
+      end
     
-    % load mask
-    try
-      if spm12
-        Vmask = spm_data_hdr_read(maskname);
-      else
-        Vmask = spm_vol(maskname);
+      % load mask
+      try
+        if spm12
+          Vmask = spm_data_hdr_read(maskname);
+        else
+          Vmask = spm_vol(maskname);
+        end
+      catch
+        if mesh_detected
+          maskname = spm_select(1,'mesh','select mask image');
+        else
+          maskname = spm_select(1,'image','select mask image');
+        end
+        if spm12
+          Vmask = spm_data_hdr_read(maskname);
+        else
+          Vmask = spm_vol(maskname);
+        end
       end
-    catch
-      if mesh_detected
-        maskname = spm_select(1,'mesh','select mask image');
-      else
-        maskname = spm_select(1,'image','select mask image');
-      end
-      if spm12
-        Vmask = spm_data_hdr_read(maskname);
-      else
-        Vmask = spm_vol(maskname);
-      end
-    end
     
-    % if first image was not found you have to select all files again
-    if ~exist(VY(1).fname);
-      n = size(SPM.xY.VY,1);
-      if mesh_detected
-        P = spm_select(size(SPM.xY.VY,1),'mesh','select images');
-      else
-        P = spm_select(size(SPM.xY.VY,1),'image','select images');
-      end
-      if spm12
-        VY = spm_data_hdr_read(P);
-      else
-        VY = spm_vol(P);
-      end
-      SPM.xY.VY = VY;
+      % if first image was not found you have to select all files again
+      if ~exist(VY(1).fname);
+        n = size(SPM.xY.VY,1);
+        if mesh_detected
+          P = spm_select(size(SPM.xY.VY,1),'mesh','select images');
+        else
+          P = spm_select(size(SPM.xY.VY,1),'image','select images');
+        end
+        if spm12
+          VY = spm_data_hdr_read(P);
+        else
+          VY = spm_vol(P);
+        end
+        SPM.xY.VY = VY;
       
-      % update SPM
-      if size(SPM.xY.VY,1)==n
-        save(job.spmmat{1},'SPM');
-      else
-        fprintf('ERROR: Number of files is not correct\n');
-        return
+        % update SPM
+        if size(SPM.xY.VY,1)==n
+          save(job.spmmat{1},'SPM');
+        else
+          fprintf('ERROR: Number of files is not correct\n');
+          return
+        end
       end
-    end
         
-    % check whether mask images fits to the data
-    if mesh_detected, dim_index = 1; else dim_index=1:3; end
-    if sum(sum((Vmask.mat-VY(1).mat).^2)) > 1e-6 || any(Vmask.dim(dim_index) ~= VY(1).dim(dim_index))
+      % check whether mask images fits to the data
+      if mesh_detected, dim_index = 1; else dim_index=1:3; end
+      if sum(sum((Vmask.mat-VY(1).mat).^2)) > 1e-6 || any(Vmask.dim(dim_index) ~= VY(1).dim(dim_index))
         error('Mask must have the same dimensions and orientation as the data.');
-    end
-
-    % compute unpermuted t-map
-    t0 = calc_glm(VY,xX.X,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
-    
-    % get deltaT for unpermuted map
-    deltaT = max(abs(t0(:)))/n_steps_tfce;
-    
-    % calculate tfce of unpermuted t-map
-    if mesh_detected
-      tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, deltaT);
-    else
-      if job.openmp
-        tfce0 = tfceMex(t0, deltaT, job.tbss, 1);
-      else
-        tfce0 = tfceMex_noopenmp(t0, deltaT, job.tbss);
       end
-    end
+
+      % compute unpermuted t-map
+      t0 = calc_glm(VY,xX.X,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
     
-    % get largest tfce
-    tfce0_max = max(tfce0(:));
-    t0_max    = max(t0(:));
+      % get deltaT for unpermuted map
+      deltaT = max(abs(t0(:)))/n_steps_tfce;
     
-    % get vector for histogram bins
-    tfce_bins = linspace(0, max(abs(tfce0(:))), n_hist_bins);
-    t_bins    = linspace(0, max(abs(t0(:))), n_hist_bins);
+      % calculate tfce of unpermuted t-map
+      if mesh_detected
+        tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, deltaT);
+      else
+        if job.openmp
+          tfce0 = tfceMex(t0, deltaT, job.tbss, 1);
+        else
+          tfce0 = tfceMex_noopenmp(t0, deltaT, job.tbss);
+        end
+      end
     
-    % prepare countings
-    t_hist       = zeros(1, n_hist_bins);
-    tfce_hist    = zeros(1, n_hist_bins);
-    t_max        = [];
-    t_max_th     = [];
-    t_th         = [];
-    tfce_max     = [];
-    tfce_max_th  = [];
-    tfce_th      = [];
+      % get largest tfce
+      tfce0_max = max(tfce0(:));
+      t0_max    = max(t0(:));
+    
+      % get vector for histogram bins
+      tfce_bins = linspace(0, max(abs(tfce0(:))), n_hist_bins);
+      t_bins    = linspace(0, max(abs(t0(:))), n_hist_bins);
+    
+      % prepare countings
+      t_hist       = zeros(1, n_hist_bins);
+      tfce_hist    = zeros(1, n_hist_bins);
+      t_max        = [];
+      t_max_th     = [];
+      t_th         = [];
+      tfce_max     = [];
+      tfce_max_th  = [];
+      tfce_th      = [];
+    
+    end % test_mode
+    
     label_matrix = [];
     
     % general initialization
@@ -575,113 +588,132 @@ for con = 1:length(Ic0)
         
           % color-coded legend
           y = 1.0;
-          text(-0.2,y, 'Columns of design matrix: ',                                          'Color',cmap(1, :),'FontWeight','Bold','FontSize',12); y = y - 0.10;
-          text(-0.2,y,['Exchangeability blocks: ' num2str(sort(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',12); y = y - 0.05;
-          if ~isempty(xX.iH) text(-0.2,y, ['iH - Indicator variables: ' num2str(xX.iH)],      'Color',cmap(16,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
-          if ~isempty(xX.iC) text(-0.2,y, ['iC: Covariates: ' num2str(xX.iC)],                'Color',cmap(24,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
-          if ~isempty(xX.iB) text(-0.2,y, ['iB: Block effects: ' num2str(xX.iB)],             'Color',cmap(32,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
-          if ~isempty(xX.iG) text(-0.2,y, ['iG: Nuisance variables: ' num2str(xX.iG)],        'Color',cmap(48,:),'FontWeight','Bold','FontSize',12); y = y - 0.05; end
+          text(-0.2,y, 'Columns of design matrix: ', 'Color',cmap(1, :),'FontWeight','Bold','FontSize',10); y = y - 0.10;
+          text(-0.2,y,['Exchangeability blocks: ' num2str_short(sort(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',10); y = y - 0.05;
+          if ~isempty(xX.iH)
+            text(-0.2,y, ['iH - Indicator variables: ' num2str_short(xX.iH)], 'Color',cmap(16,:),'FontWeight','Bold','FontSize',10);
+            y = y - 0.05; 
+          end
+          if ~isempty(xX.iC)
+            text(-0.2,y, ['iC - Covariates: ' num2str_short(xX.iC)], 'Color',cmap(24,:),'FontWeight','Bold','FontSize',10);
+            y = y - 0.05;
+          end
+          if ~isempty(xX.iB)
+            text(-0.2,y, ['iB - Block effects: ' num2str_short(xX.iB)], 'Color',cmap(32,:),'FontWeight','Bold','FontSize',10);
+            y = y - 0.05;
+          end
+          if ~isempty(xX.iG)
+            text(-0.2,y, ['iG - Nuisance variables: ' num2str_short(xX.iG)], 'Color',cmap(48,:),'FontWeight','Bold','FontSize',10);
+            y = y - 0.05;
+          end
         end
       end
       
-      % calculate permuted t-map
-      if i==1
-        t = t0;
-        tfce = tfce0;
-      else
-        % -----------------------------------------------------
-        % -----------------------------------------------------
-        % What about W for whitening the data??? Should this also permuted???
-        % -----------------------------------------------------
-        % -----------------------------------------------------
-        
-        t = calc_glm(VY,Xperm,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
-        
-        % compute tfce
-        if mesh_detected
-          tfce = tfce_mesh(SPM.xVol.G.faces, t, deltaT);
+      if ~test_mode
+        % calculate permuted t-map
+        if i==1
+          t = t0;
+          tfce = tfce0;
         else
-          if job.openmp
-            tfce = tfceMex(t, deltaT, job.tbss);
+          % -----------------------------------------------------
+          % -----------------------------------------------------
+          % What about W for whitening the data??? Should this also permuted???
+          % -----------------------------------------------------
+          % -----------------------------------------------------
+        
+          t = calc_glm(VY,Xperm,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
+        
+          % compute tfce
+          if mesh_detected
+            tfce = tfce_mesh(SPM.xVol.G.faces, t, deltaT);
           else
-            tfce = tfceMex_noopenmp(t0, deltaT, job.tbss);
+            if job.openmp
+              tfce = tfceMex(t, deltaT, job.tbss);
+            else
+              tfce = tfceMex_noopenmp(t0, deltaT, job.tbss);
+            end
           end
         end
-        
-      end
-    
+      end % test_mode
+      
       % update label_matrix and order_matrix for checking of unique permutations
       if use_half_permutations
         label_matrix = [label_matrix; rand_label; 3-rand_label];
     
-        % maximum statistic
-        tfce_max = [tfce_max max(tfce(:)) -min(tfce(:))];
-        t_max    = [t_max max(t(:)) -min(t(:))];
+        if ~test_mode
+          % maximum statistic
+          tfce_max = [tfce_max max(tfce(:)) -min(tfce(:))];
+          t_max    = [t_max max(t(:)) -min(t(:))];
+        end
       else
         label_matrix = [label_matrix; rand_label];
 
-        % maximum statistic
-        tfce_max = [tfce_max max(tfce(:))];
-        t_max    = [t_max max(t(:))];
+        if ~test_mode
+          % maximum statistic
+          tfce_max = [tfce_max max(tfce(:))];
+          t_max    = [t_max max(t(:))];
+        end
       end
         
-      % cummulate histogram
-      tfce_gt0 = tfce(find(tfce>0));
-      if ~isempty(tfce_gt0)
-        tfce_hist = tfce_hist + hist(tfce_gt0, tfce_bins);
-      end
-      t_gt0 = t(find(t>0));
-      if ~isempty(t_gt0)
-        t_hist = t_hist + hist(t_gt0, t_bins);
-      end
+      if ~test_mode
+        % cummulate histogram
+        tfce_gt0 = tfce(find(tfce>0));
+        if ~isempty(tfce_gt0)
+          tfce_hist = tfce_hist + hist(tfce_gt0, tfce_bins);
+        end
+        t_gt0 = t(find(t>0));
+        if ~isempty(t_gt0)
+          t_hist = t_hist + hist(t_gt0, t_bins);
+        end
       
-      if use_half_permutations
-        tfce_lt0 = tfce(find(tfce<0));
-        if ~isempty(tfce_lt0)
+        if use_half_permutations
+          tfce_lt0 = tfce(find(tfce<0));
+          if ~isempty(tfce_lt0)
             tfce_hist = tfce_hist + hist(-tfce_lt0, tfce_bins);
-        end
-        t_lt0 = t(find(t<0));
-        if ~isempty(t_lt0)
-          t_hist = t_hist + hist(-t_lt0, t_bins);
-        end
-      end
-      
-      % use cummulated sum to find threshold
-      tfce_max = sort(tfce_max);
-      t_max    = sort(t_max);
-    
-      % find corrected thresholds
-      ind_max  = ceil((1-alpha).*length(t_max));
-      t_max_th = [t_max_th; t_max(ind_max);];
-      if use_half_permutations
-        t_max_th = [t_max_th; t_max(ind_max);];
-      end
-        
-      ind_max     = ceil((1-alpha).*length(tfce_max));
-      tfce_max_th = [tfce_max_th; tfce_max(ind_max);];
-      if use_half_permutations
-        tfce_max_th = [tfce_max_th; tfce_max(ind_max);];
-      end
-    
-      % plot thresholds and histograms
-      try
-        figure(Fgraph)
-        h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
-        plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max);
-        if ~debug
-          plot_distribution(t_max, t_max_th, 't-value', alpha, col, 2, t0_max);
-        end
-        drawnow
-      end
-        
-      if numel(job.conspec.n_perm) > 1
-        if i > n_perm_break
-          if isempty(find(tfce0_max > tfce_max_th(50:end,1)))
-            fprintf('No FWE-corrected suprathreshold value after %d permutations found\n', n_perm_break);
-            i = n_perm;
           end
-        end  
-      end
+          t_lt0 = t(find(t<0));
+          if ~isempty(t_lt0)
+            t_hist = t_hist + hist(-t_lt0, t_bins);
+          end
+        end
+      
+        % use cummulated sum to find threshold
+        tfce_max = sort(tfce_max);
+        t_max    = sort(t_max);
+    
+        % find corrected thresholds
+        ind_max  = ceil((1-alpha).*length(t_max));
+        t_max_th = [t_max_th; t_max(ind_max);];
+        if use_half_permutations
+          t_max_th = [t_max_th; t_max(ind_max);];
+        end
+        
+        ind_max     = ceil((1-alpha).*length(tfce_max));
+        tfce_max_th = [tfce_max_th; tfce_max(ind_max);];
+        if use_half_permutations
+          tfce_max_th = [tfce_max_th; tfce_max(ind_max);];
+        end
+    
+        % plot thresholds and histograms
+        try
+          figure(Fgraph)
+          h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
+          plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max);
+          if ~debug
+            plot_distribution(t_max, t_max_th, 't-value', alpha, col, 2, t0_max);
+          end
+          drawnow
+        end
+      
+        if numel(job.conspec.n_perm) > 1
+          if i > n_perm_break
+            if isempty(find(tfce0_max > tfce_max_th(50:end,1)))
+              fprintf('No FWE-corrected suprathreshold value after %d permutations found\n', n_perm_break);
+              i = n_perm;
+            end
+          end  
+        end
+      end % test_mode
 
       
       if use_half_permutations
@@ -711,313 +743,313 @@ for con = 1:length(Ic0)
       spm_print;
     end
     
-    
-    % get correct number of permutations in case that process was stopped
-    n_perm = length(tfce_max);
+    if ~test_mode
+      % get correct number of permutations in case that process was stopped
+      n_perm = length(tfce_max);
 
-    %---------------------------------------------------------------
-    % corrected threshold based on permutation distribution
-    %---------------------------------------------------------------
+      %---------------------------------------------------------------
+      % corrected threshold based on permutation distribution
+      %---------------------------------------------------------------
     
-    % allow thresholds depending on # of permutations
-    n_alpha = 3;
-    if n_perm < 1000, n_alpha = 2; end
-    if n_perm <  100, n_alpha = 1; end
+      % allow thresholds depending on # of permutations
+      n_alpha = 3;
+      if n_perm < 1000, n_alpha = 2; end
+      if n_perm <  100, n_alpha = 1; end
     
-    % pepare output files
-    Vt = VY(1);
-    Vt.dt(1)    = 16;
-    Vt.pinfo(1) = 1;
+      % pepare output files
+      Vt = VY(1);
+      Vt.dt(1)    = 16;
+      Vt.pinfo(1) = 1;
         
-    mask_0 = find(t0 == 0);
-    mask_P = find(t0 > 0);
-    mask_N = find(t0 < 0);
+      mask_0 = find(t0 == 0);
+      mask_P = find(t0 > 0);
+      mask_N = find(t0 < 0);
 
-    %---------------------------------------------------------------
-    % save unpermuted TFCE map
-    %---------------------------------------------------------------
-    name = sprintf('TFCE_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name file_ext]);
-    if vFWHM > 0
-      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-    else
-      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
-    end
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,tfce0);
-    else
-      spm_write_vol(Vt,tfce0);
-    end
+      %---------------------------------------------------------------
+      % save unpermuted TFCE map
+      %---------------------------------------------------------------
+      name = sprintf('TFCE_%04d',Ic);
+      Vt.fname = fullfile(cwd,[name file_ext]);
+      if vFWHM > 0
+        Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
+      else
+        Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
+      end
+      if spm12
+        Vt = spm_data_hdr_write(Vt);
+        spm_data_write(Vt,tfce0);
+      else
+        spm_write_vol(Vt,tfce0);
+      end
     
-    %---------------------------------------------------------------
-    % save unpermuted T map
-    %---------------------------------------------------------------
-    name = sprintf('T_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name file_ext]);
-    if vFWHM > 0
-      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-    else
-      Vt.descrip = sprintf('T Contrast %04d',Ic);
-    end
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,t0);
-    else
-      spm_write_vol(Vt,t0);
-    end
+      %---------------------------------------------------------------
+      % save unpermuted T map
+      %---------------------------------------------------------------
+      name = sprintf('T_%04d',Ic);
+      Vt.fname = fullfile(cwd,[name file_ext]);
+      if vFWHM > 0
+        Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
+      else
+        Vt.descrip = sprintf('T Contrast %04d',Ic);
+      end
+      if spm12
+        Vt = spm_data_hdr_write(Vt);
+        spm_data_write(Vt,t0);
+      else
+        spm_write_vol(Vt,t0);
+      end
     
-    % save ascii file with number of permutations
-    fid = fopen(fullfile(cwd,[name '.txt']),'w');
-    fprintf(fid,'%d\n',n_perm);
-    fclose(fid);
+      % save ascii file with number of permutations
+      fid = fopen(fullfile(cwd,[name '.txt']),'w');
+      fprintf(fid,'%d\n',n_perm);
+      fclose(fid);
     
-    %---------------------------------------------------------------
-    % save uncorrected p-values for TFCE
-    %---------------------------------------------------------------
-    fprintf('Save uncorrected p-values.\n');
+      %---------------------------------------------------------------
+      % save uncorrected p-values for TFCE
+      %---------------------------------------------------------------
+      fprintf('Save uncorrected p-values.\n');
 
-    name = sprintf('TFCE_log_p_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name file_ext]);
-    if vFWHM > 0
-      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-    else
-      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
-    end
+      name = sprintf('TFCE_log_p_%04d',Ic);
+      Vt.fname = fullfile(cwd,[name file_ext]);
+      if vFWHM > 0
+        Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
+      else
+        Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
+      end
     
-    nPtfce = zeros(size(tfce0));
+      nPtfce = zeros(size(tfce0));
     
-    % estimate p-values
-    tfce_cumsum = cumsum(tfce_hist);
-    for j=n_hist_bins:-1:1
-      tmp = min(find(tfce_cumsum>=ceil(j/n_hist_bins*sum(tfce_hist))));
-      nPtfce((tfce0  > tfce_bins(tmp)) & (nPtfce==0)) =  j/n_hist_bins;
-      nPtfce((-tfce0 > tfce_bins(tmp)) & (nPtfce==0)) = -j/n_hist_bins;
-    end
+      % estimate p-values
+      tfce_cumsum = cumsum(tfce_hist);
+      for j=n_hist_bins:-1:1
+        tmp = min(find(tfce_cumsum>=ceil(j/n_hist_bins*sum(tfce_hist))));
+        nPtfce((tfce0  > tfce_bins(tmp)) & (nPtfce==0)) =  j/n_hist_bins;
+        nPtfce((-tfce0 > tfce_bins(tmp)) & (nPtfce==0)) = -j/n_hist_bins;
+      end
     
-    nPtfce(mask_P) = 1 - nPtfce(mask_P);
-    nPtfce(mask_N) = 1 + nPtfce(mask_N);
-    nPtfce(mask_0) = NaN;
+      nPtfce(mask_P) = 1 - nPtfce(mask_P);
+      nPtfce(mask_N) = 1 + nPtfce(mask_N);
+      nPtfce(mask_0) = NaN;
 
-    nPtfcelog10 = zeros(size(tfce0));
-    nPtfcelog10(mask_P) = -log10(nPtfce(mask_P));
-    nPtfcelog10(mask_N) =  log10(nPtfce(mask_N));
-    nPtfcelog10(mask_0) = NaN;
+      nPtfcelog10 = zeros(size(tfce0));
+      nPtfcelog10(mask_P) = -log10(nPtfce(mask_P));
+      nPtfcelog10(mask_N) =  log10(nPtfce(mask_N));
+      nPtfcelog10(mask_0) = NaN;
 
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,nPtfcelog10);
-    else
-      spm_write_vol(Vt,nPtfcelog10);
-    end
+      if spm12
+        Vt = spm_data_hdr_write(Vt);
+        spm_data_write(Vt,nPtfcelog10);
+      else
+        spm_write_vol(Vt,nPtfcelog10);
+      end
     
-    %---------------------------------------------------------------
-    % save uncorrected p-values for T
-    %---------------------------------------------------------------
-    name = sprintf('T_log_p_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name file_ext]);
-    if vFWHM > 0
-      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-    else
-      Vt.descrip = sprintf('T Contrast %04d',Ic);
-    end
+      %---------------------------------------------------------------
+      % save uncorrected p-values for T
+      %---------------------------------------------------------------
+      name = sprintf('T_log_p_%04d',Ic);
+      Vt.fname = fullfile(cwd,[name file_ext]);
+      if vFWHM > 0
+        Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
+      else
+        Vt.descrip = sprintf('T Contrast %04d',Ic);
+      end
     
-    nPt = zeros(size(t0));
-    nPtlog10 = zeros(size(t0));
+      nPt = zeros(size(t0));
+      nPtlog10 = zeros(size(t0));
     
-    % estimate p-values
-    t_cumsum = cumsum(t_hist);
-    for j=n_hist_bins:-1:1
-      tmp = min(find(t_cumsum>=ceil(j/n_hist_bins*sum(t_hist))));
-      nPt((t0  > t_bins(tmp)) & (nPt==0)) =  j/n_hist_bins;
-      nPt((-t0 > t_bins(tmp)) & (nPt==0)) = -j/n_hist_bins;
-    end
-    
-    nPt(mask_P) = 1 - nPt(mask_P);
-    nPt(mask_N) = 1 + nPt(mask_N);
-    nPt(mask_0) = NaN;
+      % estimate p-values
+      t_cumsum = cumsum(t_hist);
+      for j=n_hist_bins:-1:1
+        tmp = min(find(t_cumsum>=ceil(j/n_hist_bins*sum(t_hist))));
+        nPt((t0  > t_bins(tmp)) & (nPt==0)) =  j/n_hist_bins;
+        nPt((-t0 > t_bins(tmp)) & (nPt==0)) = -j/n_hist_bins;
+      end
+     
+      nPt(mask_P) = 1 - nPt(mask_P);
+      nPt(mask_N) = 1 + nPt(mask_N);
+      nPt(mask_0) = NaN;
 
-    nPtlog10(mask_P) = -log10(nPt(mask_P));
-    nPtlog10(mask_N) =  log10(nPt(mask_N));
-    nPtlog10(mask_0) = NaN;
+      nPtlog10(mask_P) = -log10(nPt(mask_P));
+      nPtlog10(mask_N) =  log10(nPt(mask_N));
+      nPtlog10(mask_0) = NaN;
 
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,nPtlog10);
-    else
-      spm_write_vol(Vt,nPtlog10);
-    end
+      if spm12
+        Vt = spm_data_hdr_write(Vt);
+        spm_data_write(Vt,nPtlog10);
+      else
+        spm_write_vol(Vt,nPtlog10);
+      end
     
-    %---------------------------------------------------------------
-    % save corrected p-values for TFCE
-    %---------------------------------------------------------------
-    fprintf('Save corrected p-values.\n');
+      %---------------------------------------------------------------
+      % save corrected p-values for TFCE
+      %---------------------------------------------------------------
+      fprintf('Save corrected p-values.\n');
 
-    name = sprintf('TFCE_log_pFWE_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name file_ext]);
-    if vFWHM > 0
-      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-    else
-      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
-    end
+      name = sprintf('TFCE_log_pFWE_%04d',Ic);
+      Vt.fname = fullfile(cwd,[name file_ext]);
+      if vFWHM > 0
+        Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
+      else
+        Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
+      end
 
-    corrP = zeros(size(t));
+      corrP = zeros(size(t));
     
-    for t2 = tfce_max
+      for t2 = tfce_max
         %-FWE-corrected p is proportion of randomisation greater or
         % equal to statistic.
         %-Use a > b -tol rather than a >= b to avoid comparing
         % two reals for equality.
         corrP = corrP + (t2 > tfce0 - tol);
         corrP = corrP - (t2 > -tfce0 - tol);
-    end
-    corrP = corrP / n_perm;  
+      end
+      corrP = corrP / n_perm;  
 
-    corrP(mask_P) = 1 + corrP(mask_P);
-    corrP(mask_N) = 1 - corrP(mask_N);
-    corrP(mask_0) = NaN;
+      corrP(mask_P) = 1 + corrP(mask_P);
+      corrP(mask_N) = 1 - corrP(mask_N);
+      corrP(mask_0) = NaN;
 
-    corrPlog10 = zeros(size(tfce0));
-    corrPlog10(mask_P) = -log10(corrP(mask_P));
-    corrPlog10(mask_N) =  log10(corrP(mask_N));
-    corrPlog10(mask_0) = NaN;
+      corrPlog10 = zeros(size(tfce0));
+      corrPlog10(mask_P) = -log10(corrP(mask_P));
+      corrPlog10(mask_N) =  log10(corrP(mask_N));
+      corrPlog10(mask_0) = NaN;
 
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,corrPlog10);
-    else
-      spm_write_vol(Vt,corrPlog10);
-    end
+      if spm12
+        Vt = spm_data_hdr_write(Vt);
+        spm_data_write(Vt,corrPlog10);
+      else
+        spm_write_vol(Vt,corrPlog10);
+      end
     
-    %---------------------------------------------------------------
-    % save corrected p-values for T
-    %---------------------------------------------------------------
-    name = sprintf('T_log_pFWE_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name file_ext]);
-    if vFWHM > 0
-      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-    else
-      Vt.descrip = sprintf('T Contrast %04d',Ic);
-    end
+      %---------------------------------------------------------------
+      % save corrected p-values for T
+      %---------------------------------------------------------------
+      name = sprintf('T_log_pFWE_%04d',Ic);
+      Vt.fname = fullfile(cwd,[name file_ext]);
+      if vFWHM > 0
+        Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
+      else
+        Vt.descrip = sprintf('T Contrast %04d',Ic);
+      end
 
-    corrP = zeros(size(t));
+      corrP = zeros(size(t));
     
-    for t2 = t_max
+      for t2 = t_max
         %-FWE-corrected p is proportion of randomisation greater or
         % equal to statistic.
         %-Use a > b -tol rather than a >= b to avoid comparing
         % two reals for equality.
         corrP = corrP + (t2 > t0 - tol);
         corrP = corrP - (t2 > -t0 - tol);
-    end
-    corrP = corrP / n_perm;  
+      end
+      corrP = corrP / n_perm;  
 
-    corrP(mask_P) = 1 + corrP(mask_P);
-    corrP(mask_N) = 1 - corrP(mask_N);
-    corrP(mask_0) = NaN;
+      corrP(mask_P) = 1 + corrP(mask_P);
+      corrP(mask_N) = 1 - corrP(mask_N);
+      corrP(mask_0) = NaN;
 
-    corrPlog10 = zeros(size(tfce0));
-    corrPlog10(mask_P) = -log10(corrP(mask_P));
-    corrPlog10(mask_N) =  log10(corrP(mask_N));
-    corrPlog10(mask_0) = NaN;
+      corrPlog10 = zeros(size(tfce0));
+      corrPlog10(mask_P) = -log10(corrP(mask_P));
+      corrPlog10(mask_N) =  log10(corrP(mask_N));
+      corrPlog10(mask_0) = NaN;
     
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,corrPlog10);
-    else
-      spm_write_vol(Vt,corrPlog10);
-    end
+      if spm12
+        Vt = spm_data_hdr_write(Vt);
+        spm_data_write(Vt,corrPlog10);
+      else
+        spm_write_vol(Vt,corrPlog10);
+      end
     
-    %---------------------------------------------------------------
-    % save corrected FDR-values for TFCE
-    %---------------------------------------------------------------
-    fprintf('Save corrected FDR-values.\n');
+      %---------------------------------------------------------------
+      % save corrected FDR-values for TFCE
+      %---------------------------------------------------------------
+      fprintf('Save corrected FDR-values.\n');
     
-    name = sprintf('TFCE_log_pFDR_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name file_ext]);
-    if vFWHM > 0
-      Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-    else
-      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
-    end
+      name = sprintf('TFCE_log_pFDR_%04d',Ic);
+      Vt.fname = fullfile(cwd,[name file_ext]);
+      if vFWHM > 0
+        Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
+      else
+        Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
+      end
 
-    if ~isempty(mask_P)
-      [snP_pos,I_pos] = sort(nPtfce(mask_P));
-      corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
-      corrPfdr_pos(I_pos) = corrPfdr_pos;
-    end
+      if ~isempty(mask_P)
+        [snP_pos,I_pos] = sort(nPtfce(mask_P));
+        corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
+        corrPfdr_pos(I_pos) = corrPfdr_pos;
+      end
     
     
-    if ~isempty(mask_N)
-      [snP_neg,I_neg] = sort(nPtfce(mask_N));
-      corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
-      corrPfdr_neg(I_neg) = corrPfdr_neg;
-    end
+      if ~isempty(mask_N)
+        [snP_neg,I_neg] = sort(nPtfce(mask_N));
+        corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
+        corrPfdr_neg(I_neg) = corrPfdr_neg;
+      end
     
-    corrPfdr = NaN(size(t));
-    if ~isempty(mask_P)
-      corrPfdr(mask_P) = corrPfdr_pos;
-    end
-    if ~isempty(mask_N)
-      corrPfdr(mask_N) = corrPfdr_neg;
-    end
+      corrPfdr = NaN(size(t));
+      if ~isempty(mask_P)
+        corrPfdr(mask_P) = corrPfdr_pos;
+      end
+      if ~isempty(mask_N)
+        corrPfdr(mask_N) = corrPfdr_neg;
+      end
     
-    corrPfdrlog10 = zeros(size(tfce0));
-    corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
-    corrPfdrlog10(mask_N) =  log10(corrPfdr(mask_N));
-    corrPfdrlog10(mask_0) = NaN;
+      corrPfdrlog10 = zeros(size(tfce0));
+      corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
+      corrPfdrlog10(mask_N) =  log10(corrPfdr(mask_N));
+      corrPfdrlog10(mask_0) = NaN;
 
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,corrPfdrlog10);
-    else
-      spm_write_vol(Vt,corrPfdrlog10);
-    end
+      if spm12
+        Vt = spm_data_hdr_write(Vt);
+        spm_data_write(Vt,corrPfdrlog10);
+      else
+        spm_write_vol(Vt,corrPfdrlog10);
+      end
     
-    %---------------------------------------------------------------
-    % save corrected FDR-values for T
-    %---------------------------------------------------------------
-    name = sprintf('T_log_pFDR_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name file_ext]);
-    if vFWHM > 0
-      Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-    else
-      Vt.descrip = sprintf('T Contrast %04d',Ic);
-    end
+      %---------------------------------------------------------------
+      % save corrected FDR-values for T
+      %---------------------------------------------------------------
+      name = sprintf('T_log_pFDR_%04d',Ic);
+      Vt.fname = fullfile(cwd,[name file_ext]);
+      if vFWHM > 0
+        Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
+      else
+        Vt.descrip = sprintf('T Contrast %04d',Ic);
+      end
 
-    if ~isempty(mask_P)
-      [snP_pos,I_pos] = sort(nPt(mask_P));
-      corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
-      corrPfdr_pos(I_pos) = corrPfdr_pos;
-    end
+      if ~isempty(mask_P)
+        [snP_pos,I_pos] = sort(nPt(mask_P));
+        corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
+        corrPfdr_pos(I_pos) = corrPfdr_pos;
+      end
     
-    if ~isempty(mask_N)
-      [snP_neg,I_neg] = sort(nPt(mask_N));
-      corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
-      corrPfdr_neg(I_neg) = corrPfdr_neg;
-    end
+      if ~isempty(mask_N)
+        [snP_neg,I_neg] = sort(nPt(mask_N));
+        corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
+        corrPfdr_neg(I_neg) = corrPfdr_neg;
+      end
     
-    corrPfdr = NaN(size(t));
-    if ~isempty(mask_P)
-      corrPfdr(mask_P) = corrPfdr_pos;
-    end
-    if ~isempty(mask_N)
-      corrPfdr(mask_N) = corrPfdr_neg;
-    end  
+      corrPfdr = NaN(size(t));
+      if ~isempty(mask_P)
+        corrPfdr(mask_P) = corrPfdr_pos;
+      end
+      if ~isempty(mask_N)
+        corrPfdr(mask_N) = corrPfdr_neg;
+      end  
     
-    corrPfdrlog10 = zeros(size(tfce0));
-    corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
-    corrPfdrlog10(mask_N) =  log10(corrPfdr(mask_N));
-    corrPfdrlog10(mask_0) = NaN;
+      corrPfdrlog10 = zeros(size(tfce0));
+      corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
+      corrPfdrlog10(mask_N) =  log10(corrPfdr(mask_N));
+      corrPfdrlog10(mask_0) = NaN;
 
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,corrPfdrlog10);
-    else
-      spm_write_vol(Vt,corrPfdrlog10);
-    end
-
-end
+      if spm12
+        Vt = spm_data_hdr_write(Vt);
+        spm_data_write(Vt,corrPfdrlog10);
+      else
+        spm_write_vol(Vt,corrPfdrlog10);
+      end
+    end % test_mode
+  end
 
 colormap(gray)
 
@@ -1208,6 +1240,80 @@ if ~isempty(ind)
   beta(:,:,:) = double(pXY);
 end
  
+%---------------------------------------------------------------
+
+function xX = correct_xX(xX)
+
+% vector of covariates and nuisance variables
+iCG = [xX.iC xX.iG];
+iHB = [xX.iH xX.iB];
+
+% set columns with covariates and nuisance variables to zero
+X = xX.X;
+X(:,iCG) = 0;
+
+ncol = size(X,2);
+
+% calculate sum of columns
+% The idea behind this is that for each factor the sum of all of its columns should be "1".
+Xsum = zeros(size(X));
+for i=1:ncol
+  % only sum up columns without covariates and nuisance variables
+  if isempty(find(iCG==i))
+    Xsum(:,i) = sum(X(:,1:i),2);
+  end
+end
+
+% find columns where all entries are constant except zeros entries
+% that indicate columns with covariates and nuisance variables
+ind = find(any(diff(Xsum))==0 & sum(Xsum)>0);
+
+% no more than 2 factors expected
+if length(ind) > 2
+  error('Weird design was found that cannot be analyzed correctly.');
+end
+
+% correction is only necessary if 2 factors (iH/iB) were found
+if length(ind) > 1
+  iF = cell(length(ind),1);
+
+  j = 1;
+  % skip columns with covariates and nuisance variables
+  while find(iCG==j),  j = j + 1; end
+
+  for i=j:length(ind)
+    iF{i} = [j:ind(i)];
+  
+    j = ind(i)+1;
+    % skip columns with covariates and nuisance variables
+    while find(iCG==j), j = j + 1; end
+  end
+  
+  % not sure whether this will always work but usually iB (subject effects) should be longer than iH (time effects)
+  if length(iF{1}) > length(iF{2})
+    xX.iB = iF{1};
+    xX.iH = iF{2};
+  else
+    xX.iB = iF{2};
+    xX.iH = iF{1};
+  end
+end
+
+%---------------------------------------------------------------
+
+function str = num2str_short(num)
+% get shorther strings for continuous numbers with length > 4
+
+if length(num) > 4
+  % check whether vector consist of continuous numbers
+  if all(diff(num)==1)
+    str = [num2str(num(1)) ':' num2str(num(end))];
+  else
+    str = num2str(num);
+  end
+else
+  str = num2str(num);
+end
 
 
 %---------------------------------------------------------------

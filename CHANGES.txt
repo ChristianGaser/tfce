@@ -1,13 +1,12 @@
 
 Changed paths:
 M       CHANGES.txt
-A       cg_glm_get_Beta_ResSS_noopenmp.mexa64
-A       cg_glm_get_Beta_ResSS_noopenmp.mexglx
-A       cg_glm_get_Beta_ResSS_noopenmp.mexmaci
-A       cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
-A       cg_glm_get_Beta_ResSS_noopenmp.mexw32
-A       cg_glm_get_Beta_ResSS_noopenmp.mexw64
+M       Makefile.tfce
+M       cg_tfce_estimate.m
 
-Added cg_glm_get_Beta_ResSS_noopenmp.mex* files.
+(1) Added correction of xX for some weird designs where iH and iB are
+    not correct.
+(2) Added test_mode parameter to run permutations without data.
+(3) Corrected some inconsistencies for longitudinal designs.
 ------------------------------------------------------------------------
-r83 | gaser | 2015-11-24 13:26:20
+r84 | gaser | 2015-11-25 11:31:32

@@ -129,7 +129,7 @@ for con = 1:length(Ic0)
     end
     
     % get contrast and name
-    c = xCon.c
+    c = xCon.c;
     ind_con = find(c~=0)';
     c_name  = deblank(xCon.name);
 

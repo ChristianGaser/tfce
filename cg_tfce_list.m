@@ -215,7 +215,7 @@ switch lower(varargin{1}), case 'list'                            %-List
     %----------------------------------------------------------------------
     spm('Pointer','Watch')
     Fgraph = spm_figure('FindWin','Satellite');
-    if Fgraph
+    if ~isempty(Fgraph)
         figure(Fgraph);
         ht = 0.85; bot = 0.14;
     else

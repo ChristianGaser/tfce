@@ -1,12 +1,17 @@
 
 Changed paths:
 M       CHANGES.txt
-M       Makefile.tfce
+M       SPM-Designs-Permutation.doc
+ M      cg_glm_get_Beta_ResSS_noopenmp.mexa64
+ M      cg_glm_get_Beta_ResSS_noopenmp.mexglx
+ M      cg_glm_get_Beta_ResSS_noopenmp.mexmaci
+ M      cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+ M      cg_glm_get_Beta_ResSS_noopenmp.mexw32
+ M      cg_glm_get_Beta_ResSS_noopenmp.mexw64
 M       cg_tfce_estimate.m
+M       cg_tfce_list.m
 
-(1) Added correction of xX for some weird designs where iH and iB are
-    not correct.
-(2) Added test_mode parameter to run permutations without data.
-(3) Corrected some inconsistencies for longitudinal designs.
+Fixed: Solved issue with newer matlab version regarding the check for Fgraph 
+in cg_tfce_list.m. Thanks to Joshua Balsters for pointing to this issue.
 ------------------------------------------------------------------------
-r84 | gaser | 2015-11-25 11:31:32
+r85 | gaser | 2015-12-01 11:55:52

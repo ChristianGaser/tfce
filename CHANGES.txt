@@ -1,17 +1,14 @@
 
 Changed paths:
 M       CHANGES.txt
-M       SPM-Designs-Permutation.doc
- M      cg_glm_get_Beta_ResSS_noopenmp.mexa64
- M      cg_glm_get_Beta_ResSS_noopenmp.mexglx
- M      cg_glm_get_Beta_ResSS_noopenmp.mexmaci
- M      cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
- M      cg_glm_get_Beta_ResSS_noopenmp.mexw32
- M      cg_glm_get_Beta_ResSS_noopenmp.mexw64
-M       cg_tfce_estimate.m
-M       cg_tfce_list.m
+M       cg_glm_get_Beta_ResSS.c
+M       cg_glm_get_Beta_ResSS.mexmaci64
+M       cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+M       compile.m
+M       tfceMex.mexmaci64
+M       tfceMex_noopenmp.mexmaci64
 
-Fixed: Solved issue with newer matlab version regarding the check for Fgraph 
-in cg_tfce_list.m. Thanks to Joshua Balsters for pointing to this issue.
+(1) Changed: comnpile.m to consider new OSX
+(2) Changed: recompiled mexmaci64 code
 ------------------------------------------------------------------------
-r85 | gaser | 2015-12-01 11:55:52
+r86 | gaser | 2015-12-08 11:35:14

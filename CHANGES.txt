@@ -1,14 +1,9 @@
 
 Changed paths:
 M       CHANGES.txt
-M       cg_glm_get_Beta_ResSS.c
-M       cg_glm_get_Beta_ResSS.mexmaci64
-M       cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
-M       compile.m
-M       tfceMex.mexmaci64
-M       tfceMex_noopenmp.mexmaci64
+A       todo
 
-(1) Changed: comnpile.m to consider new OSX
-(2) Changed: recompiled mexmaci64 code
+New: todo file
+
 ------------------------------------------------------------------------
-r86 | gaser | 2015-12-08 11:35:14
+r87 | gaser | 2016-01-19 00:49:24

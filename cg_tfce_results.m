@@ -415,9 +415,7 @@ switch lower(Action), case 'setup'                         %-Set up results
  
         uicontrol(Finter,'Style','PushButton','String','save','FontSize',FS(10),...
             'ToolTipString','save thresholded SPM as image',...
-            'Callback',['spm_write_filtered(xSPM.Z,xSPM.XYZ,xSPM.DIM,xSPM.M,',...
-            'sprintf(''SPM{%c}-filtered: u = %5.3f, k = %d'',',...
-            'xSPM.STAT,xSPM.u,xSPM.k));'],...
+            'Callback','cg_tfce_results(''Save'',xSPM);',...
             'Interruptible','on','Enable','on',...
             'Position',[285 095 100 020].*WS)
  
@@ -892,6 +890,30 @@ switch lower(Action), case 'setup'                         %-Set up results
         varargout = {hMP};
  
  
+    %======================================================================
+    case 'save'                            %-Save thresholded results
+    %======================================================================
+    xSPM =varargin{2};
+    
+    if isfield(xSPM,'G')
+        F     = spm_input('Output filename',1,'s');
+        if isempty(spm_file(F,'ext'))
+            F = spm_file(F,'ext','.gii');
+        end
+        F     = spm_file(F,'CPath');
+        M     = gifti(xSPM.G);
+        C     = zeros(1,size(xSPM.G.vertices,1));
+        C(xSPM.XYZ(1,:)) = xSPM.Z;
+        M.cdata = C;
+        save(M,F);
+        cmd   = 'spm_mesh_render(''Disp'',''%s'')';
+    else
+        V   = spm_write_filtered(xSPM.Z, xSPM.XYZ, xSPM.DIM, xSPM.M,...
+        sprintf('SPM{%c}-filtered: u = %5.3f, k = %d',xSPM.STAT,xSPM.u,xSPM.k));
+        cmd = 'spm_image(''display'',''%s'')';
+        F   = V.fname;
+    end
+
  
     %======================================================================
     case 'delete'                           %-Delete HandleGraphics objects

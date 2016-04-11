@@ -1,9 +1,9 @@
 
 Changed paths:
 M       CHANGES.txt
-A       todo
+M       cg_tfce_results.m
 
-New: todo file
+Changed: Added gifit functionality for saving thresholded results.
 
 ------------------------------------------------------------------------
-r87 | gaser | 2016-01-19 00:49:24
+r88 | gaser | 2016-04-11 11:53:16

@@ -490,6 +490,7 @@ switch lower(varargin{1}), case 'list'                            %-List
     %-Local maxima p-values & statistics
     %----------------------------------------------------------------------
     HlistXYZ = [];
+    HlistClust = [];
     while numel(find(isfinite(Z)))
 
         % Paginate if necessary
@@ -551,6 +552,10 @@ switch lower(varargin{1}), case 'list'                            %-List
         h     = text(tCol(5),y,sprintf(TabDat.fmt{5},N(i)),'FontWeight','Bold',...
             'UserData',N(i),'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
+
+        HlistClust = [HlistClust, h];
+        set(h,'UserData',struct('XYZmm',XYZmm(:,i)));
+
         h     = text(tCol(6),y,sprintf(TabDat.fmt{6},Pn),'FontWeight','Bold',...
             'UserData',Pn,'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
@@ -748,7 +753,7 @@ switch lower(varargin{1}), case 'list'                            %-List
 
     %-Setup registry
     %----------------------------------------------------------------------
-    set(hAx,'UserData',struct('hReg',hReg,'HlistXYZ',HlistXYZ))
+    set(hAx,'UserData',struct('hReg',hReg,'HlistXYZ',HlistXYZ,'HlistClust',HlistClust));
     spm_XYZreg('Add2Reg',hReg,hAx,'cg_tfce_list');
 
     %-Return TabDat structure & reset pointer
@@ -875,6 +880,72 @@ switch lower(varargin{1}), case 'list'                            %-List
             set(HlistXYZ(i),'Color','r')
         end
 
+    %======================================================================
+    case 'label'                                     %-Display atlas labels
+    %======================================================================
+    % FORMAT spm_list('label',atlas)
+    %-Use atlas to label suprathreshold features
+    
+    fprintf('*** Use atlas labelling with great caution ***\n');
+    
+    spm('Pointer','Watch')
+
+    xA = spm_atlas('load',varargin{2:end});
+
+    hAx = findobj('Tag','SPMList');
+    
+    for a=1:numel(hAx)
+        UD        = get(hAx(a),'UserData');
+        if isempty(UD), continue; end
+        HlistXYZ  = UD.HlistXYZ(ishandle(UD.HlistXYZ));
+        
+        %-Add contextual menus to coordinates
+        %------------------------------------------------------------------
+        for i=1:numel(HlistXYZ)
+            h     = uicontextmenu('Parent',ancestor(hAx(a),'figure'));
+            XYZmm = get(HlistXYZ(i),'UserData');
+            
+            %-Consider peak only
+            %--------------------------------------------------------------
+            labk  = spm_atlas('query',xA,XYZmm);
+            if ~ischar(labk), warning('Probabilistic atlases not handled yet.'); return; end
+            
+            hi    = uimenu(h,'Label',['<html><b>' labk '</b></html>']);
+            
+            %-Consider a 10mm sphere around the peak
+            %--------------------------------------------------------------
+            [labk,P] = spm_atlas('query',xA,...
+                struct('def','sphere','spec',10,'xyz',XYZmm));
+            
+            for j=1:numel(labk)
+                hj   = uimenu(hi,'Label',sprintf('<html><b>%s</b> (%.1f%%)</html>',labk{j},P(j)));
+                %'Callback',['web(''' spm_atlas('weblink',XYZmm,'') ''',''-notoolbar'');']);
+            end
+            
+            set(HlistXYZ(i),'UIContextMenu',h);
+        end
+        
+        %-Add contextual menus to clusters
+        %------------------------------------------------------------------
+        HlistClust = UD.HlistClust(ishandle(UD.HlistClust));
+        xSPM = evalin('base','xSPM');
+        A = spm_clusters(xSPM.XYZ);
+        
+        for i=1:numel(HlistClust)
+            hi      = uicontextmenu('Parent',ancestor(hAx(a),'figure'));
+            XYZmm  = getfield(get(HlistClust(i),'UserData'),'XYZmm');
+            [unused,j] = spm_XYZreg('NearestXYZ',XYZmm,xSPM.XYZmm);
+            [labk, P]  = spm_atlas('query',xA,xSPM.XYZmm(:,A==A(j)));
+            for k=1:numel(labk)
+                hj = uimenu(hi,'Label',sprintf('<html><b>%s</b> (%.1f%%)</html>',labk{k},P(k)));
+            end
+            set(HlistClust(i),'UIContextMenu',hi);
+        end
+        
+    end
+    
+    spm('Pointer','Arrow')
+        
         %==================================================================
     otherwise                                       %-Unknown action string
         %==================================================================

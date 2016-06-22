@@ -120,6 +120,12 @@ switch lower(Action), case 'setup'                         %-Set up results
     hDesRepUI = spm_DesRep('DesRepUI',SPM);
     figure(Finter)
  
+    %-Atlas menu
+    %----------------------------------------------------------------------
+    if isequal(units,{'mm' 'mm' 'mm'})
+        hAtlasUI = cg_tfce_results('SetupAtlasMenu',Finter);
+    end
+
     %-Setup Maximum intensity projection (MIP) & register
     %----------------------------------------------------------------------
     FS     = spm('FontSizes');
@@ -446,7 +452,27 @@ switch lower(Action), case 'setup'                         %-Set up results
             'Callback','spm_help(''cg_tfce_results'')',...
             'Interruptible','on','Enable','on',...
             'Position',[365 055 020 018].*WS);
- 
+     
+    %======================================================================
+    case 'setupatlasmenu'                                %-Setup Atlas Menu
+    %======================================================================
+        % cg_tfce_results('SetupAtlasMenu',Finter)
+    
+        Finter = varargin{2};
+        
+        hC   = uimenu(Finter,'Label','Atlas', 'Tag','AtlasUI');
+        
+        hC1  = uimenu(hC,'Label','Label using');
+        
+        list = spm_atlas('List','installed');
+        for i=1:numel(list)
+            uimenu(hC1,'Label',list(i).name,...
+                'Callback',sprintf('cg_tfce_list(''label'',''%s'');',list(i).name));
+        end
+        if isempty(list), set(hC1,'Enable','off'); end
+                
+        varargout = {hC};
+    
  
     %======================================================================
     case 'drawxyzgui'                                   %-Draw XYZ GUI area
@@ -930,3 +956,49 @@ switch lower(Action), case 'setup'                         %-Set up results
  
     %======================================================================
 end
+
+%==========================================================================
+function mychgcon(obj,evt,xSPM)
+%==========================================================================
+xSPM2.swd   = xSPM.swd;
+try, xSPM2.units = xSPM.units; end
+xSPM2.Ic    = getfield(get(obj,'UserData'),'Ic');
+if isempty(xSPM2.Ic) || all(xSPM2.Ic == 0), xSPM2 = rmfield(xSPM2,'Ic'); end
+xSPM2.Im    = xSPM.Im;
+xSPM2.pm    = xSPM.pm;
+xSPM2.Ex    = xSPM.Ex;
+xSPM2.title = '';
+if ~isempty(xSPM.thresDesc)
+    if strcmp(xSPM.STAT,'P')
+        % These are soon overwritten by spm_getSPM
+        xSPM2.thresDesc = xSPM.thresDesc;
+        xSPM2.u = xSPM.u;
+        xSPM2.k = xSPM.k;
+        % xSPM.STATstr contains Gamma
+    else
+        td = regexp(xSPM.thresDesc,'p\D?(?<u>[\.\d]+) \((?<thresDesc>\S+)\)','names');
+        if isempty(td)
+            td = regexp(xSPM.thresDesc,'\w=(?<u>[\.\d]+)','names');
+            td.thresDesc = 'none';
+        end
+        if strcmp(td.thresDesc,'unc.'), td.thresDesc = 'none'; end
+        xSPM2.thresDesc = td.thresDesc;
+        xSPM2.u     = str2double(td.u);
+        xSPM2.k     = xSPM.k;
+    end
+end
+hReg = spm_XYZreg('FindReg',spm_figure('GetWin','Interactive'));
+xyz  = spm_XYZreg('GetCoords',hReg);
+[hReg,xSPM,SPM] = cg_tfce_results('setup',xSPM2);
+TabDat = cg_tfce_list('List',xSPM,hReg);
+spm_XYZreg('SetCoords',xyz,hReg);
+assignin('base','hReg',hReg);
+assignin('base','xSPM',xSPM);
+assignin('base','SPM',SPM);
+assignin('base','TabDat',TabDat);
+figure(spm_figure('GetWin','Interactive'));
+
+%==========================================================================
+function mycheckres(obj,evt,xSPM)
+%==========================================================================
+spm_check_results([],xSPM);

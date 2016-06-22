@@ -1,9 +1,11 @@
 
 Changed paths:
 M       CHANGES.txt
+M       cg_tfce_list.m
 M       cg_tfce_results.m
+ M      todo
 
-Changed: Added gifit functionality for saving thresholded results.
+Changed: Added atlas function to results.
 
 ------------------------------------------------------------------------
-r88 | gaser | 2016-04-11 11:53:16
+r89 | gaser | 2016-06-22 17:21:36

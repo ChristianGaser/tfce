@@ -17,7 +17,6 @@ switch lower(action)
     % Initialise
     %-------------------------------------------------------------------
     case 'init'
-        error(nargchk(2,5,nargin));
         n_iterations = varargin{1};
         if nargin > 2, arg2 = varargin{2}; else arg2 = 'Computing';  end
         if nargin > 3, arg3 = varargin{3}; else arg3 = 'Iterations'; end
@@ -30,7 +29,6 @@ switch lower(action)
     % Set
     %-------------------------------------------------------------------
     case 'set'
-        error(nargchk(2,3,nargin));
         iter = varargin{1};
         
         % estimate time for remaining iterations
@@ -50,7 +48,6 @@ switch lower(action)
                 'FontSize',spm('FontSize',8),...
                 'HorizontalAlignment','Center',...
                 'VerticalAlignment','middle',...
-                'EraseMode','Background',...
                 'BackgroundColor','white');
 
         end
@@ -62,7 +59,6 @@ switch lower(action)
     % Clear
     %-------------------------------------------------------------------
     case 'clear'
-        error(nargchk(1,2,nargin));
         fprintf('%-35s',repmat(sprintf('\b'),1,35));
         fprintf('Processing time: %s\n',time2str(sum_time));
 
@@ -75,7 +71,6 @@ switch lower(action)
                 'FontSize',spm('FontSize',8),...
                 'HorizontalAlignment','Center',...
                 'VerticalAlignment','middle',...
-                'EraseMode','Background',...
                 'BackgroundColor','white');
 
         end

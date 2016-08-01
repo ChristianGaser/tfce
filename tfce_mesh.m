@@ -1,5 +1,5 @@
-function tfce = tfce_mesh(faces, t, deltaT)
-% FORMAT tfce = tfce_mesh(faces, t, deltaT)
+function tfce = tfce_mesh(faces, t, dh)
+% FORMAT tfce = tfce_mesh(faces, t, dh)
 %
 % Christian Gaser
 % $Id$
@@ -10,7 +10,7 @@ H = 2.0;
 tfce = zeros(size(t));
 t_max = max(abs(t(:)));
 
-n_steps = ceil(t_max/deltaT);
+n_steps = ceil(t_max/dh);
 
 %-Compute the (reduced) adjacency matrix
 %--------------------------------------------------------------------------
@@ -19,7 +19,7 @@ A       = A + speye(size(A));
 
 for j = 1:n_steps
 
-  thresh = j*deltaT;
+  thresh = j*dh;
 
   % positive t-values
   T   = (t >= thresh);
@@ -49,10 +49,6 @@ for j = 1:n_steps
   end
   
 end
-
-% make tfce values independend from deltaT
-tfce = tfce*deltaT;
-
 
 %--------------------------------------------------------------------------
 function C = find_connected_component(A, T);

@@ -109,22 +109,25 @@ vFWHM.num     = [0 Inf];
 conspec         = cfg_branch;
 conspec.tag     = 'conspec';
 conspec.name    = 'Contrast query';
-conspec.val     = {titlestr contrasts n_perm vFWHM};
+conspec.val     = {titlestr contrasts n_perm};
 conspec.help    = {''};
 
 % ---------------------------------------------------------------------
 % multithreading
 % ---------------------------------------------------------------------
-openmp    = cfg_menu;
-openmp.tag = 'openmp';
-openmp.name = 'Use multi-threading to speed up calculations';
-openmp.labels = {'yes','no'};
-openmp.values = {1 0};
-openmp.val  = {1};
-openmp.help = {[...
-'OpenMP can be used to distribute calculations to multiple processors. ',...
-'This will minimize calculation time by a large amount, but makes sometimes trouble on Windows machines. ',...
-'In case of trouble deselect the multi-threading option.']};
+singlethreaded    = cfg_menu;
+singlethreaded.tag = 'singlethreaded';
+singlethreaded.name = 'Use multi-threading to speed up calculations';
+singlethreaded.labels = {'yes','no'};
+singlethreaded.values = {0 1};
+if ispc
+  singlethreaded.val  = {1};
+else
+  singlethreaded.val  = {0};
+end
+singlethreaded.help = {[...
+'Multithreading can be used to distribute calculations to multiple processors. ',...
+'This will minimize calculation time by a large amount, but makes trouble on Windows machines, where it is deselected by default. ']};
 
 % ---------------------------------------------------------------------
 % results Results Report
@@ -132,6 +135,6 @@ openmp.help = {[...
 tfce_estimate          = cfg_exbranch;
 tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
-tfce_estimate.val      = {spmmat mask conspec tbss openmp};
+tfce_estimate.val      = {spmmat mask conspec tbss singlethreaded};
 tfce_estimate.help     = {''};
 tfce_estimate.prog     = @cg_tfce_estimate;

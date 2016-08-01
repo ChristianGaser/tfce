@@ -4,10 +4,10 @@ global Y initialized
 
 initialized = 0;
 
-% use debug for displaying permuted design matrix
-debug = 1;
+% display permuted design matrix (otherwise show t distribution)
+show_permuted_designmatrix = 1;
 
-% allow to test permutations with analyzing data
+% allow to test permutations without analyzing data
 test_mode = 0;
 
 % define stepsize for tfce
@@ -77,9 +77,11 @@ end
     
 % get some parameters from SPM
 xX     = SPM.xX;
-TH     = SPM.xM.TH;
 VY     = SPM.xY.VY;
 n_data = size(xX.X,1);
+
+%vFWHM = job.conspec.vFWHM;
+vFWHM = 0;
 
 % sometimes xX.iB and xX.iH are not correct and cannot be used to reliably recognize the design
 xX = correct_xX(xX);
@@ -105,9 +107,120 @@ else
     exch_block_labels = ones(1,n_data);
 end
 
+% check for meshes
+if spm12
+    if spm_mesh_detect(VY)
+        mesh_detected = 1;
+        if vFWHM > 0
+          warning('Variance smoothing not yet prepared!');
+        end
+    else
+        mesh_detected = 0;
+    end
+else
+    mesh_detected = 0;
+end
+
+% set E according to type data
+if job.tbss || mesh_detected
+  E = 1; H = 2;
+else
+  E = 0.5; H = 2;
+end
+
+% check for mask image that should exist for any analysis
+if exist(fullfile(cwd, 'mask.img'))
+    file_ext = '.img';
+elseif exist(fullfile(cwd, 'mask.nii'))
+    file_ext = '.nii';
+elseif exist(fullfile(cwd, 'mask.gii'))
+    file_ext = '.gii';
+else
+    fprintf('ERROR: No mask file found.\n');
+    return
+end
+
+% get mask file
+if isempty(job.mask)
+    maskname = fullfile(cwd,['mask' file_ext]);
+else
+    maskname = job.mask{1};
+end
+    
+% load mask
+try
+    if spm12
+        Vmask = spm_data_hdr_read(maskname);
+    else
+        Vmask = spm_vol(maskname);
+    end
+catch
+    if mesh_detected
+        maskname = spm_select(1,'mesh','select mask image');
+    else
+        maskname = spm_select(1,'image','select mask image');
+    end
+    if spm12
+        Vmask = spm_data_hdr_read(maskname);
+    else
+        Vmask = spm_vol(maskname);
+    end
+end
+    
+% if first image was not found you have to select all files again
+if ~exist(VY(1).fname);
+    n = size(SPM.xY.VY,1);
+    if mesh_detected
+        P = spm_select(size(SPM.xY.VY,1),'mesh','select images');
+    else
+        P = spm_select(size(SPM.xY.VY,1),'image','select images');
+    end
+    if spm12
+        VY = spm_data_hdr_read(P);
+    else
+        VY = spm_vol(P);
+    end
+    SPM.xY.VY = VY;
+      
+    % update SPM
+    if size(SPM.xY.VY,1)==n
+        save(job.spmmat{1},'SPM');
+    else
+        fprintf('ERROR: Number of files is not correct\n');
+        return
+    end
+end
+        
+% check whether mask images fits to the data
+if mesh_detected, dim_index = 1; else dim_index=1:3; end
+if sum(sum((Vmask.mat-VY(1).mat).^2)) > 1e-6 || any(Vmask.dim(dim_index) ~= VY(1).dim(dim_index))
+    error('Mask must have the same dimensions and orientation as the data.');
+end
+
+% read mask and data
+mask = spm_data_read(Vmask);
+ind_mask = find(mask>0);
+n = numel(VY);
+
+if ~isempty(ind_mask)
+  Y = zeros([length(ind_mask) n],'single');
+  
+  % load data
+  for i=1:n
+    tmp = spm_data_read(VY(i));
+    Y(:,i) = single(full(W(i,i)))*tmp(ind_mask);
+  end
+  clear tmp;
+else
+  error('Empty mask.');
+end
+
+t0 = zeros(Vmask.dim);
+t  = zeros(Vmask.dim);
+
 % go through all contrasts
 for con = 1:length(Ic0)
-
+    
     Ic = Ic0(con);
     xCon = SPM.xCon(Ic);
     
@@ -120,9 +233,7 @@ for con = 1:length(Ic0)
     if numel(job.conspec.n_perm) > 1
       n_perm_break = job.conspec.n_perm(2);
     end
-    
-    vFWHM = job.conspec.vFWHM;
-    
+        
     if length(Ic) > 1
       fprintf('ERROR: No conjunction allowed.\n');
       return
@@ -276,120 +387,32 @@ for con = 1:length(Ic0)
       exch_block_labels_new = exch_block_labels;
     end
 
-    if debug
-      fprintf('# full permutations: %d\n',n_perm_full);
-      if use_half_permutations
-        fprintf('Equal sample size found: Use half permutations.\n');
-      end
-      fprintf('exchangeability blocks: ');
-      for j=1:n_exch_blocks
-        fprintf('%d ',ind_exch_blocks{j});
-      end
-      fprintf('\n');
-      fprintf('# of conditions: %d\n',n_cond);
+    fprintf('# full permutations: %d\n',n_perm_full);
+    if use_half_permutations
+      fprintf('Equal sample size found: Use half permutations.\n');
     end
+    fprintf('exchangeability blocks: ');
+    for j=1:n_exch_blocks
+      fprintf('%d ',ind_exch_blocks{j});
+    end
+    fprintf('\n');
+    fprintf('# of conditions: %d\n',n_cond);
     
     n_perm = min([n_perm n_perm_full]);
-        
-    % check for mask image that should exist for any analysis
-    if exist(fullfile(cwd, 'mask.img'))
-      file_ext = '.img';
-    elseif exist(fullfile(cwd, 'mask.nii'))
-      file_ext = '.nii';
-    elseif exist(fullfile(cwd, 'mask.gii'))
-      file_ext = '.gii';
-    else
-      fprintf('ERROR: No mask file found.\n');
-      return
-    end
-
-    % check for meshes
-    if spm12
-      if spm_mesh_detect(VY)
-        mesh_detected = 1;
-        if vFWHM > 0
-          warning('Variance smoothing not yet prepared!');
-        end
-      else
-        mesh_detected = 0;
-      end
-    else
-      mesh_detected = 0;
-    end
-    
+            
     if ~test_mode
-      % get mask file
-      if isempty(job.mask)
-        maskname = fullfile(cwd,['mask' file_ext]);
-      else
-        maskname = job.mask{1};
-      end
-    
-      % load mask
-      try
-        if spm12
-          Vmask = spm_data_hdr_read(maskname);
-        else
-          Vmask = spm_vol(maskname);
-        end
-      catch
-        if mesh_detected
-          maskname = spm_select(1,'mesh','select mask image');
-        else
-          maskname = spm_select(1,'image','select mask image');
-        end
-        if spm12
-          Vmask = spm_data_hdr_read(maskname);
-        else
-          Vmask = spm_vol(maskname);
-        end
-      end
-    
-      % if first image was not found you have to select all files again
-      if ~exist(VY(1).fname);
-        n = size(SPM.xY.VY,1);
-        if mesh_detected
-          P = spm_select(size(SPM.xY.VY,1),'mesh','select images');
-        else
-          P = spm_select(size(SPM.xY.VY,1),'image','select images');
-        end
-        if spm12
-          VY = spm_data_hdr_read(P);
-        else
-          VY = spm_vol(P);
-        end
-        SPM.xY.VY = VY;
-      
-        % update SPM
-        if size(SPM.xY.VY,1)==n
-          save(job.spmmat{1},'SPM');
-        else
-          fprintf('ERROR: Number of files is not correct\n');
-          return
-        end
-      end
-        
-      % check whether mask images fits to the data
-      if mesh_detected, dim_index = 1; else dim_index=1:3; end
-      if sum(sum((Vmask.mat-VY(1).mat).^2)) > 1e-6 || any(Vmask.dim(dim_index) ~= VY(1).dim(dim_index))
-        error('Mask must have the same dimensions and orientation as the data.');
-      end
 
       % compute unpermuted t-map
-      t0 = calc_glm(VY,xX.X,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
-    
-      % get deltaT for unpermuted map
-      deltaT = max(abs(t0(:)))/n_steps_tfce;
+      t0 = calc_glm(Y,xX.X,xCon.c,ind_mask,VY,vFWHM,W);
+
+      % get dh for unpermuted map
+      dh = max(abs(t0(:)))/n_steps_tfce;
     
       % calculate tfce of unpermuted t-map
       if mesh_detected
-        tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, deltaT);
+        tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, dh)*dh;
       else
-        if job.openmp
-          tfce0 = tfceMex(t0, deltaT, job.tbss, 1);
-        else
-          tfce0 = tfceMex_noopenmp(t0, deltaT, job.tbss);
-        end
+        tfce0 = tfceMex_pthread(t0,dh,E,H,1,job.singlethreaded)*dh;
       end
     
       % get largest tfce
@@ -442,11 +465,10 @@ for con = 1:length(Ic0)
     end
     
     stopStatus = false;
-    try, spm_progress_bar('Init',n_perm,'Calculating','Permutations'); end
     cg_progress('Init',n_perm,'Calculating','Permutations')
     
     % update interval for progress bar
-    progress_step = max([1 round(n_perm/1000)]);
+    progress_step = max([1 round(n_perm/100)]);
     
     i = 1;
     
@@ -518,7 +540,7 @@ for con = 1:length(Ic0)
       Xperm = xX.X;
       Xperm_debug = xX.X;
       
-      if debug
+      if show_permuted_designmatrix
         % scale covariates and nuisance variables to a range 0.8..1
         % to properly display these variables with indicated colors
         if ~isempty(xX.iC)
@@ -571,11 +593,10 @@ for con = 1:length(Ic0)
       
       % display permuted design matrix
       try
-        if debug
+        if show_permuted_designmatrix
           subplot(2,2,3);
           image(Xperm_debug); axis off
           title('Permuted design matrix','FontWeight','bold');
-          drawnow
         
           % use different colormap for permuted design matrix
           cmap = jet(64);
@@ -621,17 +642,16 @@ for con = 1:length(Ic0)
           % -----------------------------------------------------
           % -----------------------------------------------------
         
-          t = calc_glm(VY,Xperm,xCon.c,Vmask,vFWHM,TH,W,job.openmp);
+          t = calc_glm(Y,Xperm,xCon.c,ind_mask,VY,vFWHM,W);
         
+          % use individual dh
+          dh = max(abs(t(:)))/n_steps_tfce;
+          
           % compute tfce
           if mesh_detected
-            tfce = tfce_mesh(SPM.xVol.G.faces, t, deltaT);
+            tfce = tfce_mesh(SPM.xVol.G.faces, t, dh)*dh;
           else
-            if job.openmp
-              tfce = tfceMex(t, deltaT, job.tbss);
-            else
-              tfce = tfceMex_noopenmp(t0, deltaT, job.tbss);
-            end
+            tfce = tfceMex_pthread(t,dh,E,H,1,job.singlethreaded)*dh;
           end
         end
       end % test_mode
@@ -696,13 +716,11 @@ for con = 1:length(Ic0)
     
         % plot thresholds and histograms
         try
-          figure(Fgraph)
           h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
           plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max);
-          if ~debug
+          if ~show_permuted_designmatrix
             plot_distribution(t_max, t_max_th, 't-value', alpha, col, 2, t0_max);
           end
-          drawnow
         end
       
         if numel(job.conspec.n_perm) > 1
@@ -719,12 +737,12 @@ for con = 1:length(Ic0)
       if use_half_permutations
         if ~rem(i,progress_step) || ~rem(i+1,progress_step)
           cg_progress('Set',i,Fgraph)
-          try, spm_progress_bar('Set',i); end
+          drawnow
         end
       else
         if ~rem(i,progress_step)
           cg_progress('Set',i,Fgraph)
-          try, spm_progress_bar('Set',i); end
+          drawnow
         end
       end
     
@@ -738,7 +756,6 @@ for con = 1:length(Ic0)
     
     cg_progress('Clear',Fgraph)
     try
-      spm_progress_bar('Clear');
       delete(hStopButton);
       spm_print;
     end
@@ -1127,17 +1144,16 @@ end
 
 
 %---------------------------------------------------------------
-function t = calc_glm(V,X,c,Vmask,vFWHM,TH,W,openmp)
+function t = calc_glm(Y,X,c,ind_mask,V,vFWHM,W)
 % compute t-statistic using GLM
 %
-% V      - memory mapped files
-% X      - design structure
-% c      - contrast
-% Vmask  - memory mapped mask image
-% vFWHM  - filter width for variance smoothing
-% TH     - threshold vector
-% W      - whitening matrix
-% openmp - use multi-threading
+% Y        - masked data as vector
+% X        - design structure
+% c        - contrast
+% ind_mask - index of mask image
+% dim      - image dimension
+% vFWHM    - filter width for variance smoothing
+% W        - whitening matrix
 
 if strcmp(spm('ver'),'SPM12')
   if spm_mesh_detect(V)
@@ -1157,29 +1173,11 @@ pKX  = pinv(X);
 Bcov = pinv(X'*X);
 trRV = n_data - rank(X);
 
-vx  = sqrt(sum(V(1).mat(1:3,1:3).^2));
-
-% try mex-file, which is faster
-if mesh_detected
-   [Beta, ResSS] = calc_beta_mesh(V,Vmask,X,pKX,TH,W);
-   dim = V(1).dim(1:2);
-else
-  dim = V(1).dim(1:3);
-  if openmp
-    [Beta, ResSS] = cg_glm_get_Beta_ResSS(V,Vmask,X,pKX,TH,W);
-    ResSS = reshape(ResSS,dim);
-  else
-    [Beta, ResSS] = cg_glm_get_Beta_ResSS_noopenmp(V,Vmask,X,pKX,TH,W);
-    ResSS = reshape(ResSS,dim);
-  end
-end
-
-Beta = reshape(Beta,[prod(dim) n_beta]);
+[Beta, ResSS] = calc_beta(Y,X);
 ResMS = ResSS/trRV;
 
 con = Beta*c;
 clear Beta
-con = reshape(con,dim);
 
 % Code for variance smoothing was shameless taken from snpm3 code...
 % Blurred mask is used to truncate kernal to brain; if not
@@ -1187,59 +1185,20 @@ con = reshape(con,dim);
 % convolution with zero activity out side the brain.
 
 if vFWHM > 0
-  mask = spm_read_vols(Vmask);
-  Q = find(mask > 0);
-  SmResMS   = zeros(dim);
-  SmMask    = zeros(dim);
-  TmpVol    = zeros(dim);
-  TmpVol(Q) = ones(size(Q));
+  vx  = sqrt(sum(V(1).mat(1:3,1:3).^2));
+  SmResMS   = zeros(V(1).dim);
+  SmMask    = zeros(V(1).dim);
+  TmpVol    = zeros(V(1).dim);
+  TmpVol(ind_mask) = ones(size(ind_mask));
   spm_smooth(TmpVol,SmMask,vFWHM./vx);
-  TmpVol(Q) = ResMS(Q);
+  TmpVol(ind_mask) = ResMS(ind_mask);
   spm_smooth(TmpVol,SmResMS,vFWHM./vx);
-  ResMS(Q)  = SmResMS(Q)./SmMask(Q);
+  ResMS(ind_mask)  = SmResMS(ind_mask)./SmMask(ind_mask);
 end
 
-t = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
+t = zeros(V(1).dim);
+t(ind_mask) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
 
-%---------------------------------------------------------------
-% 
-function [beta, ResSS] = calc_beta_mesh(VY,Vm,X,pKX,TH,W);
-
-global Y initialized
-
-n = size(VY,1);
-m = size(pKX,1);
-beta = zeros([Vm.dim(1:2) m]);
-ResSS = zeros(Vm.dim(1:2));
-
-mask = spm_data_read(Vm);
-ind = find(mask>0);
- 
-if ~isempty(ind)
-  pXY = zeros([prod(Vm.dim(1:2)) m],'single');
-  res = zeros(Vm.dim(1:2));
-  
-  % load data only the first time
-  if ~initialized
-    Y = zeros([length(ind) n],'single');
-
-    for i=1:n
-      tmp = spm_data_read(VY(i));
-      Y(:,i) = single(full(W(i,i)))*tmp(ind);
-    end
-    initialized = 1;
-  end
-  
-  pXY(ind,:) = Y*single(pKX'); 
-  
-  res0 = pXY(ind,:)*single(X') - Y; %-Residuals
-  res(ind) = double(sum(res0.^2,2));
-  ResSS(:,:) = res;   %-Residual SSQ
-
-  pXY = reshape(pXY,[Vm.dim(1:2) m]);
-  beta(:,:,:) = double(pXY);
-end
- 
 %---------------------------------------------------------------
 
 function xX = correct_xX(xX)
@@ -1317,38 +1276,9 @@ end
 
 
 %---------------------------------------------------------------
-% not used anymore
-function [beta, ResSS] = calc_beta(VY,Vm,X,pKX,TH,W);
+function [beta, ResSS] = calc_beta(Y,X)
 
-n = size(VY,1);
-m = size(pKX,1);
-beta = zeros([Vm.dim(1:3) m]);
-ResSS = zeros(Vm.dim(1:3));
-
-for j=1:Vm.dim(3),
-
- M  = spm_matrix([0 0 j]);
- mask = spm_slice_vol(Vm,M,Vm.dim(1:2),[1 0]);
- ind = find(mask>0);
- 
- if ~isempty(ind)
-  Y = zeros([length(ind) n],'single');
-  pXY = zeros([prod(Vm.dim(1:2)) m],'single');
-  res = zeros(Vm.dim(1:2));
-
-  % Load slice j from all images
-  for i=1:n
-   tmp = spm_slice_vol(VY(i),M,Vm.dim(1:2),[1 0]);
-   Y(:,i) = single(W(i,i)*tmp(ind));
-  end
-  
-  pXY(ind,:) = Y*single(pKX'); 
-  
-  res0 = pXY(ind,:)*single(X') - Y; %-Residuals
-  res(ind) = double(sum(res0.^2,2));
-  ResSS(:,:,j) = res;   %-Residual SSQ
-
-  pXY = reshape(pXY,[Vm.dim(1:2) m]);
-  beta(:,:,j,:) = double(pXY);
- end
-end
+pKX  = pinv(X);
+beta = Y*single(pKX');
+res0 = beta*single(X') - Y;     %-Residuals
+ResSS = double(sum(res0.^2,2)); %-Residual SSQ

@@ -31,7 +31,7 @@ typedef struct{
     double *inData;   
     double *outData;
     double thresh;    
-    const size_t *dims;    
+    const int *dims;    
     double E;
     double H;  
     int calc_neg;  
@@ -52,7 +52,7 @@ void* ThreadFunc( void* pArguments )
   short *growing;
   double *inData, *outData;
   double thresh, E, H;    
-  const size_t *dims;    
+  const int *dims;    
   pthread_mutex_t mutex;
    
   myargument arg;
@@ -183,7 +183,7 @@ void* ThreadFunc( void* pArguments )
   
 }
 
-void tfce(double *inData, double *outData, double dh, const size_t *dims, double E, double H, int calc_neg)
+void tfce(double *inData, double *outData, double dh, const int *dims, double E, double H, int calc_neg)
 {
   double fmax = 0.0, curThr, tmp_value;
   int i, Nthreads;
@@ -243,7 +243,7 @@ void tfce(double *inData, double *outData, double dh, const size_t *dims, double
 
 }
 
-void tfce_singlethreaded(double *inData, double *outData, double dh, const size_t *dims, double E, double H, int calc_neg)
+void tfce_singlethreaded(double *inData, double *outData, double dh, const int *dims, double E, double H, int calc_neg)
 {
   double fmax = 0.0, tmp_value;
   int i, n_steps;
@@ -281,7 +281,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 /* Declarations */
 double *inData, *outData, dh, E, H;
 int ndim, calc_neg;
-const size_t *dims;
+const int *dims;
 
 /* check inputs */
 if (nrhs<4)

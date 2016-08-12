@@ -1,27 +1,8 @@
 
 Changed paths:
 M       CHANGES.txt
-M       Makefile.tfce
-M       cg_progress.m
-M       cg_tfce_estimate.m
-M       compile.m
-M       tbx_cfg_tfce_estimate.m
-M       tfceMex.m
-A       tfceMex_pthread.c
-A       tfceMex_pthread.m
-A       tfceMex_pthread.mexa64
-A       tfceMex_pthread.mexmaci64
-A       tfceMex_pthread.mexw64
-M       tfce_mesh.m
+M       tfceMex_pthread.c
 
-(1) Changed: The step size dh is now estimatet more balanced by using 
-    individual dh's for each t-map.
-(2) Changed: Main function cg_tfce_estimate is now loading all data once into a 
-    matrix Y. This is resulting in a large speed improvement but memory 
-    demand increases with sample size.
-(3) Changed: Now use pthread for tfce calculation with new tfceMex_pthread.c.
-(4) Fixed: Issues with new matlab version and cg_progress.m
-(5) Changed: Graphical output is now only drawn 100 times to save time.
-
+Changed: Data type of dims is now int.
 ------------------------------------------------------------------------
-r90 | gaser | 2016-08-01 20:05:51
+r91 | gaser | 2016-08-12 15:16:15

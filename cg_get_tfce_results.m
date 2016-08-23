@@ -298,7 +298,7 @@ end
 try
     Ic = xSPM.Ic;
 catch
-    [Ic,xCon] = spm_conman(SPM,'T',Inf,...
+    [Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
                '    Select contrasts...',' for conjunction',1);
 end
 if isempty(xCon)
@@ -366,7 +366,7 @@ VspmSv   = cat(1,xCon(Ic).Vspm);
 
 % check that statistic for this contrast was estimated
 %--------------------------------------------------------------------------
-if ~exist(fullfile(swd, sprintf('T_log_p_%04d%s',Ic,file_ext)))
+if ~exist(fullfile(swd, sprintf('%s_log_p_%04d%s',STAT,Ic,file_ext)))
   strtmp = { 'No TFCE calculation for this contrast found.';...
       'Would you like to estimate it now?'};
   if spm_input(strtmp,1,'bd','yes|no',[1,0],1)
@@ -382,7 +382,7 @@ end
 %--------------------------------------------------------------------------
 df          = [xCon(Ic(1)).eidf xX.erdf];
 
-stattype = spm_input('Type of statistic','+1','b','TFCE|T',[],1);
+stattype = spm_input('Type of statistic','+1','b',sprintf('TFCE|%s',STAT),[],1);
 thresDesc = spm_input('p value adjustment to control','+1','b','FWE|FDR|none',[],1);
 
 switch thresDesc

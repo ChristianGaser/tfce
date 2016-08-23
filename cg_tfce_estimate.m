@@ -1,9 +1,5 @@
 function cg_tfce_estimate(job)
 
-global Y initialized
-
-initialized = 0;
-
 % display permuted design matrix (otherwise show t distribution)
 show_permuted_designmatrix = 1;
 
@@ -18,8 +14,8 @@ n_steps_tfce = 100;
 n_hist_bins = 1100;
     
 % colors and alpha levels
-col   = [0 0 1; 0 0.5 0; 1 0 0];
-alpha = [0.05   0.01     0.001];
+col   = [0.25 0 0; 1 0 0; 1 0.75 0];
+alpha = [0.05 0.01 0.001];
     
 % give same results each time
 rand('state',0);
@@ -53,7 +49,7 @@ Ic0 = job.conspec.contrasts;
 try
   xCon0 = SPM.xCon(Ic0(1));
 catch
-  [Ic0,xCon] = spm_conman(SPM,'T',Inf,...
+  [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
         '  Select contrast(s)...',' ',1);
   SPM.xCon = xCon;
 end
@@ -79,9 +75,6 @@ end
 xX     = SPM.xX;
 VY     = SPM.xY.VY;
 n_data = size(xX.X,1);
-
-%vFWHM = job.conspec.vFWHM;
-vFWHM = 0;
 
 % sometimes xX.iB and xX.iH are not correct and cannot be used to reliably recognize the design
 xX = correct_xX(xX);
@@ -111,9 +104,6 @@ end
 if spm12
     if spm_mesh_detect(VY)
         mesh_detected = 1;
-        if vFWHM > 0
-          warning('Variance smoothing not yet prepared!');
-        end
     else
         mesh_detected = 0;
     end
@@ -224,11 +214,6 @@ for con = 1:length(Ic0)
     Ic = Ic0(con);
     xCon = SPM.xCon(Ic);
     
-    if ~strcmp(xCon.STAT,'T')
-      fprintf('ERROR: Only T-contrasts allowed.\n');
-      return
-    end
-    
     n_perm = job.conspec.n_perm(1);
     if numel(job.conspec.n_perm) > 1
       n_perm_break = job.conspec.n_perm(2);
@@ -241,12 +226,17 @@ for con = 1:length(Ic0)
     
     % get contrast and name
     c = xCon.c;
-    ind_con = find(c~=0)';
+    [indi, indj] = find(c~=0);
+    n_contrasts_lines = size(c,2);
+    ind_con = unique(indi)';
+
     c_name  = deblank(xCon.name);
 
     % find exchangeability blocks using contrasts without zero values
-    [exch_blocks, I, J]   = unique(c(ind_con),'first');
-    n_exch_blocks = length(exch_blocks);
+    
+    exch_blocks   = c(ind_con);   
+    
+    n_exch_blocks = length(ind_con);
     
     % check for exchangeability blocks and design matrix
     if n_exch_blocks == 1
@@ -257,12 +247,7 @@ for con = 1:length(Ic0)
         for k=1:length(xX.iH)
           n_data_cond = [n_data_cond sum(xX.X(:,xX.iH(k)))];
         end
-        for j=1:n_exch_blocks
-          c_exch_blocks = find(c==exch_blocks(j));
-          for k=1:length(c_exch_blocks)
-            n_cond = n_cond + length(find(xX.iH==c_exch_blocks(k)));
-          end
-        end       
+        n_cond = n_exch_blocks;
     end
 
     use_half_permutations = 0;
@@ -274,14 +259,18 @@ for con = 1:length(Ic0)
         end
     end
 
-    % repated Anova does not allow to use only half of the permutions
-    if repeated_anova
+    % repated Anova or F-test don't allow to use only half of the permutions
+    if repeated_anova || strcmp(xCon.STAT,'F')
       use_half_permutations = 0;
     end
     
     ind_exch_blocks = cell(n_exch_blocks,1);
     for j=1:n_exch_blocks
-      ind_exch_blocks{j} = find(c==exch_blocks(j));
+      if strcmp(xCon.STAT,'T')
+        ind_exch_blocks{j} = find(c==exch_blocks(j));
+      else
+        ind_exch_blocks{j} = ind_con(j);
+      end
     end
         
     % check design
@@ -320,7 +309,7 @@ for con = 1:length(Ic0)
         end
       end
     end
-    
+
     fprintf('\n')
     
     % get index for label values > 0
@@ -399,11 +388,22 @@ for con = 1:length(Ic0)
     fprintf('# of conditions: %d\n',n_cond);
     
     n_perm = min([n_perm n_perm_full]);
-            
+
+if 0
+    [xXX, xXZ, xConc] = partition_design(xX.X,xCon.c,'beckmann')
+    xX.X = [xXX xXZ(:,2:end)];
+    xCon.c = xConc(1:end-1,:);
+    tmp=xCon.c 
+end
+           
     if ~test_mode
 
-      % compute unpermuted t-map
-      t0 = calc_glm(Y,xX.X,xCon.c,ind_mask,VY,vFWHM,W);
+      % compute unpermuted t/F-map
+      if strcmp(xCon.STAT,'T')
+        t0 = calc_Ttest(Y,xX.X,xCon.c,ind_mask,VY,W);
+      else
+        t0 = calc_Ftest(Y,xX,xCon,ind_mask,VY,W);
+      end
 
       % get dh for unpermuted map
       dh = max(abs(t0(:)))/n_steps_tfce;
@@ -412,12 +412,19 @@ for con = 1:length(Ic0)
       if mesh_detected
         tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, dh)*dh;
       else
-        tfce0 = tfceMex_pthread(t0,dh,E,H,1,job.singlethreaded)*dh;
+        % only estimate neg. tfce values for non-positive t-values
+        if min(t0(:)) < 0
+          tfce0 = tfceMex_pthread(t0,dh,E,H,1,job.singlethreaded)*dh;
+        else
+          tfce0 = tfceMex_pthread(t0,dh,E,H,0,job.singlethreaded)*dh;
+        end
       end
     
       % get largest tfce
       tfce0_max = max(tfce0(:));
       t0_max    = max(t0(:));
+      tfce0_min = min(tfce0(:));
+      t0_min    = min(t0(:));
     
       % get vector for histogram bins
       tfce_bins = linspace(0, max(abs(tfce0(:))), n_hist_bins);
@@ -642,7 +649,13 @@ for con = 1:length(Ic0)
           % -----------------------------------------------------
           % -----------------------------------------------------
         
-          t = calc_glm(Y,Xperm,xCon.c,ind_mask,VY,vFWHM,W);
+          if strcmp(xCon.STAT,'T')
+            t = calc_Ttest(Y,Xperm,xCon.c,ind_mask,VY,W);
+          else
+            xXperm = xX;
+            xXperm.X = Xperm;
+            t = calc_Ftest(Y,xXperm,xCon,ind_mask,VY,W);
+          end
         
           % use individual dh
           dh = max(abs(t(:)))/n_steps_tfce;
@@ -651,7 +664,12 @@ for con = 1:length(Ic0)
           if mesh_detected
             tfce = tfce_mesh(SPM.xVol.G.faces, t, dh)*dh;
           else
-            tfce = tfceMex_pthread(t,dh,E,H,1,job.singlethreaded)*dh;
+            % only estimate neg. tfce values for non-positive t-values
+            if min(t0(:)) < 0
+              tfce = tfceMex_pthread(t,dh,E,H,1,job.singlethreaded)*dh;
+            else
+              tfce = tfceMex_pthread(t,dh,E,H,0,job.singlethreaded)*dh;
+            end
           end
         end
       end % test_mode
@@ -717,9 +735,9 @@ for con = 1:length(Ic0)
         % plot thresholds and histograms
         try
           h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
-          plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max);
+          plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);
           if ~show_permuted_designmatrix
-            plot_distribution(t_max, t_max_th, 't-value', alpha, col, 2, t0_max);
+            plot_distribution(t_max, t_max_th, 't-value', alpha, col, 2, t0_max, t0_min);
           end
         end
       
@@ -787,11 +805,7 @@ for con = 1:length(Ic0)
       %---------------------------------------------------------------
       name = sprintf('TFCE_%04d',Ic);
       Vt.fname = fullfile(cwd,[name file_ext]);
-      if vFWHM > 0
-        Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-      else
-        Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
-      end
+      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
       if spm12
         Vt = spm_data_hdr_write(Vt);
         spm_data_write(Vt,tfce0);
@@ -800,15 +814,11 @@ for con = 1:length(Ic0)
       end
     
       %---------------------------------------------------------------
-      % save unpermuted T map
+      % save unpermuted map
       %---------------------------------------------------------------
-      name = sprintf('T_%04d',Ic);
+      name = sprintf('%s_%04d',xCon.STAT,Ic);
       Vt.fname = fullfile(cwd,[name file_ext]);
-      if vFWHM > 0
-        Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-      else
-        Vt.descrip = sprintf('T Contrast %04d',Ic);
-      end
+      Vt.descrip = sprintf('%s Contrast %04d',xCon.STAT,Ic);
       if spm12
         Vt = spm_data_hdr_write(Vt);
         spm_data_write(Vt,t0);
@@ -828,11 +838,7 @@ for con = 1:length(Ic0)
 
       name = sprintf('TFCE_log_p_%04d',Ic);
       Vt.fname = fullfile(cwd,[name file_ext]);
-      if vFWHM > 0
-        Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-      else
-        Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
-      end
+      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
     
       nPtfce = zeros(size(tfce0));
     
@@ -863,13 +869,9 @@ for con = 1:length(Ic0)
       %---------------------------------------------------------------
       % save uncorrected p-values for T
       %---------------------------------------------------------------
-      name = sprintf('T_log_p_%04d',Ic);
+      name = sprintf('%s_log_p_%04d',xCon.STAT,Ic);
       Vt.fname = fullfile(cwd,[name file_ext]);
-      if vFWHM > 0
-        Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-      else
-        Vt.descrip = sprintf('T Contrast %04d',Ic);
-      end
+      Vt.descrip = sprintf('%s Contrast %04d',xCon.STAT,Ic);
     
       nPt = zeros(size(t0));
       nPtlog10 = zeros(size(t0));
@@ -904,11 +906,7 @@ for con = 1:length(Ic0)
 
       name = sprintf('TFCE_log_pFWE_%04d',Ic);
       Vt.fname = fullfile(cwd,[name file_ext]);
-      if vFWHM > 0
-        Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-      else
-        Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
-      end
+      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
 
       corrP = zeros(size(t));
     
@@ -941,13 +939,9 @@ for con = 1:length(Ic0)
       %---------------------------------------------------------------
       % save corrected p-values for T
       %---------------------------------------------------------------
-      name = sprintf('T_log_pFWE_%04d',Ic);
+      name = sprintf('%s_log_pFWE_%04d',xCon.STAT,Ic);
       Vt.fname = fullfile(cwd,[name file_ext]);
-      if vFWHM > 0
-        Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-      else
-        Vt.descrip = sprintf('T Contrast %04d',Ic);
-      end
+      Vt.descrip = sprintf('%s Contrast %04d',xCon.STAT,Ic);
 
       corrP = zeros(size(t));
     
@@ -984,11 +978,7 @@ for con = 1:length(Ic0)
     
       name = sprintf('TFCE_log_pFDR_%04d',Ic);
       Vt.fname = fullfile(cwd,[name file_ext]);
-      if vFWHM > 0
-        Vt.descrip = sprintf('TFCE FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-      else
-        Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
-      end
+      Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
 
       if ~isempty(mask_P)
         [snP_pos,I_pos] = sort(nPtfce(mask_P));
@@ -1026,13 +1016,9 @@ for con = 1:length(Ic0)
       %---------------------------------------------------------------
       % save corrected FDR-values for T
       %---------------------------------------------------------------
-      name = sprintf('T_log_pFDR_%04d',Ic);
+      name = sprintf('%s_log_pFDR_%04d',xCon.STAT,Ic);
       Vt.fname = fullfile(cwd,[name file_ext]);
-      if vFWHM > 0
-        Vt.descrip = sprintf('T FWHM=%.1fmm, Contrast %04d',vFWHM,Ic);
-      else
-        Vt.descrip = sprintf('T Contrast %04d',Ic);
-      end
+      Vt.descrip = sprintf('%s Contrast %04d',xCon.STAT,Ic);
 
       if ~isempty(mask_P)
         [snP_pos,I_pos] = sort(nPt(mask_P));
@@ -1072,7 +1058,7 @@ colormap(gray)
 
 %---------------------------------------------------------------
 
-function plot_distribution(val_max,val_th,name,alpha,col,order,val0_max)
+function plot_distribution(val_max,val_th,name,alpha,col,order,val0_max,val0_min)
 
 corr = 1;
 
@@ -1102,15 +1088,23 @@ if sz_val_max >= 20
 
   % plot maximum observed value for unpermuted model
   hl = line([val0_max val0_max], [0 max_h]);
-  set(hl,'Color','m','LineWidth',2);
+  set(hl,'Color',[0.3333 1 0],'LineWidth',2);
   text(0.95*lim_x(2),0.95*max_h,'Max. observed value ',...
-    'Color','m','HorizontalAlignment','Right','FontSize',8)
+    'Color',[0.3333 1 0],'HorizontalAlignment','Right','FontSize',8)
     
+  % plot sign-flipped minimum observed value for unpermuted model
+  if val0_min < 0
+    hl = line([-val0_min -val0_min], [0 max_h]);
+    set(hl,'Color',[0 0.6667 1],'LineWidth',2);
+    text(0.95*lim_x(2),0.85*max_h,'Max. observed value (inverse contrast) ',...
+      'Color',[0 0.6667 1],'HorizontalAlignment','Right','FontSize',8)
+  end
+  
   % plot thresholds
   for j=1:n_alpha
     hl = line([val_th(n,j) val_th(n,j)], [0 max_h]);
     set(hl,'Color',col(j,:),'LineStyle','--');
-    text(0.95*lim_x(2),(0.5+0.1*j)*max_h,['p<' num2str(alpha(j))],...
+    text(0.95*lim_x(2),(0.4+0.1*j)*max_h,['p<' num2str(alpha(j))],...
       'Color',col(j,:),'HorizontalAlignment','Right','FontSize',8)
   end
   
@@ -1127,12 +1121,17 @@ if sz_val_max >= 20
   val_min = min(min(val_th(1:n,:)));
   val_max = max(max(val_th(1:n,:)));
   if val_max/val_min > 10
-    semilogy(1:n,val_th(1:n,:))
+    hp = semilogy(1:n,val_th(1:n,:));
     yl = log10(ylim);
     ylim(10.^[floor(yl(1)) ceil(yl(2))])
   else
-    plot(1:n,val_th(1:n,:))
+    hp = plot(1:n,val_th(1:n,:));
   end
+  
+  for j=1:n_alpha
+    set(hp(j),'Color',col(j,:));
+  end
+  
   if corr
     title(['Corr. threshold of ' name],'FontWeight','bold')
   else
@@ -1144,7 +1143,7 @@ end
 
 
 %---------------------------------------------------------------
-function t = calc_glm(Y,X,c,ind_mask,V,vFWHM,W)
+function t = calc_Ttest(Y,X,c,ind_mask,V,W)
 % compute t-statistic using GLM
 %
 % Y        - masked data as vector
@@ -1152,21 +1151,9 @@ function t = calc_glm(Y,X,c,ind_mask,V,vFWHM,W)
 % c        - contrast
 % ind_mask - index of mask image
 % dim      - image dimension
-% vFWHM    - filter width for variance smoothing
 % W        - whitening matrix
 
-if strcmp(spm('ver'),'SPM12')
-  if spm_mesh_detect(V)
-    mesh_detected = 1;
-  else
-    mesh_detected = 0;
-  end
-else
-  mesh_detected = 0;
-end
-
 n_data = size(X,1);
-n_beta = size(X,2);
 
 X = W*X;
 pKX  = pinv(X);
@@ -1179,25 +1166,40 @@ ResMS = ResSS/trRV;
 con = Beta*c;
 clear Beta
 
-% Code for variance smoothing was shameless taken from snpm3 code...
-% Blurred mask is used to truncate kernal to brain; if not
-% used variance at edges would be underestimated due to
-% convolution with zero activity out side the brain.
-
-if vFWHM > 0
-  vx  = sqrt(sum(V(1).mat(1:3,1:3).^2));
-  SmResMS   = zeros(V(1).dim);
-  SmMask    = zeros(V(1).dim);
-  TmpVol    = zeros(V(1).dim);
-  TmpVol(ind_mask) = ones(size(ind_mask));
-  spm_smooth(TmpVol,SmMask,vFWHM./vx);
-  TmpVol(ind_mask) = ResMS(ind_mask);
-  spm_smooth(TmpVol,SmResMS,vFWHM./vx);
-  ResMS(ind_mask)  = SmResMS(ind_mask)./SmMask(ind_mask);
-end
-
 t = zeros(V(1).dim);
 t(ind_mask) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
+
+%---------------------------------------------------------------
+function F = calc_Ftest(Y,xX,xCon,ind_mask,V,W)
+% compute F-statistic using GLM
+%
+% Y        - masked data as vector
+% xX       - design structure
+% xCon     - contrast structure
+% ind_mask - index of mask image
+% dim      - image dimension
+% W        - whitening matrix
+
+n_data = size(xX.X,1);
+
+X = W*xX.X;
+[Beta, ResSS] = calc_beta(Y,X);
+trRV = n_data - rank(X);
+ResMS = ResSS/trRV;
+
+X1o           = spm_FcUtil('X1o',xCon,xX.xKXs);
+[trMV,trMVMV] = spm_SpUtil('trMV',X1o,xX.V);
+
+%-Compute ESS
+%----------------------------------------------------------
+% Residual (in parameter space) forming matrix
+h  = spm_FcUtil('Hsqr',xCon,xX.xKXs);
+
+ess = sum((h*Beta').^2,1)';
+MVM = ess/trMV;
+
+F = zeros(V(1).dim);
+F(ind_mask) = double(MVM./ResMS);
 
 %---------------------------------------------------------------
 
@@ -1282,3 +1284,105 @@ pKX  = pinv(X);
 beta = Y*single(pKX');
 res0 = beta*single(X') - Y;     %-Residuals
 ResSS = double(sum(res0.^2,2)); %-Residual SSQ
+
+%---------------------------------------------------------------
+function [X,Z,eCm] = partition_design(M,C,meth)
+% Partition a design matrix into regressors of interest and
+% nuisance according to a given contrast.
+% 
+% Usage
+% [XZ] = palm_partition(M,C,meth)
+% 
+% Inputs:
+% M    : Design matrix, to be partitioned.
+% C    : Contrast that will define the partitioning.
+% meth : Method for the partitioning. It can be:
+%        - 'Guttman'
+%        - 'Beckmann'
+%        - 'Ridgway'
+% 
+% Outputs:
+% XZ   : Matrix with regressors of interest and no interest.
+% eCm  : Effective contrast, equivalent to the original,
+%        for the partitioned model [X Z], and considering
+%        all regressors.
+%
+% References:
+% * Guttman I. Linear Models: An Introduction. Wiley,
+%   New York, 1982.
+% * Smith SM, Jenkinson M, Beckmann C, Miller K,
+%   Woolrich M. Meaningful design and contrast estimability
+%   in FMRI. Neuroimage 2007;34(1):127-36.
+% * Ridgway GR. Statistical analysis for longitudinal MR
+%   imaging of dementia. PhD thesis. 2009.
+% * Winkler AM, Ridgway GR, Webster MG, Smith SM, Nichols TE.
+%   Permutation inference for the general linear model.
+%   Neuroimage. 2014 May 15;92:381-97.
+% _____________________________________
+% A. Winkler, G. Ridgway & T. Nichols
+% FMRIB / University of Oxford
+% Mar/2012 (1st version)
+% Aug/2013 (major revision)
+% Dec/2015 (this version)
+% http://brainder.org
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% PALM -- Permutation Analysis of Linear Models
+% Copyright (C) 2015 Anderson M. Winkler
+% 
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% any later version.
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+switch lower(meth),
+    case 'guttman', % works for evperdat (3D)
+        idx   = any(C~=0,2);
+        X     = M(:,idx,:);
+        Z     = M(:,~idx,:);
+        eCm   = vertcat(C(idx,:),C(~idx,:));
+        
+    case 'beckmann', % works for evperdat (3D)
+        Cu    = null(C');
+        D        = pinv(M'*M);
+        CDCi     = pinv(C'*D*C);
+        Cv       = Cu - C*CDCi*C'*D*Cu;
+        F3       = pinv(Cv'*D*Cv);
+        X = zeros(size(M,1),size(CDCi,2),size(M,3));
+        Z = zeros(size(M,1),size(F3,2),size(M,3));
+        X = M*D*C*CDCi;
+        Z = M*D*Cv*F3;
+        eCm = vertcat(eye(size(X,2)),...
+            zeros(size(Z,2),size(X,2)));
+        
+    case 'ridgway', % works for evperdat (3D)
+        rC    = rank(C);
+        rM    = rank(M(:,:,ceil(size(M,3)/2)));
+        rZ    = rM - rC;
+        pinvC = pinv(C');
+        C0    = eye(size(M,2)) - C*pinv(C);
+        for t = 1:size(M,3),
+            if t == 1,
+                X = zeros(size(M,1),size(pinvC,2),size(M,3));
+                Z = zeros(size(M,1),rZ,size(M,3));
+            end
+            tmpX = M(:,:,t)*pinvC;
+            [tmpZ,~,~]  = svd(M(:,:,t)*C0);
+            Z(:,:,t) = tmpZ(:,1:rZ);
+            X(:,:,t) = tmpX-Z(:,:,t)*pinv(Z(:,:,t))*tmpX;
+        end
+        eCm = vertcat(eye(size(X,2)),...
+            zeros(size(Z,2),size(X,2)));
+        
+    otherwise
+        error('''%s'' - Unknown partitioning scheme',meth);
+end

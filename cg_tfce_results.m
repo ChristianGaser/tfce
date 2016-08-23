@@ -122,7 +122,7 @@ switch lower(Action), case 'setup'                         %-Set up results
  
     %-Atlas menu
     %----------------------------------------------------------------------
-    if isequal(units,{'mm' 'mm' 'mm'})
+    if isequal(units,{'mm' 'mm' 'mm'}) && ~mesh_detected
         hAtlasUI = cg_tfce_results('SetupAtlasMenu',Finter);
     end
 

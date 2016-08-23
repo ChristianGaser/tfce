@@ -8,9 +8,9 @@ tfce = tfceMex_pthread(t, dh, E, H, calc_neg, single_threaded)
 % single_threaded - use single thread only
 %
 % Christian Gaser
-% $Id: tfceMex_pthread.m 78 2015-09-10 10:23:01Z gaser $
+% $Id$
 
-rev = '$Rev: 78 $';
+rev = '$Rev$';
 
 disp('Compiling tfceMex_pthread.c')
 

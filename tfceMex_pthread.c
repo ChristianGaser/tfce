@@ -8,7 +8,7 @@
  * single_threaded - use single thread only (default 0)
  *
  * Christian Gaser
- * $Id: tfceMex_pthread.c 78 2015-09-10 10:23:01Z gaser $ 
+ * $Id$ 
  *
  */
 

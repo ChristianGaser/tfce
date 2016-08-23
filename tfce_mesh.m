@@ -34,24 +34,25 @@ for j = 1:n_steps
     tfce(ind(M)) = tfce(ind(M)) + power(k,E)*power(thresh,H)*T(ind(M));
   end
   
-  
   % negative t-values
-  T   = (-t >= thresh);
-  ind = find(T);
+  if min(t(:)) < 0
+    T   = (-t >= thresh);
+    ind = find(T);
   
-  C = find_connected_component(A, T);
-  C = C(ind);
+    C = find_connected_component(A, T);
+    C = C(ind);
     
-  for i = 1:max(C)
-    M = find(C == i);
-    k = length(M);
-    tfce(ind(M)) = tfce(ind(M)) - power(k,E)*power(thresh,H)*T(ind(M));
+    for i = 1:max(C)
+      M = find(C == i);
+      k = length(M);
+      tfce(ind(M)) = tfce(ind(M)) - power(k,E)*power(thresh,H)*T(ind(M));
+    end
   end
   
 end
 
 %--------------------------------------------------------------------------
-function C = find_connected_component(A, T);
+function C = find_connected_component(A, T)
 % find connected components 
 % FORMAT C = find_connected_component(A,T)
 % A        - a [nxn[ (reduced) adjacency matrix

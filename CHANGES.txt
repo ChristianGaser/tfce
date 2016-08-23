@@ -1,8 +1,20 @@
 
 Changed paths:
 M       CHANGES.txt
-M       tfceMex_pthread.c
+M       cg_get_tfce_results.m
+M       cg_tfce_estimate.m
+M       cg_tfce_results.m
+MM      tfceMex_pthread.c
+MM      tfceMex_pthread.m
+ M      tfceMex_pthread.mexa64
+ M      tfceMex_pthread.mexmaci64
+ M      tfceMex_pthread.mexw64
+M       tfce_mesh.m
 
-Changed: Data type of dims is now int.
+(1) Changed: Added support for F-test.
+(2) Changed: Added inverse contrast to distribution plot.
+(3) Fixed: Atlas menu is only displayed for volume data.
+(4) Changed: TFCE calculation is now faster if no neg. values are present.
+(5) Changed: Removed variance smoothing.
 ------------------------------------------------------------------------
-r91 | gaser | 2016-08-12 15:16:15
+r92 | gaser | 2016-08-23 17:16:50

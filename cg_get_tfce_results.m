@@ -1,9 +1,9 @@
 function [SPM,xSPM] = cg_get_tfce_results(varargin)
 % Compute a specified and thresholded SPM/PPM following parameter estimation
-% FORMAT [SPM,xSPM] = cg_getTFCE;
+% FORMAT [SPM,xSPM] = cg_get_tfce_results;
 % Query SPM in interactive mode.
 %
-% FORMAT [SPM,xSPM] = cg_getTFCE(xSPM);
+% FORMAT [SPM,xSPM] = cg_get_tfce_results(xSPM);
 % Query SPM in batch mode. See below for a description of fields that may
 % be present in xSPM input. Values for missing fields will be queried
 % interactively.
@@ -95,7 +95,7 @@ function [SPM,xSPM] = cg_get_tfce_results(varargin)
 %
 %__________________________________________________________________________
 %
-% cg_getTFCE prompts for an SPM and applies thresholds {u & k}
+% cg_get_tfce_results prompts for an SPM and applies thresholds {u & k}
 % to a point list of voxel values (specified with their locations {XYZ})
 % This allows the SPM be displayed and characterized in terms of regionally 
 % significant effects by subsequent routines.
@@ -354,8 +354,6 @@ catch
     titlestr     = spm_input('title for comparison',1,'s',str);
 end
 
-titlestr = ['Nonparametric test: ' titlestr];
-
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %==========================================================================
 SPM.xCon = xCon;
@@ -383,7 +381,18 @@ end
 df          = [xCon(Ic(1)).eidf xX.erdf];
 
 stattype = spm_input('Type of statistic','+1','b',sprintf('TFCE|%s',STAT),[],1);
+if strcmp(STAT,'T')
+  invResult = spm_input('Contrast','+1','b','Original|Inverse',[0,1],1);
+else
+  invResult = 0;
+end
 thresDesc = spm_input('p value adjustment to control','+1','b','FWE|FDR|none',[],1);
+
+if invResult
+  titlestr = ['Nonparametric test: (inverse contrast) ' titlestr];
+else
+  titlestr = ['Nonparametric test: ' titlestr];
+end
 
 switch thresDesc
     case 'FWE' 
@@ -441,6 +450,13 @@ else
     Qu  = spm_get_data(VQu,XYZ);
     Pz  = spm_get_data(VPz,XYZ);
     Pu  = spm_get_data(VPu,XYZ);
+end
+
+if invResult
+  Z  = -Z;
+  Qu = -Qu;
+  Pu = -Pu;
+  Pz = -Pz;
 end
 
 % convert from -log10
@@ -618,6 +634,7 @@ xSPM   = struct( ...
         'VOX',      VOX,...
         'Vspm',     VspmSv,...
         'n_perm',   n_perm,...
+        'invResult',invResult,...
         'thresDesc',thresDesc);
 
 % RESELS per voxel (density) if it exists

@@ -122,7 +122,7 @@ switch lower(Action), case 'setup'                         %-Set up results
  
     %-Atlas menu
     %----------------------------------------------------------------------
-    if isequal(units,{'mm' 'mm' 'mm'}) && ~mesh_detected
+    if isequal(units,{'mm' 'mm' 'mm'})
         hAtlasUI = cg_tfce_results('SetupAtlasMenu',Finter);
     end
 
@@ -221,7 +221,11 @@ switch lower(Action), case 'setup'                         %-Set up results
         dy     = 0.15/max(nCon,2);
         hConAx = axes('Parent',Fgraph, 'Position',[0.65 (0.80 + dy*.1) 0.25 dy*(nCon-.1)],...
             'Tag','ConGrphAx','Visible','off');
-        str    = 'contrast';
+        if xSPM.invResult
+          str    = 'inverse contrast';
+        else
+          str    = 'contrast';
+        end
         if nCon > 1, str = [str 's']; end
         title(hConAx,str)
         htxt   = get(hConAx,'title');
@@ -235,6 +239,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             %-Single vector contrast for SPM{t} - bar
             %--------------------------------------------------------------
             yy = [zeros(1,nPar);repmat(xCon(xSPM.Ic(ii)).c',2,1);zeros(1,nPar)];
+            if xSPM.invResult, yy = -yy; end
             h  = patch(xx,yy,[1,1,1]*.5,'Parent',hCon);
             set(hCon,'Tag','ConGrphAx',...
                 'Box','off','TickDir','out',...

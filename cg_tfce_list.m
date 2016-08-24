@@ -118,9 +118,6 @@ function varargout = cg_tfce_list(varargin)
 % Karl Friston & Andrew Holmes
 % $Id$
 
-% always voxel-wise FDR
-topoFDR = false;
-
 %==========================================================================
 switch lower(varargin{1}), case 'list'                            %-List
 %==========================================================================
@@ -249,8 +246,13 @@ switch lower(varargin{1}), case 'list'                            %-List
     dy    = FS(9);
     y     = floor(AxPos(4)) - dy;
 
-    text(0,y,['Statistics:  \it\fontsize{',num2str(FS(9)),'}',Title],...
+    if xSPM.invResult
+      text(0,y,['Statistics (inverse contrast):  \it\fontsize{',num2str(FS(9)),'}',Title],...
               'FontSize',FS(11),'FontWeight','Bold');   y = y - dy/2;
+    else
+      text(0,y,['Statistics:  \it\fontsize{',num2str(FS(9)),'}',Title],...
+              'FontSize',FS(11),'FontWeight','Bold');   y = y - dy/2;
+    end
     line([0 1],[y y],'LineWidth',3,'Color','b'),        y = y - 9*dy/8;
 
     %-Construct table header
@@ -282,18 +284,18 @@ switch lower(varargin{1}), case 'list'                            %-List
     %-----------------------------------------------------------------------
     TabDat.tit = Title;
     TabDat.hdr = {...
-        'set',      'p';...
-        'set',      'c';...
-        'cluster',  'p(FWE-cor)';...
-        'cluster',  'p(FDR-cor)';...
-        'cluster',  'equivk';...
-        'cluster',  'p(unc)';...
-        'peak',     'p(FWE-cor)';...
-        'peak',     'p(FDR-cor)';...
-        'peak',      STAT;...
-        'peak',     'equivZ';...
-        'peak',     'p(unc)';...
-        '',         'x,y,z {mm}'}';...
+        'p';...
+        'c';...
+        '';...
+        '';...
+        'equivk';...
+        '';...
+        'p(FWE-cor)';...
+        'p(FDR-cor)';...
+        STAT;...
+        '';...
+        'p(unc)';...
+        'x,y,z {mm}'}';...
 
     %-Coordinate Precisions
     %----------------------------------------------------------------------
@@ -456,6 +458,13 @@ switch lower(varargin{1}), case 'list'                            %-List
         Pz  = spm_get_data(varargin{2}.VPz,XYZ);
         Pu  = spm_get_data(varargin{2}.VPu,XYZ);
     end
+
+    if xSPM.invResult
+      Qu = -Qu;
+      Pu = -Pu;
+      Pz = -Pz;
+    end
+
     Qu(find(Qu<0)) = 0;
     Pz(find(Pz<0)) = 0;
     Pu(find(Pu<0)) = 0;
@@ -562,20 +571,15 @@ switch lower(varargin{1}), case 'list'                            %-List
         h     = text(tCol(7),y,sprintf(TabDat.fmt{7},Pu(i)),'FontWeight','Bold',...
             'UserData',Pu(i),'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
-        if topoFDR
-            h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qp),'FontWeight','Bold',...
-            'UserData',Qp,'ButtonDownFcn','get(gcbo,''UserData'')');
-        else
-            h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu(i)),'FontWeight','Bold',...
+        h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu(i)),'FontWeight','Bold',...
             'UserData',Qu(i),'ButtonDownFcn','get(gcbo,''UserData'')');
-        end
         hPage = [hPage, h];
         h     = text(tCol(9),y,sprintf(TabDat.fmt{9},U),'FontWeight','Bold',...
             'UserData',U,'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
         if 0
         h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Ze(i)),'FontWeight','Bold',...
-            'UserData',Ze,'ButtonDownFcn','get(gcbo,''UserData'')');
+            'UserData',Ze(i),'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
         end
         h     = ...
@@ -603,11 +607,7 @@ switch lower(varargin{1}), case 'list'                            %-List
 
         y      = y - dy;
 
-        if topoFDR
-            [TabDat.dat{TabLin,3:12}] = deal(Pk,Qc,N(i),Pn,Pu(i),Qp,U,Ze,Pz(i),XYZmm(:,i));
-        else
-            [TabDat.dat{TabLin,3:12}] = deal(Pk,Qc,N(i),Pn,Pu(i),Qu,U,Ze,Pz(i),XYZmm(:,i));
-        end
+        [TabDat.dat{TabLin,3:12}] = deal(Pk,Qc,N(i),Pn,Pu(i),Qu(i),U,[],Pz(i),XYZmm(:,i));
         TabLin = TabLin + 1;
 
         %-Print Num secondary maxima (> Dis mm apart)
@@ -654,23 +654,17 @@ switch lower(varargin{1}), case 'list'                            %-List
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     hPage = [hPage, h];
 
-                    if topoFDR
-                        h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qp),...
-                        'UserData',Qp,...
-                        'ButtonDownFcn','get(gcbo,''UserData'')');
-                    else
-                        h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu(d)),...
+                    h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Qu(d)),...
                         'UserData',Qu(d),...
                         'ButtonDownFcn','get(gcbo,''UserData'')');
-                    end
                     hPage = [hPage, h];
                     h     = text(tCol(9),y,sprintf(TabDat.fmt{9},Z(d)),...
                         'UserData',Z(d),...
                         'ButtonDownFcn','get(gcbo,''UserData'')');
                     hPage = [hPage, h];
                     if 0
-                        h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Ze),...
-                            'UserData',Ze,...
+                        h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Ze(d)),...
+                            'UserData',Ze(d),...
                             'ButtonDownFcn','get(gcbo,''UserData'')');
                     end
                     hPage = [hPage, h];
@@ -700,13 +694,7 @@ switch lower(varargin{1}), case 'list'                            %-List
                     hPage = [hPage, h];
                     D     = [D d];
                     y     = y - dy;
-                    if topoFDR
-                        [TabDat.dat{TabLin,7:12}] = ...
-                            deal(Pu(d),Qp,Z(d),Ze,Pz(d),XYZmm(:,d));
-                    else
-                        [TabDat.dat{TabLin,7:12}] = ...
-                            deal(Pu(d),Qu,Z(d),Ze,Pz(d),XYZmm(:,d));
-                    end
+                    [TabDat.dat{TabLin,7:12}] = deal(Pu(d),Qu(d),Z(d),[],Pz(d),XYZmm(:,d));
                     TabLin = TabLin+1;
                 end
             end
@@ -734,21 +722,21 @@ switch lower(varargin{1}), case 'list'                            %-List
     uimenu(h,'Label','Print text table',...
         'Tag','TD_TxtTab',...
         'CallBack',...
-        'spm_list(''txtlist'',get(get(gcbo,''Parent''),''UserData''),3)',...
+        'cg_tfce_list(''txtlist'',get(get(gcbo,''Parent''),''UserData''),3)',...
         'Interruptible','off','BusyAction','Cancel');
     uimenu(h,'Separator','off','Label','Extract table data structure',...
         'Tag','TD_Xdat',...
         'CallBack','TabDat=get(get(gcbo,''Parent''),''UserData'')',...
         'Interruptible','off','BusyAction','Cancel');
     if ispc
-        uimenu(h,'Separator','off','Label','Export to Excel',...
-        'Tag','TD_Xdat',...
-        'CallBack',@export2excel,...
+        uimenu(h,'Label','Export to Excel',...
+        'CallBack',...
+        'cg_tfce_list(''xlslist'',get(get(gcbo,''Parent''),''UserData''));',...
         'Interruptible','off','BusyAction','Cancel');
     end
-    uimenu(h,'Separator','on','Label','Help',...
-        'Tag','TD_Xdat',...
-        'CallBack','spm_help(''spm_list'')',...
+    uimenu(h,'Label','Export to CSV file',...
+        'CallBack',...
+        'cg_tfce_list(''csvlist'',get(get(gcbo,''Parent''),''UserData''));',...
         'Interruptible','off','BusyAction','Cancel');
 
     %-Setup registry
@@ -832,7 +820,6 @@ switch lower(varargin{1}), case 'list'                            %-List
         %-Table header
         %------------------------------------------------------------------
         fprintf('%s\t',TabDat.hdr{1,c:end-1}), fprintf('%s\n',TabDat.hdr{1,end})
-        fprintf('%s\t',TabDat.hdr{2,c:end-1}), fprintf('%s\n',TabDat.hdr{2,end})
         fprintf('%c',repmat('-',1,80)), fprintf('\n')
 
         %-Table data
@@ -857,10 +844,50 @@ switch lower(varargin{1}), case 'list'                            %-List
 
 
 
-        %==================================================================
-    case 'setcoords'                                   %-Co-ordinate change
-        %==================================================================
-        % FORMAT cg_tfce_list('SetCoords',xyz,hAx,hReg)
+    %======================================================================
+    case 'xlslist'                                  %-Export table to Excel
+    %======================================================================
+    % FORMAT cg_tfce_list('XLSList',TabDat,ofile)
+
+        if nargin<2, error('Not enough input arguments.'); end
+        TabDat = varargin{2};
+        if nargin == 3, ofile = varargin{3};
+        else            ofile = [tempname '.xls']; end
+        
+        d          = [TabDat.hdr;TabDat.dat];
+        xyz        = d(3:end,end);
+        xyz        = num2cell([xyz{:}]');
+        d(:,end+1) = d(:,end);
+        d(:,end+1) = d(:,end);
+        d(3:end,end-2:end) = xyz;
+        xlswrite(ofile, d);
+        if nargin == 2, winopen(ofile); end
+    
+    %======================================================================
+    case 'csvlist'            %-Export table to comma-separated values file
+    %======================================================================
+    % FORMAT cg_tfce_list('CSVList',TabDat,ofile)
+
+        if nargin<2, error('Not enough input arguments.'); end
+        TabDat = varargin{2};
+        if nargin == 3, ofile = varargin{3};
+        else            ofile = [tempname '.csv']; end
+        
+        fid = fopen(ofile,'wt');
+        fprintf(fid,[repmat('%s,',1,12) '\n'],TabDat.hdr{1,:});
+        fmt = TabDat.fmt;
+        [fmt{2,:}] = deal(','); fmt = [fmt{:}];
+        fmt(end:end+1) = '\n'; fmt = strrep(fmt,' ',',');
+        for i=1:size(TabDat.dat,1)
+            fprintf(fid,fmt,TabDat.dat{i,:});
+        end
+        fclose(fid);
+        if nargin == 2, open(ofile); end
+
+    %======================================================================
+    case 'setcoords'                               %-Co-ordinate change
+    %======================================================================
+    % FORMAT cg_tfce_list('SetCoords',xyz,hAx,hReg)
         if nargin<3, error('Insufficient arguments'), end
         hAx      = varargin{3};
         xyz      = varargin{2};
@@ -883,7 +910,7 @@ switch lower(varargin{1}), case 'list'                            %-List
     %======================================================================
     case 'label'                                     %-Display atlas labels
     %======================================================================
-    % FORMAT spm_list('label',atlas)
+    % FORMAT cg_tfce_list('label',atlas)
     %-Use atlas to label suprathreshold features
     
     fprintf('*** Use atlas labelling with great caution ***\n');
@@ -952,16 +979,3 @@ switch lower(varargin{1}), case 'list'                            %-List
         error('Unknown action string')
 end
 %==========================================================================
-
-%==========================================================================
-function export2excel(obj,evd,h)
-TabDat     = get(get(obj,'Parent'),'UserData');
-d          = [TabDat.hdr;TabDat.dat];
-xyz        = d(3:end,end);
-xyz        = num2cell([xyz{:}]');
-d(:,end+1) = d(:,end);
-d(:,end+1) = d(:,end);
-d(3:end,end-2:end) = xyz;
-tmpfile    = [tempname '.xls'];
-xlswrite(tmpfile, d);
-winopen(tmpfile);

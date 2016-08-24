@@ -2,19 +2,97 @@
 Changed paths:
 M       CHANGES.txt
 M       cg_get_tfce_results.m
-M       cg_tfce_estimate.m
+D       cg_glm_get_Beta_ResSS.c
+D       cg_glm_get_Beta_ResSS.m
+D       cg_glm_get_Beta_ResSS.mexa64
+D       cg_glm_get_Beta_ResSS.mexglx
+D       cg_glm_get_Beta_ResSS.mexmaci
+D       cg_glm_get_Beta_ResSS.mexmaci64
+D       cg_glm_get_Beta_ResSS.mexw32
+D       cg_glm_get_Beta_ResSS.mexw64
+D       cg_glm_get_Beta_ResSS_noopenmp.mexa64
+D       cg_glm_get_Beta_ResSS_noopenmp.mexglx
+D       cg_glm_get_Beta_ResSS_noopenmp.mexmaci
+D       cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+D       cg_glm_get_Beta_ResSS_noopenmp.mexw32
+D       cg_glm_get_Beta_ResSS_noopenmp.mexw64
+M       cg_tfce_list.m
 M       cg_tfce_results.m
-MM      tfceMex_pthread.c
-MM      tfceMex_pthread.m
- M      tfceMex_pthread.mexa64
- M      tfceMex_pthread.mexmaci64
- M      tfceMex_pthread.mexw64
-M       tfce_mesh.m
+A       old
+A  +    old/cg_glm_get_Beta_ResSS.c
+A  +    old/cg_glm_get_Beta_ResSS.m
+A  +    old/cg_glm_get_Beta_ResSS.mexa64
+A  +    old/cg_glm_get_Beta_ResSS.mexglx
+A  +    old/cg_glm_get_Beta_ResSS.mexmaci
+A  +    old/cg_glm_get_Beta_ResSS.mexmaci64
+A  +    old/cg_glm_get_Beta_ResSS.mexw32
+A  +    old/cg_glm_get_Beta_ResSS.mexw64
+A  +    old/cg_glm_get_Beta_ResSS_noopenmp.mexa64
+A  +    old/cg_glm_get_Beta_ResSS_noopenmp.mexglx
+A  +    old/cg_glm_get_Beta_ResSS_noopenmp.mexmaci
+A  +    old/cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+A  +    old/cg_glm_get_Beta_ResSS_noopenmp.mexw32
+A  +    old/cg_glm_get_Beta_ResSS_noopenmp.mexw64
+A  +    old/spm_datatypes.h
+A  +    old/spm_getdata.c
+A  +    old/spm_getdata.h
+A       old/spm_getdata.mexw32.obj
+A       old/spm_getdata.mexw64.obj
+A  +    old/spm_make_lookup.c
+A  +    old/spm_make_lookup.h
+A       old/spm_make_lookup.mexw32.obj
+A       old/spm_make_lookup.mexw64.obj
+A  +    old/spm_mapping.c
+A  +    old/spm_mapping.h
+A       old/spm_mapping.mexw32.obj
+A       old/spm_mapping.mexw64.obj
+A  +    old/spm_vol_access.c
+A  +    old/spm_vol_access.h
+A       old/spm_vol_access.mexw32.obj
+A       old/spm_vol_access.mexw64.obj
+A  +    old/spm_vol_utils.c
+A       old/utils_double.mexw32.obj
+A       old/utils_double.mexw64.obj
+A       old/utils_double_s.mexw32.obj
+A       old/utils_double_s.mexw64.obj
+A       old/utils_float.mexw32.obj
+A       old/utils_float.mexw64.obj
+A       old/utils_float_s.mexw32.obj
+A       old/utils_float_s.mexw64.obj
+A       old/utils_int.mexw32.obj
+A       old/utils_int.mexw64.obj
+A       old/utils_int_s.mexw32.obj
+A       old/utils_int_s.mexw64.obj
+A       old/utils_schar.mexw32.obj
+A       old/utils_schar.mexw64.obj
+A       old/utils_short.mexw32.obj
+A       old/utils_short.mexw64.obj
+A       old/utils_short_s.mexw32.obj
+A       old/utils_short_s.mexw64.obj
+A       old/utils_uchar.mexw32.obj
+A       old/utils_uchar.mexw64.obj
+A       old/utils_uint.mexw32.obj
+A       old/utils_uint.mexw64.obj
+A       old/utils_uint_s.mexw32.obj
+A       old/utils_uint_s.mexw64.obj
+A       old/utils_ushort.mexw32.obj
+A       old/utils_ushort.mexw64.obj
+A       old/utils_ushort_s.mexw32.obj
+A       old/utils_ushort_s.mexw64.obj
+R  +    spm_TFCE.m
+D       spm_datatypes.h
+D       spm_getdata.c
+D       spm_getdata.h
+D       spm_make_lookup.c
+D       spm_make_lookup.h
+D       spm_mapping.c
+D       spm_mapping.h
+D       spm_vol_access.c
+D       spm_vol_access.h
+D       spm_vol_utils.c
 
-(1) Changed: Added support for F-test.
-(2) Changed: Added inverse contrast to distribution plot.
-(3) Fixed: Atlas menu is only displayed for volume data.
-(4) Changed: TFCE calculation is now faster if no neg. values are present.
-(5) Changed: Removed variance smoothing.
+(1) Changed: Moved un-used functions to old folder.
+(2) Fixed: Corrected text output of result table.
+(3) Changed: Added support for inverse contrasts.
 ------------------------------------------------------------------------
-r92 | gaser | 2016-08-23 17:16:50
+r93 | gaser | 2016-08-24 14:38:24

@@ -1,285 +1,63 @@
-#!/usr/bin/env make -f
-# General Makefile to compile SPM C-MEX files
-#
-# Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+# Personal Makefile variables
 #
 # $Id$
-#
-###############################################################################
-#
-# This Makefile has been tested under Linux, Windows and MacOS.
-# 
-# If you have to tweak this Makefile or Makefile.var to compile the SPM 
-# mex-files for your platform, please send the details to <spm@fil.ion.ucl.ac.uk> 
-# so they can be included here. 
-#
-# To compile and install SPM, type the following in a Unix console:
-# >  make && make install
-#
-# You can specify a particular platform with the following syntax:
-# >  make PLATFORM=Your_Platform
-# The standard targets are 'all', 'clean', 'distclean' and 'install'.
-#
-# For a list of compatible compilers, see
-#    http://www.mathworks.com/support/compilers/current_release/
-#
-###############################################################################
 
-include Makefile.var
+VERSION=`svn info |grep Revision|sed -e 's/Revision: //g'`
+DATE=`svn info |grep 'Last Changed Date: '|sed -e 's/Last Changed Date: //g'|cut -f1 -d' '`
 
-###############################################################################
-# Objects to go in the archive and mexfiles
-###############################################################################
+TARGET=/Users/gaser/spm/spm12/toolbox/TFCE
+TARGET2=/Volumes/UltraMax/spm12/toolbox/TFCE
 
-OBS     =\
-	utils_uchar.$(SUF).o utils_short.$(SUF).o utils_int.$(SUF).o \
-	utils_schar.$(SUF).o utils_ushort.$(SUF).o utils_uint.$(SUF).o\
-	utils_float.$(SUF).o utils_double.$(SUF).o\
-	utils_short_s.$(SUF).o utils_int_s.$(SUF).o\
-	utils_ushort_s.$(SUF).o utils_uint_s.$(SUF).o\
-	utils_float_s.$(SUF).o utils_double_s.$(SUF).o\
-	spm_make_lookup.$(SUF).o spm_getdata.$(SUF).o spm_vol_access.$(SUF).o\
-	spm_mapping.$(SUF).o
+STARGET_HOST=dbm.neuro.uni-jena.de
+STARGET_HTDOCS=${STARGET_HOST}:/Applications/xampp/htdocs/
+STARGET_FOLDER=/Applications/xampp/htdocs/tfce
+STARGET=${STARGET_HOST}:${STARGET_FOLDER}
 
-SPMMEX  =\
-	cg_glm_get_Beta_ResSS.$(SUF) \
-	tfceMex.$(SUF)
+MATLAB_FILES=Contents.m cg_get_tfce_results.m cg_tfce_results.m cg_tfce_list.m cg_tfce_update.m cg_progress.m spm_TFCE.m tfce_mesh.m snpm_P_FDR.m tbx_cfg_tfce_estimate.m cg_tfce_estimate.m
+C_FILES=tfceMex_pthread.*
+MISC_FILES=TFCE.man
 
-###############################################################################
-# The main ways to run make
-###############################################################################
+FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}
 
-all: verb.$(SUF) $(SPMMEX) verb.end
+ZIPFILE=tfce_r$(VERSION).zip
 
-clean: verb.clean
-	$(DEL) $(OBS)
+install:
+	-@echo install
+	-@test ! -d ${TARGET} || rm -rf ${TARGET}
+	-@mkdir ${TARGET}
+	-@cp -R ${FILES} ${TARGET}
 
-distclean: clean verb.distclean
-	$(DEL) $(SPMMEX) spm_vol_utils.$(SUF).a
+install2:
+	-@echo install2
+	-@test ! -d ${TARGET2} || rm -rf ${TARGET2}
+	-@mkdir ${TARGET2}
+	-@cp -R ${FILES} ${TARGET2}
 
-archive: spm_vol_utils.$(SUF).a
+help:
+	-@echo Available commands:
+	-@echo install zip scp update
 
-###############################################################################
-# Compile spm_vol_utils.c with various flags
-###############################################################################
+update:
+	-@svn update
+	-@echo '% TFCE Toolbox' > Contents.m
+	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> Contents.m
+	-@cat Contents_info.txt >> Contents.m
+	-@echo '% __________________________________________________________________________' > TFCE.man
+	-@echo '% TFCE Toolbox for SPM8/SPM12' >> TFCE.man
+	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> TFCE.man
+	-@cat TFCE.txt >> TFCE.man
+	-@echo '% TFCE Toolbox' > INSTALL.txt
+	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> INSTALL.txt
+	-@cat INSTALL_info.txt >> INSTALL.txt
 
-spm_vol_utils.$(SUF).a: $(OBS)
-	$(DEL) $@
-ifeq (win64,$(PLATFORM))
-	$(AR)$@ $(OBS)
-else
-	$(AR) $@ $(OBS)
-endif
+zip: update
+	-@echo zip
+	-@test ! -d TFCE || rm -r TFCE
+	-@mkdir TFCE
+	-@cp -rp ${FILES} TFCE
+	-@zip ${ZIPFILE} -rm TFCE
 
-UTILS = spm_vol_utils.c spm_make_lookup.h spm_getdata.h
-
-utils_uchar.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_UNSIGNED_CHAR $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_short.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_SHORT $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_int.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_INT $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_schar.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_CHAR $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_ushort.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_UNSIGNED_SHORT $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_uint.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_UNSIGNED_INT $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_float.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_FLOAT $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_double.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_DOUBLE $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_short_s.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_SHORT -DSPM_BYTESWAP $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_int_s.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_INT -DSPM_BYTESWAP $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_ushort_s.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_UNSIGNED_SHORT -DSPM_BYTESWAP $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_uint_s.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_UNSIGNED_INT -DSPM_BYTESWAP $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_float_s.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_FLOAT -DSPM_BYTESWAP $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-utils_double_s.$(SUF).o: $(UTILS)
-	$(MEX) -c spm_vol_utils.c -DSPM_DOUBLE -DSPM_BYTESWAP $(MEXEND)
-	$(MOVE) spm_vol_utils.$(MOSUF) $@
-
-###############################################################################
-# Compile a few additional C routines for linking
-###############################################################################
-
-%.$(SUF).o : %.c
-	$(MEX) -c $< $(MEXEND)
-	$(MOVE) %.$(MOSUF) $@
-
-spm_getdata.$(SUF).o: spm_getdata.c spm_getdata.h
-	$(MEX) -c spm_getdata.c $(MEXEND)
-	$(MOVE) spm_getdata.$(MOSUF) $@
-	
-spm_vol_access.$(SUF).o: spm_vol_access.c spm_vol_access.h spm_datatypes.h
-	$(MEX) -c spm_vol_access.c $(MEXEND)
-	$(MOVE) spm_vol_access.$(MOSUF) $@
-
-spm_make_lookup.$(SUF).o: spm_make_lookup.c spm_make_lookup.h
-	$(MEX) -c spm_make_lookup.c $(MEXEND)
-	$(MOVE) spm_make_lookup.$(MOSUF) $@
-	
-spm_mapping.$(SUF).o: spm_mapping.c spm_mapping.h spm_vol_access.h spm_datatypes.h
-	$(MEX) -c spm_mapping.c $(MEXEND)
-	$(MOVE) spm_mapping.$(MOSUF) $@
-
-###############################################################################
-# Compile the mex files themselves
-###############################################################################
-
-%.$(SUF) : %.c
-	$(MEX) $< $(MEXEND)
-
-cg_glm_get_Beta_ResSS.$(SUF): cg_glm_get_Beta_ResSS.c $(OBS) \
-		spm_mapping.h spm_vol_access.h spm_datatypes.h
-	$(MEX) cg_glm_get_Beta_ResSS.c $(OBS) $(MEXEND)
-
-tfceMex.$(SUF): tfceMex.c
-	$(MEX) tfceMex.c $(MEXEND)
-
-
-###############################################################################
-# General messages
-###############################################################################
-
-verb.end:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        FINISHED"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.clean:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Deleting object (.o) files"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.distclean:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Deleting mex and archive (.a) files"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.install:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Installing mex files"
-	@ echo "_____________________________________________________________"
-	@ echo ""	
-
-verb.archive:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Creating archive spm_mex.tar.gz"
-	@ echo "_____________________________________________________________"
-	@ echo ""	
-
-###############################################################################
-# Assorted architecture dependent messages
-###############################################################################
-
-verb.mexw32:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "         Windows compilation (32 bit)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexw64:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Windows compilation (64 bit)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexglx:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Linux compilation (x86-32)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexa64:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Linux compilation (x86-64)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexmac:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Unix compilation (MacOS X, PowerPC)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexmaci:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Unix compilation (MacOS X, Intel 32 bit)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexmaci64:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Unix compilation (MacOS X, Intel 64 bit)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexsol:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Unix compilation (Solaris 32 bit)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexs64:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Unix compilation (Solaris 64 bit)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.external:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        In external"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	
--include Makefile.tfce
-
+scp: zip
+	-@echo scp to http://dbm.neuro.uni-jena.de/tfce/${ZIPFILE}
+	-@scp -P 2222 CHANGES.txt ${ZIPFILE} ${STARGET}
+	-@bash -c "ssh ${STARGET_HOST} ln -Fs ${STARGET_FOLDER}/${ZIPFILE} ${STARGET_FOLDER}/tfce_latest.zip"

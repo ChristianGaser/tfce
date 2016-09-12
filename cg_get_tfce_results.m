@@ -248,7 +248,7 @@ VOX  = sqrt(diag(M'*M))';           %-voxel dimensions
 
 % check the data and other files have valid filenames
 %-----------------------------------------------------------------------
-try, SPM.xY.VY     = spm_check_filename(SPM.xY.VY);     end
+%try, SPM.xY.VY     = spm_check_filename(SPM.xY.VY);     end
 try, SPM.xVol.VRpv = spm_check_filename(SPM.xVol.VRpv); end
 try, SPM.Vbeta     = spm_check_filename(SPM.Vbeta);     end
 try, SPM.VResMS    = spm_check_filename(SPM.VResMS);    end
@@ -652,5 +652,4 @@ if mesh_detected
     xSPM.G     = G;
     xSPM.XYZmm = xSPM.G.vertices(xSPM.XYZ(1,:),:)';
 end
-
 

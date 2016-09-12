@@ -1,11 +1,11 @@
 
 Changed paths:
 M       CHANGES.txt
-A       INSTALL_info.txt
-R  +    Makefile
-D       Makefile.tfce
-D       Makefile.var
+M       cg_get_tfce_results.m
+M       cg_tfce_results.m
 
-Changed: Makefile and installation routine updated.
+Changed: Changed call to TFCE toolbox and updated results section
+according to newer spm_results_ui.m.
+
 ------------------------------------------------------------------------
-r94 | gaser | 2016-09-12 02:57:58
+r95 | gaser | 2016-09-12 10:16:47

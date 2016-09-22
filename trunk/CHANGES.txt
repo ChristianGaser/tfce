@@ -1,46 +1,9 @@
 
 Changed paths:
 M       trunk/CHANGES.txt
- M      trunk/INSTALL_info.txt
- M      trunk/old/spm_getdata.mexw32.obj
- M      trunk/old/spm_getdata.mexw64.obj
- M      trunk/old/spm_make_lookup.mexw32.obj
- M      trunk/old/spm_make_lookup.mexw64.obj
- M      trunk/old/spm_mapping.mexw32.obj
- M      trunk/old/spm_mapping.mexw64.obj
- M      trunk/old/spm_vol_access.mexw32.obj
- M      trunk/old/spm_vol_access.mexw64.obj
- M      trunk/old/utils_double.mexw32.obj
- M      trunk/old/utils_double.mexw64.obj
- M      trunk/old/utils_double_s.mexw32.obj
- M      trunk/old/utils_double_s.mexw64.obj
- M      trunk/old/utils_float.mexw32.obj
- M      trunk/old/utils_float.mexw64.obj
- M      trunk/old/utils_float_s.mexw32.obj
- M      trunk/old/utils_float_s.mexw64.obj
- M      trunk/old/utils_int.mexw32.obj
- M      trunk/old/utils_int.mexw64.obj
- M      trunk/old/utils_int_s.mexw32.obj
- M      trunk/old/utils_int_s.mexw64.obj
- M      trunk/old/utils_schar.mexw32.obj
- M      trunk/old/utils_schar.mexw64.obj
- M      trunk/old/utils_short.mexw32.obj
- M      trunk/old/utils_short.mexw64.obj
- M      trunk/old/utils_short_s.mexw32.obj
- M      trunk/old/utils_short_s.mexw64.obj
- M      trunk/old/utils_uchar.mexw32.obj
- M      trunk/old/utils_uchar.mexw64.obj
- M      trunk/old/utils_uint.mexw32.obj
- M      trunk/old/utils_uint.mexw64.obj
- M      trunk/old/utils_uint_s.mexw32.obj
- M      trunk/old/utils_uint_s.mexw64.obj
- M      trunk/old/utils_ushort.mexw32.obj
- M      trunk/old/utils_ushort.mexw64.obj
- M      trunk/old/utils_ushort_s.mexw32.obj
- M      trunk/old/utils_ushort_s.mexw64.obj
 M       trunk/svn_ci_log
 
 Fixed: Corrected svn_ci_log to work with subfolders.
 
 ------------------------------------------------------------------------
-r98 | gaser | 2016-09-22 11:16:53
+r99 | gaser | 2016-09-22 11:17:14

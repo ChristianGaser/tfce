@@ -1,12 +1,12 @@
 
 Changed paths:
-A  +    branch
-        > moved from branches
-D       branches
-        > moved to branch
+D       branch
+        > moved to branches
+A  +    branches
+        > moved from branch
 M       trunk/CHANGES.txt
 
 Fixed: Corrected branch name.
 
 ------------------------------------------------------------------------
-r101 | gaser | 2016-09-22 11:22:08
+r102 | gaser | 2016-09-22 23:23:17

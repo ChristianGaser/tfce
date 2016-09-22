@@ -1,4 +1,231 @@
 ------------------------------------------------------------------------
+r103 | gaser | 2016-09-23 00:10:38 +1000 (Fr, 23 Sep 2016) | 224 lines
+
+Changed paths:
+A  +    CHANGES.txt
+        > moved from trunk/CHANGES.txt
+A  +    Contents_info.txt
+        > moved from trunk/Contents_info.txt
+A  +    INSTALL_info.txt
+        > moved from trunk/INSTALL_info.txt
+A  +    Makefile
+        > moved from trunk/Makefile
+A  +    SPM-Designs-Permutation.doc
+        > moved from trunk/SPM-Designs-Permutation.doc
+A  +    TFCE.txt
+        > moved from trunk/TFCE.txt
+A  +    cg_get_tfce_results.m
+        > moved from trunk/cg_get_tfce_results.m
+A  +    cg_progress.m
+        > moved from trunk/cg_progress.m
+A  +    cg_tfce_estimate.m
+        > moved from trunk/cg_tfce_estimate.m
+A  +    cg_tfce_list.m
+        > moved from trunk/cg_tfce_list.m
+A  +    cg_tfce_results.m
+        > moved from trunk/cg_tfce_results.m
+A  +    cg_tfce_update.m
+        > moved from trunk/cg_tfce_update.m
+A  +    compile.m
+        > moved from trunk/compile.m
+A  +    old
+        > moved from trunk/old
+A  +    questions.txt
+        > moved from trunk/questions.txt
+A  +    snpm_P_FDR.m
+        > moved from trunk/snpm_P_FDR.m
+A  +    spm_TFCE.m
+        > moved from trunk/spm_TFCE.m
+A  +    svn_ci_log
+        > moved from trunk/svn_ci_log
+A  +    tbx_cfg_tfce_estimate.m
+        > moved from trunk/tbx_cfg_tfce_estimate.m
+A  +    tfceMex.c
+        > moved from trunk/tfceMex.c
+A  +    tfceMex.m
+        > moved from trunk/tfceMex.m
+A  +    tfceMex.mexa64
+        > moved from trunk/tfceMex.mexa64
+A  +    tfceMex.mexglx
+        > moved from trunk/tfceMex.mexglx
+A  +    tfceMex.mexmaci
+        > moved from trunk/tfceMex.mexmaci
+A  +    tfceMex.mexmaci64
+        > moved from trunk/tfceMex.mexmaci64
+A  +    tfceMex.mexw32
+        > moved from trunk/tfceMex.mexw32
+A  +    tfceMex.mexw64
+        > moved from trunk/tfceMex.mexw64
+A  +    tfceMex_noopenmp.mexa64
+        > moved from trunk/tfceMex_noopenmp.mexa64
+A  +    tfceMex_noopenmp.mexglx
+        > moved from trunk/tfceMex_noopenmp.mexglx
+A  +    tfceMex_noopenmp.mexmaci
+        > moved from trunk/tfceMex_noopenmp.mexmaci
+A  +    tfceMex_noopenmp.mexmaci64
+        > moved from trunk/tfceMex_noopenmp.mexmaci64
+A  +    tfceMex_noopenmp.mexw32
+        > moved from trunk/tfceMex_noopenmp.mexw32
+A  +    tfceMex_noopenmp.mexw64
+        > moved from trunk/tfceMex_noopenmp.mexw64
+A  +    tfceMex_pthread.c
+        > moved from trunk/tfceMex_pthread.c
+A  +    tfceMex_pthread.m
+        > moved from trunk/tfceMex_pthread.m
+A  +    tfceMex_pthread.mexa64
+        > moved from trunk/tfceMex_pthread.mexa64
+A  +    tfceMex_pthread.mexmaci64
+        > moved from trunk/tfceMex_pthread.mexmaci64
+A  +    tfceMex_pthread.mexw64
+        > moved from trunk/tfceMex_pthread.mexw64
+A  +    tfce_mesh.m
+        > moved from trunk/tfce_mesh.m
+A  +    todo
+        > moved from trunk/todo
+D       trunk/CHANGES.txt
+        > moved to CHANGES.txt
+D       trunk/Contents_info.txt
+        > moved to Contents_info.txt
+D       trunk/INSTALL_info.txt
+        > moved to INSTALL_info.txt
+D       trunk/Makefile
+        > moved to Makefile
+D       trunk/SPM-Designs-Permutation.doc
+        > moved to SPM-Designs-Permutation.doc
+D       trunk/TFCE.txt
+        > moved to TFCE.txt
+D       trunk/cg_get_tfce_results.m
+        > moved to cg_get_tfce_results.m
+D       trunk/cg_progress.m
+        > moved to cg_progress.m
+D       trunk/cg_tfce_estimate.m
+        > moved to cg_tfce_estimate.m
+D       trunk/cg_tfce_list.m
+        > moved to cg_tfce_list.m
+D       trunk/cg_tfce_results.m
+        > moved to cg_tfce_results.m
+D       trunk/cg_tfce_update.m
+        > moved to cg_tfce_update.m
+D       trunk/compile.m
+        > moved to compile.m
+D       trunk/old
+        > moved to old
+D       trunk/old/cg_glm_get_Beta_ResSS.c
+D       trunk/old/cg_glm_get_Beta_ResSS.m
+D       trunk/old/cg_glm_get_Beta_ResSS.mexa64
+D       trunk/old/cg_glm_get_Beta_ResSS.mexglx
+D       trunk/old/cg_glm_get_Beta_ResSS.mexmaci
+D       trunk/old/cg_glm_get_Beta_ResSS.mexmaci64
+D       trunk/old/cg_glm_get_Beta_ResSS.mexw32
+D       trunk/old/cg_glm_get_Beta_ResSS.mexw64
+D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexa64
+D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexglx
+D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexmaci
+D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexw32
+D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexw64
+D       trunk/old/spm_datatypes.h
+D       trunk/old/spm_getdata.c
+D       trunk/old/spm_getdata.h
+D       trunk/old/spm_getdata.mexw32.obj
+D       trunk/old/spm_getdata.mexw64.obj
+D       trunk/old/spm_make_lookup.c
+D       trunk/old/spm_make_lookup.h
+D       trunk/old/spm_make_lookup.mexw32.obj
+D       trunk/old/spm_make_lookup.mexw64.obj
+D       trunk/old/spm_mapping.c
+D       trunk/old/spm_mapping.h
+D       trunk/old/spm_mapping.mexw32.obj
+D       trunk/old/spm_mapping.mexw64.obj
+D       trunk/old/spm_vol_access.c
+D       trunk/old/spm_vol_access.h
+D       trunk/old/spm_vol_access.mexw32.obj
+D       trunk/old/spm_vol_access.mexw64.obj
+D       trunk/old/spm_vol_utils.c
+D       trunk/old/utils_double.mexw32.obj
+D       trunk/old/utils_double.mexw64.obj
+D       trunk/old/utils_double_s.mexw32.obj
+D       trunk/old/utils_double_s.mexw64.obj
+D       trunk/old/utils_float.mexw32.obj
+D       trunk/old/utils_float.mexw64.obj
+D       trunk/old/utils_float_s.mexw32.obj
+D       trunk/old/utils_float_s.mexw64.obj
+D       trunk/old/utils_int.mexw32.obj
+D       trunk/old/utils_int.mexw64.obj
+D       trunk/old/utils_int_s.mexw32.obj
+D       trunk/old/utils_int_s.mexw64.obj
+D       trunk/old/utils_schar.mexw32.obj
+D       trunk/old/utils_schar.mexw64.obj
+D       trunk/old/utils_short.mexw32.obj
+D       trunk/old/utils_short.mexw64.obj
+D       trunk/old/utils_short_s.mexw32.obj
+D       trunk/old/utils_short_s.mexw64.obj
+D       trunk/old/utils_uchar.mexw32.obj
+D       trunk/old/utils_uchar.mexw64.obj
+D       trunk/old/utils_uint.mexw32.obj
+D       trunk/old/utils_uint.mexw64.obj
+D       trunk/old/utils_uint_s.mexw32.obj
+D       trunk/old/utils_uint_s.mexw64.obj
+D       trunk/old/utils_ushort.mexw32.obj
+D       trunk/old/utils_ushort.mexw64.obj
+D       trunk/old/utils_ushort_s.mexw32.obj
+D       trunk/old/utils_ushort_s.mexw64.obj
+D       trunk/questions.txt
+        > moved to questions.txt
+D       trunk/snpm_P_FDR.m
+        > moved to snpm_P_FDR.m
+D       trunk/spm_TFCE.m
+        > moved to spm_TFCE.m
+D       trunk/svn_ci_log
+        > moved to svn_ci_log
+D       trunk/tbx_cfg_tfce_estimate.m
+        > moved to tbx_cfg_tfce_estimate.m
+D       trunk/tfceMex.c
+        > moved to tfceMex.c
+D       trunk/tfceMex.m
+        > moved to tfceMex.m
+D       trunk/tfceMex.mexa64
+        > moved to tfceMex.mexa64
+D       trunk/tfceMex.mexglx
+        > moved to tfceMex.mexglx
+D       trunk/tfceMex.mexmaci
+        > moved to tfceMex.mexmaci
+D       trunk/tfceMex.mexmaci64
+        > moved to tfceMex.mexmaci64
+D       trunk/tfceMex.mexw32
+        > moved to tfceMex.mexw32
+D       trunk/tfceMex.mexw64
+        > moved to tfceMex.mexw64
+D       trunk/tfceMex_noopenmp.mexa64
+        > moved to tfceMex_noopenmp.mexa64
+D       trunk/tfceMex_noopenmp.mexglx
+        > moved to tfceMex_noopenmp.mexglx
+D       trunk/tfceMex_noopenmp.mexmaci
+        > moved to tfceMex_noopenmp.mexmaci
+D       trunk/tfceMex_noopenmp.mexmaci64
+        > moved to tfceMex_noopenmp.mexmaci64
+D       trunk/tfceMex_noopenmp.mexw32
+        > moved to tfceMex_noopenmp.mexw32
+D       trunk/tfceMex_noopenmp.mexw64
+        > moved to tfceMex_noopenmp.mexw64
+D       trunk/tfceMex_pthread.c
+        > moved to tfceMex_pthread.c
+D       trunk/tfceMex_pthread.m
+        > moved to tfceMex_pthread.m
+D       trunk/tfceMex_pthread.mexa64
+        > moved to tfceMex_pthread.mexa64
+D       trunk/tfceMex_pthread.mexmaci64
+        > moved to tfceMex_pthread.mexmaci64
+D       trunk/tfceMex_pthread.mexw64
+        > moved to tfceMex_pthread.mexw64
+D       trunk/tfce_mesh.m
+        > moved to tfce_mesh.m
+D       trunk/todo
+        > moved to todo
+
+Changed: Moved back from trunk...
+
+------------------------------------------------------------------------
 r102 | gaser | 2016-09-22 23:23:39 +1000 (Do, 22 Sep 2016) | 10 lines
 
 Changed paths:
@@ -1663,227 +1890,11 @@ Initial import
 ------------------------------------------------------------------------
 
 Changed paths:
-A  +    CHANGES.txt
-        > moved from trunk/CHANGES.txt
-A  +    Contents_info.txt
-        > moved from trunk/Contents_info.txt
-A  +    INSTALL_info.txt
-        > moved from trunk/INSTALL_info.txt
-A  +    Makefile
-        > moved from trunk/Makefile
-A  +    SPM-Designs-Permutation.doc
-        > moved from trunk/SPM-Designs-Permutation.doc
-A  +    TFCE.txt
-        > moved from trunk/TFCE.txt
-A  +    cg_get_tfce_results.m
-        > moved from trunk/cg_get_tfce_results.m
-A  +    cg_progress.m
-        > moved from trunk/cg_progress.m
-A  +    cg_tfce_estimate.m
-        > moved from trunk/cg_tfce_estimate.m
-A  +    cg_tfce_list.m
-        > moved from trunk/cg_tfce_list.m
-A  +    cg_tfce_results.m
-        > moved from trunk/cg_tfce_results.m
-A  +    cg_tfce_update.m
-        > moved from trunk/cg_tfce_update.m
-A  +    compile.m
-        > moved from trunk/compile.m
-A  +    old
-        > moved from trunk/old
-A  +    questions.txt
-        > moved from trunk/questions.txt
-A  +    snpm_P_FDR.m
-        > moved from trunk/snpm_P_FDR.m
-A  +    spm_TFCE.m
-        > moved from trunk/spm_TFCE.m
-A  +    svn_ci_log
-        > moved from trunk/svn_ci_log
-A  +    tbx_cfg_tfce_estimate.m
-        > moved from trunk/tbx_cfg_tfce_estimate.m
-A  +    tfceMex.c
-        > moved from trunk/tfceMex.c
-A  +    tfceMex.m
-        > moved from trunk/tfceMex.m
-A  +    tfceMex.mexa64
-        > moved from trunk/tfceMex.mexa64
-A  +    tfceMex.mexglx
-        > moved from trunk/tfceMex.mexglx
-A  +    tfceMex.mexmaci
-        > moved from trunk/tfceMex.mexmaci
-A  +    tfceMex.mexmaci64
-        > moved from trunk/tfceMex.mexmaci64
-A  +    tfceMex.mexw32
-        > moved from trunk/tfceMex.mexw32
-A  +    tfceMex.mexw64
-        > moved from trunk/tfceMex.mexw64
-A  +    tfceMex_noopenmp.mexa64
-        > moved from trunk/tfceMex_noopenmp.mexa64
-A  +    tfceMex_noopenmp.mexglx
-        > moved from trunk/tfceMex_noopenmp.mexglx
-A  +    tfceMex_noopenmp.mexmaci
-        > moved from trunk/tfceMex_noopenmp.mexmaci
-A  +    tfceMex_noopenmp.mexmaci64
-        > moved from trunk/tfceMex_noopenmp.mexmaci64
-A  +    tfceMex_noopenmp.mexw32
-        > moved from trunk/tfceMex_noopenmp.mexw32
-A  +    tfceMex_noopenmp.mexw64
-        > moved from trunk/tfceMex_noopenmp.mexw64
-A  +    tfceMex_pthread.c
-        > moved from trunk/tfceMex_pthread.c
-A  +    tfceMex_pthread.m
-        > moved from trunk/tfceMex_pthread.m
-A  +    tfceMex_pthread.mexa64
-        > moved from trunk/tfceMex_pthread.mexa64
-A  +    tfceMex_pthread.mexmaci64
-        > moved from trunk/tfceMex_pthread.mexmaci64
-A  +    tfceMex_pthread.mexw64
-        > moved from trunk/tfceMex_pthread.mexw64
-A  +    tfce_mesh.m
-        > moved from trunk/tfce_mesh.m
-A  +    todo
-        > moved from trunk/todo
-D       trunk/CHANGES.txt
-        > moved to CHANGES.txt
-D       trunk/Contents_info.txt
-        > moved to Contents_info.txt
-D       trunk/INSTALL_info.txt
-        > moved to INSTALL_info.txt
-D       trunk/Makefile
-        > moved to Makefile
-D       trunk/SPM-Designs-Permutation.doc
-        > moved to SPM-Designs-Permutation.doc
-D       trunk/TFCE.txt
-        > moved to TFCE.txt
-D       trunk/cg_get_tfce_results.m
-        > moved to cg_get_tfce_results.m
-D       trunk/cg_progress.m
-        > moved to cg_progress.m
-D       trunk/cg_tfce_estimate.m
-        > moved to cg_tfce_estimate.m
-D       trunk/cg_tfce_list.m
-        > moved to cg_tfce_list.m
-D       trunk/cg_tfce_results.m
-        > moved to cg_tfce_results.m
-D       trunk/cg_tfce_update.m
-        > moved to cg_tfce_update.m
-D       trunk/compile.m
-        > moved to compile.m
-D       trunk/old
-        > moved to old
-D       trunk/old/cg_glm_get_Beta_ResSS.c
-D       trunk/old/cg_glm_get_Beta_ResSS.m
-D       trunk/old/cg_glm_get_Beta_ResSS.mexa64
-D       trunk/old/cg_glm_get_Beta_ResSS.mexglx
-D       trunk/old/cg_glm_get_Beta_ResSS.mexmaci
-D       trunk/old/cg_glm_get_Beta_ResSS.mexmaci64
-D       trunk/old/cg_glm_get_Beta_ResSS.mexw32
-D       trunk/old/cg_glm_get_Beta_ResSS.mexw64
-D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexa64
-D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexglx
-D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexmaci
-D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
-D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexw32
-D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexw64
-D       trunk/old/spm_datatypes.h
-D       trunk/old/spm_getdata.c
-D       trunk/old/spm_getdata.h
-D       trunk/old/spm_getdata.mexw32.obj
-D       trunk/old/spm_getdata.mexw64.obj
-D       trunk/old/spm_make_lookup.c
-D       trunk/old/spm_make_lookup.h
-D       trunk/old/spm_make_lookup.mexw32.obj
-D       trunk/old/spm_make_lookup.mexw64.obj
-D       trunk/old/spm_mapping.c
-D       trunk/old/spm_mapping.h
-D       trunk/old/spm_mapping.mexw32.obj
-D       trunk/old/spm_mapping.mexw64.obj
-D       trunk/old/spm_vol_access.c
-D       trunk/old/spm_vol_access.h
-D       trunk/old/spm_vol_access.mexw32.obj
-D       trunk/old/spm_vol_access.mexw64.obj
-D       trunk/old/spm_vol_utils.c
-D       trunk/old/utils_double.mexw32.obj
-D       trunk/old/utils_double.mexw64.obj
-D       trunk/old/utils_double_s.mexw32.obj
-D       trunk/old/utils_double_s.mexw64.obj
-D       trunk/old/utils_float.mexw32.obj
-D       trunk/old/utils_float.mexw64.obj
-D       trunk/old/utils_float_s.mexw32.obj
-D       trunk/old/utils_float_s.mexw64.obj
-D       trunk/old/utils_int.mexw32.obj
-D       trunk/old/utils_int.mexw64.obj
-D       trunk/old/utils_int_s.mexw32.obj
-D       trunk/old/utils_int_s.mexw64.obj
-D       trunk/old/utils_schar.mexw32.obj
-D       trunk/old/utils_schar.mexw64.obj
-D       trunk/old/utils_short.mexw32.obj
-D       trunk/old/utils_short.mexw64.obj
-D       trunk/old/utils_short_s.mexw32.obj
-D       trunk/old/utils_short_s.mexw64.obj
-D       trunk/old/utils_uchar.mexw32.obj
-D       trunk/old/utils_uchar.mexw64.obj
-D       trunk/old/utils_uint.mexw32.obj
-D       trunk/old/utils_uint.mexw64.obj
-D       trunk/old/utils_uint_s.mexw32.obj
-D       trunk/old/utils_uint_s.mexw64.obj
-D       trunk/old/utils_ushort.mexw32.obj
-D       trunk/old/utils_ushort.mexw64.obj
-D       trunk/old/utils_ushort_s.mexw32.obj
-D       trunk/old/utils_ushort_s.mexw64.obj
-D       trunk/questions.txt
-        > moved to questions.txt
-D       trunk/snpm_P_FDR.m
-        > moved to snpm_P_FDR.m
-D       trunk/spm_TFCE.m
-        > moved to spm_TFCE.m
-D       trunk/svn_ci_log
-        > moved to svn_ci_log
-D       trunk/tbx_cfg_tfce_estimate.m
-        > moved to tbx_cfg_tfce_estimate.m
-D       trunk/tfceMex.c
-        > moved to tfceMex.c
-D       trunk/tfceMex.m
-        > moved to tfceMex.m
-D       trunk/tfceMex.mexa64
-        > moved to tfceMex.mexa64
-D       trunk/tfceMex.mexglx
-        > moved to tfceMex.mexglx
-D       trunk/tfceMex.mexmaci
-        > moved to tfceMex.mexmaci
-D       trunk/tfceMex.mexmaci64
-        > moved to tfceMex.mexmaci64
-D       trunk/tfceMex.mexw32
-        > moved to tfceMex.mexw32
-D       trunk/tfceMex.mexw64
-        > moved to tfceMex.mexw64
-D       trunk/tfceMex_noopenmp.mexa64
-        > moved to tfceMex_noopenmp.mexa64
-D       trunk/tfceMex_noopenmp.mexglx
-        > moved to tfceMex_noopenmp.mexglx
-D       trunk/tfceMex_noopenmp.mexmaci
-        > moved to tfceMex_noopenmp.mexmaci
-D       trunk/tfceMex_noopenmp.mexmaci64
-        > moved to tfceMex_noopenmp.mexmaci64
-D       trunk/tfceMex_noopenmp.mexw32
-        > moved to tfceMex_noopenmp.mexw32
-D       trunk/tfceMex_noopenmp.mexw64
-        > moved to tfceMex_noopenmp.mexw64
-D       trunk/tfceMex_pthread.c
-        > moved to tfceMex_pthread.c
-D       trunk/tfceMex_pthread.m
-        > moved to tfceMex_pthread.m
-D       trunk/tfceMex_pthread.mexa64
-        > moved to tfceMex_pthread.mexa64
-D       trunk/tfceMex_pthread.mexmaci64
-        > moved to tfceMex_pthread.mexmaci64
-D       trunk/tfceMex_pthread.mexw64
-        > moved to tfceMex_pthread.mexw64
-D       trunk/tfce_mesh.m
-        > moved to tfce_mesh.m
-D       trunk/todo
-        > moved to todo
+M       CHANGES.txt
+D       branches
+D       tag
+D       trunk
 
 Changed: Moved back from trunk...
 ------------------------------------------------------------------------
-r103 | gaser | 2016-09-23 00:10:09
+r104 | gaser | 2016-09-23 00:11:57

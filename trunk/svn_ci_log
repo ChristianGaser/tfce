@@ -1,0 +1,33 @@
+#!/bin/bash
+
+cd ..
+
+oldrev=`svn info | grep 'Last Changed Rev'| cut -f2 -d':' | sed 's/[^[:digit:]]//g'`
+newrev=`expr $oldrev + 1`
+date=`date "+%Y-%m-%d %H:%M:%S"`
+
+nano trunk/log
+
+if [ -f trunk/log ]; then
+  svn trunk/log -r 440:HEAD > trunk/CHANGES.txt
+
+  echo >> trunk/CHANGES.txt
+  echo "Changed paths:" >> trunk/CHANGES.txt
+  svn -q status >> trunk/CHANGES.txt
+  echo >> trunk/CHANGES.txt
+  cat trunk/log >> trunk/CHANGES.txt
+  echo  >> trunk/CHANGES.txt
+  echo '------------------------------------------------------------------------' >> trunk/CHANGES.txt
+  echo r$newrev '|' $USER '|' $date >> trunk/CHANGES.txt
+
+  echo "Changed paths:" > log2
+  svn -q status >> log2
+  echo  >> log2
+  cat log >> log2
+  echo  >> log2
+  svn ci -F log2
+  svn list -R | grep -v '/$' | xargs svn propset svn:keywords "Id Rev Date Author" 1>/dev/null
+  svn update
+else
+  echo "Put commit information in log"
+fi

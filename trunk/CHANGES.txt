@@ -6,4 +6,4 @@ M       trunk/svn_ci_log
 Fixed: Corrected svn_ci_log to work with subfolders.
 
 ------------------------------------------------------------------------
-r99 | gaser | 2016-09-22 11:17:14
+r100 | gaser | 2016-09-22 11:18:24

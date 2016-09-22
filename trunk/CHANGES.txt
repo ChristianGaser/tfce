@@ -1,9 +1,12 @@
 
 Changed paths:
+A  +    branch
+        > moved from branches
+D       branches
+        > moved to branch
 M       trunk/CHANGES.txt
-M       trunk/svn_ci_log
 
-Fixed: Corrected svn_ci_log to work with subfolders.
+Fixed: Corrected branch name.
 
 ------------------------------------------------------------------------
-r100 | gaser | 2016-09-22 11:18:24
+r101 | gaser | 2016-09-22 11:22:08

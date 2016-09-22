@@ -23,7 +23,7 @@ if [ -f trunk/log ]; then
   echo "Changed paths:" > log2
   svn -q status >> log2
   echo  >> log2
-  cat log >> log2
+  cat trunk/log >> log2
   echo  >> log2
   svn ci -F log2
   svn list -R | grep -v '/$' | xargs svn propset svn:keywords "Id Rev Date Author" 1>/dev/null

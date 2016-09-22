@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd ..
-
 oldrev=`svn info | grep 'Last Changed Rev'| cut -f2 -d':' | sed 's/[^[:digit:]]//g'`
 newrev=`expr $oldrev + 1`
 date=`date "+%Y-%m-%d %H:%M:%S"`
@@ -9,16 +7,16 @@ date=`date "+%Y-%m-%d %H:%M:%S"`
 nano log
 
 if [ -f "log" ]; then
-  svn log -r 440:HEAD > trunk/CHANGES.txt
+  svn log > CHANGES.txt
 
-  echo >> trunk/CHANGES.txt
-  echo "Changed paths:" >> trunk/CHANGES.txt
-  svn -q status >> trunk/CHANGES.txt
-  echo >> trunk/CHANGES.txt
-  cat log >> trunk/CHANGES.txt
-  echo  >> trunk/CHANGES.txt
-  echo '------------------------------------------------------------------------' >> trunk/CHANGES.txt
-  echo r$newrev '|' $USER '|' $date >> trunk/CHANGES.txt
+  echo >> CHANGES.txt
+  echo "Changed paths:" >> CHANGES.txt
+  svn -q status >> CHANGES.txt
+  echo >> CHANGES.txt
+  cat log >> CHANGES.txt
+  echo  >> CHANGES.txt
+  echo '------------------------------------------------------------------------' >> CHANGES.txt
+  echo r$newrev '|' $USER '|' $date >> CHANGES.txt
 
   echo "Changed paths:" > log2
   svn -q status >> log2

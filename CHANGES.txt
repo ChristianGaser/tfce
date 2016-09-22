@@ -1,0 +1,1889 @@
+------------------------------------------------------------------------
+r102 | gaser | 2016-09-22 23:23:39 +1000 (Do, 22 Sep 2016) | 10 lines
+
+Changed paths:
+D       branch
+        > moved to branches
+A  +    branches
+        > moved from branch
+M       trunk/CHANGES.txt
+
+Fixed: Corrected branch name.
+
+
+------------------------------------------------------------------------
+r101 | gaser | 2016-09-22 11:22:18 +1000 (Do, 22 Sep 2016) | 10 lines
+
+Changed paths:
+A  +    branch
+        > moved from branches
+D       branches
+        > moved to branch
+M       trunk/CHANGES.txt
+
+Fixed: Corrected branch name.
+
+
+------------------------------------------------------------------------
+r100 | gaser | 2016-09-22 11:18:31 +1000 (Do, 22 Sep 2016) | 7 lines
+
+Changed paths:
+M       trunk/CHANGES.txt
+M       trunk/svn_ci_log
+
+Fixed: Corrected svn_ci_log to work with subfolders.
+
+
+------------------------------------------------------------------------
+r99 | gaser | 2016-09-22 11:17:20 +1000 (Do, 22 Sep 2016) | 7 lines
+
+Changed paths:
+M       trunk/CHANGES.txt
+M       trunk/svn_ci_log
+
+Fixed: Corrected svn_ci_log to work with subfolders.
+
+
+------------------------------------------------------------------------
+r98 | gaser | 2016-09-22 11:16:58 +1000 (Do, 22 Sep 2016) | 44 lines
+
+Changed paths:
+M       trunk/CHANGES.txt
+ M      trunk/INSTALL_info.txt
+ M      trunk/old/spm_getdata.mexw32.obj
+ M      trunk/old/spm_getdata.mexw64.obj
+ M      trunk/old/spm_make_lookup.mexw32.obj
+ M      trunk/old/spm_make_lookup.mexw64.obj
+ M      trunk/old/spm_mapping.mexw32.obj
+ M      trunk/old/spm_mapping.mexw64.obj
+ M      trunk/old/spm_vol_access.mexw32.obj
+ M      trunk/old/spm_vol_access.mexw64.obj
+ M      trunk/old/utils_double.mexw32.obj
+ M      trunk/old/utils_double.mexw64.obj
+ M      trunk/old/utils_double_s.mexw32.obj
+ M      trunk/old/utils_double_s.mexw64.obj
+ M      trunk/old/utils_float.mexw32.obj
+ M      trunk/old/utils_float.mexw64.obj
+ M      trunk/old/utils_float_s.mexw32.obj
+ M      trunk/old/utils_float_s.mexw64.obj
+ M      trunk/old/utils_int.mexw32.obj
+ M      trunk/old/utils_int.mexw64.obj
+ M      trunk/old/utils_int_s.mexw32.obj
+ M      trunk/old/utils_int_s.mexw64.obj
+ M      trunk/old/utils_schar.mexw32.obj
+ M      trunk/old/utils_schar.mexw64.obj
+ M      trunk/old/utils_short.mexw32.obj
+ M      trunk/old/utils_short.mexw64.obj
+ M      trunk/old/utils_short_s.mexw32.obj
+ M      trunk/old/utils_short_s.mexw64.obj
+ M      trunk/old/utils_uchar.mexw32.obj
+ M      trunk/old/utils_uchar.mexw64.obj
+ M      trunk/old/utils_uint.mexw32.obj
+ M      trunk/old/utils_uint.mexw64.obj
+ M      trunk/old/utils_uint_s.mexw32.obj
+ M      trunk/old/utils_uint_s.mexw64.obj
+ M      trunk/old/utils_ushort.mexw32.obj
+ M      trunk/old/utils_ushort.mexw64.obj
+ M      trunk/old/utils_ushort_s.mexw32.obj
+ M      trunk/old/utils_ushort_s.mexw64.obj
+M       trunk/svn_ci_log
+
+Fixed: Corrected svn_ci_log to work with subfolders.
+
+
+------------------------------------------------------------------------
+r97 | gaser | 2016-09-22 11:15:03 +1000 (Do, 22 Sep 2016) | 6 lines
+
+Changed paths:
+M       trunk/CHANGES.txt
+M       trunk/svn_ci_log
+
+Fixed: Corrected svn_ci_log to work with subfolders.
+
+------------------------------------------------------------------------
+r96 | gaser | 2016-09-22 11:14:18 +1000 (Do, 22 Sep 2016) | 227 lines
+
+Changed paths:
+D       CHANGES.txt
+        > moved to trunk/CHANGES.txt
+D       Contents_info.txt
+        > moved to trunk/Contents_info.txt
+D       INSTALL_info.txt
+        > moved to trunk/INSTALL_info.txt
+D       Makefile
+        > moved to trunk/Makefile
+D       SPM-Designs-Permutation.doc
+        > moved to trunk/SPM-Designs-Permutation.doc
+D       TFCE.txt
+        > moved to trunk/TFCE.txt
+A       branches
+D       cg_get_tfce_results.m
+        > moved to trunk/cg_get_tfce_results.m
+D       cg_progress.m
+        > moved to trunk/cg_progress.m
+D       cg_tfce_estimate.m
+        > moved to trunk/cg_tfce_estimate.m
+D       cg_tfce_list.m
+        > moved to trunk/cg_tfce_list.m
+D       cg_tfce_results.m
+        > moved to trunk/cg_tfce_results.m
+D       cg_tfce_update.m
+        > moved to trunk/cg_tfce_update.m
+D       compile.m
+        > moved to trunk/compile.m
+D       old
+        > moved to trunk/old
+D       old/cg_glm_get_Beta_ResSS.c
+D       old/cg_glm_get_Beta_ResSS.m
+D       old/cg_glm_get_Beta_ResSS.mexa64
+D       old/cg_glm_get_Beta_ResSS.mexglx
+D       old/cg_glm_get_Beta_ResSS.mexmaci
+D       old/cg_glm_get_Beta_ResSS.mexmaci64
+D       old/cg_glm_get_Beta_ResSS.mexw32
+D       old/cg_glm_get_Beta_ResSS.mexw64
+D       old/cg_glm_get_Beta_ResSS_noopenmp.mexa64
+D       old/cg_glm_get_Beta_ResSS_noopenmp.mexglx
+D       old/cg_glm_get_Beta_ResSS_noopenmp.mexmaci
+D       old/cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+D       old/cg_glm_get_Beta_ResSS_noopenmp.mexw32
+D       old/cg_glm_get_Beta_ResSS_noopenmp.mexw64
+D       old/spm_datatypes.h
+D       old/spm_getdata.c
+D       old/spm_getdata.h
+D       old/spm_getdata.mexw32.obj
+D       old/spm_getdata.mexw64.obj
+D       old/spm_make_lookup.c
+D       old/spm_make_lookup.h
+D       old/spm_make_lookup.mexw32.obj
+D       old/spm_make_lookup.mexw64.obj
+D       old/spm_mapping.c
+D       old/spm_mapping.h
+D       old/spm_mapping.mexw32.obj
+D       old/spm_mapping.mexw64.obj
+D       old/spm_vol_access.c
+D       old/spm_vol_access.h
+D       old/spm_vol_access.mexw32.obj
+D       old/spm_vol_access.mexw64.obj
+D       old/spm_vol_utils.c
+D       old/utils_double.mexw32.obj
+D       old/utils_double.mexw64.obj
+D       old/utils_double_s.mexw32.obj
+D       old/utils_double_s.mexw64.obj
+D       old/utils_float.mexw32.obj
+D       old/utils_float.mexw64.obj
+D       old/utils_float_s.mexw32.obj
+D       old/utils_float_s.mexw64.obj
+D       old/utils_int.mexw32.obj
+D       old/utils_int.mexw64.obj
+D       old/utils_int_s.mexw32.obj
+D       old/utils_int_s.mexw64.obj
+D       old/utils_schar.mexw32.obj
+D       old/utils_schar.mexw64.obj
+D       old/utils_short.mexw32.obj
+D       old/utils_short.mexw64.obj
+D       old/utils_short_s.mexw32.obj
+D       old/utils_short_s.mexw64.obj
+D       old/utils_uchar.mexw32.obj
+D       old/utils_uchar.mexw64.obj
+D       old/utils_uint.mexw32.obj
+D       old/utils_uint.mexw64.obj
+D       old/utils_uint_s.mexw32.obj
+D       old/utils_uint_s.mexw64.obj
+D       old/utils_ushort.mexw32.obj
+D       old/utils_ushort.mexw64.obj
+D       old/utils_ushort_s.mexw32.obj
+D       old/utils_ushort_s.mexw64.obj
+D       questions.txt
+        > moved to trunk/questions.txt
+D       snpm_P_FDR.m
+        > moved to trunk/snpm_P_FDR.m
+D       spm_TFCE.m
+        > moved to trunk/spm_TFCE.m
+D       svn_ci_log
+        > moved to trunk/svn_ci_log
+A       tag
+D       tbx_cfg_tfce_estimate.m
+        > moved to trunk/tbx_cfg_tfce_estimate.m
+D       tfceMex.c
+        > moved to trunk/tfceMex.c
+D       tfceMex.m
+        > moved to trunk/tfceMex.m
+D       tfceMex.mexa64
+        > moved to trunk/tfceMex.mexa64
+D       tfceMex.mexglx
+        > moved to trunk/tfceMex.mexglx
+D       tfceMex.mexmaci
+        > moved to trunk/tfceMex.mexmaci
+D       tfceMex.mexmaci64
+        > moved to trunk/tfceMex.mexmaci64
+D       tfceMex.mexw32
+        > moved to trunk/tfceMex.mexw32
+D       tfceMex.mexw64
+        > moved to trunk/tfceMex.mexw64
+D       tfceMex_noopenmp.mexa64
+        > moved to trunk/tfceMex_noopenmp.mexa64
+D       tfceMex_noopenmp.mexglx
+        > moved to trunk/tfceMex_noopenmp.mexglx
+D       tfceMex_noopenmp.mexmaci
+        > moved to trunk/tfceMex_noopenmp.mexmaci
+D       tfceMex_noopenmp.mexmaci64
+        > moved to trunk/tfceMex_noopenmp.mexmaci64
+D       tfceMex_noopenmp.mexw32
+        > moved to trunk/tfceMex_noopenmp.mexw32
+D       tfceMex_noopenmp.mexw64
+        > moved to trunk/tfceMex_noopenmp.mexw64
+D       tfceMex_pthread.c
+        > moved to trunk/tfceMex_pthread.c
+D       tfceMex_pthread.m
+        > moved to trunk/tfceMex_pthread.m
+D       tfceMex_pthread.mexa64
+        > moved to trunk/tfceMex_pthread.mexa64
+D       tfceMex_pthread.mexmaci64
+        > moved to trunk/tfceMex_pthread.mexmaci64
+D       tfceMex_pthread.mexw64
+        > moved to trunk/tfceMex_pthread.mexw64
+D       tfce_mesh.m
+        > moved to trunk/tfce_mesh.m
+D       todo
+        > moved to trunk/todo
+A       trunk
+A  +    trunk/CHANGES.txt
+        > moved from CHANGES.txt
+A  +    trunk/Contents_info.txt
+        > moved from Contents_info.txt
+A  +    trunk/INSTALL_info.txt
+        > moved from INSTALL_info.txt
+A  +    trunk/Makefile
+        > moved from Makefile
+A  +    trunk/SPM-Designs-Permutation.doc
+        > moved from SPM-Designs-Permutation.doc
+A  +    trunk/TFCE.txt
+        > moved from TFCE.txt
+A  +    trunk/cg_get_tfce_results.m
+        > moved from cg_get_tfce_results.m
+A  +    trunk/cg_progress.m
+        > moved from cg_progress.m
+A  +    trunk/cg_tfce_estimate.m
+        > moved from cg_tfce_estimate.m
+A  +    trunk/cg_tfce_list.m
+        > moved from cg_tfce_list.m
+A  +    trunk/cg_tfce_results.m
+        > moved from cg_tfce_results.m
+A  +    trunk/cg_tfce_update.m
+        > moved from cg_tfce_update.m
+A  +    trunk/compile.m
+        > moved from compile.m
+A  +    trunk/old
+        > moved from old
+A  +    trunk/questions.txt
+        > moved from questions.txt
+A  +    trunk/snpm_P_FDR.m
+        > moved from snpm_P_FDR.m
+A  +    trunk/spm_TFCE.m
+        > moved from spm_TFCE.m
+A  +    trunk/svn_ci_log
+        > moved from svn_ci_log
+A  +    trunk/tbx_cfg_tfce_estimate.m
+        > moved from tbx_cfg_tfce_estimate.m
+A  +    trunk/tfceMex.c
+        > moved from tfceMex.c
+A  +    trunk/tfceMex.m
+        > moved from tfceMex.m
+A  +    trunk/tfceMex.mexa64
+        > moved from tfceMex.mexa64
+A  +    trunk/tfceMex.mexglx
+        > moved from tfceMex.mexglx
+A  +    trunk/tfceMex.mexmaci
+        > moved from tfceMex.mexmaci
+A  +    trunk/tfceMex.mexmaci64
+        > moved from tfceMex.mexmaci64
+A  +    trunk/tfceMex.mexw32
+        > moved from tfceMex.mexw32
+A  +    trunk/tfceMex.mexw64
+        > moved from tfceMex.mexw64
+A  +    trunk/tfceMex_noopenmp.mexa64
+        > moved from tfceMex_noopenmp.mexa64
+A  +    trunk/tfceMex_noopenmp.mexglx
+        > moved from tfceMex_noopenmp.mexglx
+A  +    trunk/tfceMex_noopenmp.mexmaci
+        > moved from tfceMex_noopenmp.mexmaci
+A  +    trunk/tfceMex_noopenmp.mexmaci64
+        > moved from tfceMex_noopenmp.mexmaci64
+A  +    trunk/tfceMex_noopenmp.mexw32
+        > moved from tfceMex_noopenmp.mexw32
+A  +    trunk/tfceMex_noopenmp.mexw64
+        > moved from tfceMex_noopenmp.mexw64
+A  +    trunk/tfceMex_pthread.c
+        > moved from tfceMex_pthread.c
+A  +    trunk/tfceMex_pthread.m
+        > moved from tfceMex_pthread.m
+A  +    trunk/tfceMex_pthread.mexa64
+        > moved from tfceMex_pthread.mexa64
+A  +    trunk/tfceMex_pthread.mexmaci64
+        > moved from tfceMex_pthread.mexmaci64
+A  +    trunk/tfceMex_pthread.mexw64
+        > moved from tfceMex_pthread.mexw64
+A  +    trunk/tfce_mesh.m
+        > moved from tfce_mesh.m
+A  +    trunk/todo
+        > moved from todo
+
+
+
+------------------------------------------------------------------------
+r95 | gaser | 2016-09-12 18:16:51 +1000 (Mo, 12 Sep 2016) | 9 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_get_tfce_results.m
+M       cg_tfce_results.m
+
+Changed: Changed call to TFCE toolbox and updated results section
+according to newer spm_results_ui.m.
+
+
+------------------------------------------------------------------------
+r94 | gaser | 2016-09-12 10:58:14 +1000 (Mo, 12 Sep 2016) | 9 lines
+
+Changed paths:
+M       CHANGES.txt
+A       INSTALL_info.txt
+R  +    Makefile
+D       Makefile.tfce
+D       Makefile.var
+
+Changed: Makefile and installation routine updated.
+
+------------------------------------------------------------------------
+r93 | gaser | 2016-08-24 22:38:31 +1000 (Mi, 24 Aug 2016) | 96 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_get_tfce_results.m
+D       cg_glm_get_Beta_ResSS.c
+D       cg_glm_get_Beta_ResSS.m
+D       cg_glm_get_Beta_ResSS.mexa64
+D       cg_glm_get_Beta_ResSS.mexglx
+D       cg_glm_get_Beta_ResSS.mexmaci
+D       cg_glm_get_Beta_ResSS.mexmaci64
+D       cg_glm_get_Beta_ResSS.mexw32
+D       cg_glm_get_Beta_ResSS.mexw64
+D       cg_glm_get_Beta_ResSS_noopenmp.mexa64
+D       cg_glm_get_Beta_ResSS_noopenmp.mexglx
+D       cg_glm_get_Beta_ResSS_noopenmp.mexmaci
+D       cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+D       cg_glm_get_Beta_ResSS_noopenmp.mexw32
+D       cg_glm_get_Beta_ResSS_noopenmp.mexw64
+M       cg_tfce_list.m
+M       cg_tfce_results.m
+A       old
+A  +    old/cg_glm_get_Beta_ResSS.c
+A  +    old/cg_glm_get_Beta_ResSS.m
+A  +    old/cg_glm_get_Beta_ResSS.mexa64
+A  +    old/cg_glm_get_Beta_ResSS.mexglx
+A  +    old/cg_glm_get_Beta_ResSS.mexmaci
+A  +    old/cg_glm_get_Beta_ResSS.mexmaci64
+A  +    old/cg_glm_get_Beta_ResSS.mexw32
+A  +    old/cg_glm_get_Beta_ResSS.mexw64
+A  +    old/cg_glm_get_Beta_ResSS_noopenmp.mexa64
+A  +    old/cg_glm_get_Beta_ResSS_noopenmp.mexglx
+A  +    old/cg_glm_get_Beta_ResSS_noopenmp.mexmaci
+A  +    old/cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+A  +    old/cg_glm_get_Beta_ResSS_noopenmp.mexw32
+A  +    old/cg_glm_get_Beta_ResSS_noopenmp.mexw64
+A  +    old/spm_datatypes.h
+A  +    old/spm_getdata.c
+A  +    old/spm_getdata.h
+A       old/spm_getdata.mexw32.obj
+A       old/spm_getdata.mexw64.obj
+A  +    old/spm_make_lookup.c
+A  +    old/spm_make_lookup.h
+A       old/spm_make_lookup.mexw32.obj
+A       old/spm_make_lookup.mexw64.obj
+A  +    old/spm_mapping.c
+A  +    old/spm_mapping.h
+A       old/spm_mapping.mexw32.obj
+A       old/spm_mapping.mexw64.obj
+A  +    old/spm_vol_access.c
+A  +    old/spm_vol_access.h
+A       old/spm_vol_access.mexw32.obj
+A       old/spm_vol_access.mexw64.obj
+A  +    old/spm_vol_utils.c
+A       old/utils_double.mexw32.obj
+A       old/utils_double.mexw64.obj
+A       old/utils_double_s.mexw32.obj
+A       old/utils_double_s.mexw64.obj
+A       old/utils_float.mexw32.obj
+A       old/utils_float.mexw64.obj
+A       old/utils_float_s.mexw32.obj
+A       old/utils_float_s.mexw64.obj
+A       old/utils_int.mexw32.obj
+A       old/utils_int.mexw64.obj
+A       old/utils_int_s.mexw32.obj
+A       old/utils_int_s.mexw64.obj
+A       old/utils_schar.mexw32.obj
+A       old/utils_schar.mexw64.obj
+A       old/utils_short.mexw32.obj
+A       old/utils_short.mexw64.obj
+A       old/utils_short_s.mexw32.obj
+A       old/utils_short_s.mexw64.obj
+A       old/utils_uchar.mexw32.obj
+A       old/utils_uchar.mexw64.obj
+A       old/utils_uint.mexw32.obj
+A       old/utils_uint.mexw64.obj
+A       old/utils_uint_s.mexw32.obj
+A       old/utils_uint_s.mexw64.obj
+A       old/utils_ushort.mexw32.obj
+A       old/utils_ushort.mexw64.obj
+A       old/utils_ushort_s.mexw32.obj
+A       old/utils_ushort_s.mexw64.obj
+R  +    spm_TFCE.m
+D       spm_datatypes.h
+D       spm_getdata.c
+D       spm_getdata.h
+D       spm_make_lookup.c
+D       spm_make_lookup.h
+D       spm_mapping.c
+D       spm_mapping.h
+D       spm_vol_access.c
+D       spm_vol_access.h
+D       spm_vol_utils.c
+
+(1) Changed: Moved un-used functions to old folder.
+(2) Fixed: Corrected text output of result table.
+(3) Changed: Added support for inverse contrasts.
+
+------------------------------------------------------------------------
+r92 | gaser | 2016-08-24 01:16:57 +1000 (Mi, 24 Aug 2016) | 18 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_get_tfce_results.m
+M       cg_tfce_estimate.m
+M       cg_tfce_results.m
+MM      tfceMex_pthread.c
+MM      tfceMex_pthread.m
+ M      tfceMex_pthread.mexa64
+ M      tfceMex_pthread.mexmaci64
+ M      tfceMex_pthread.mexw64
+M       tfce_mesh.m
+
+(1) Changed: Added support for F-test.
+(2) Changed: Added inverse contrast to distribution plot.
+(3) Fixed: Atlas menu is only displayed for volume data.
+(4) Changed: TFCE calculation is now faster if no neg. values are present.
+(5) Changed: Removed variance smoothing.
+
+------------------------------------------------------------------------
+r91 | gaser | 2016-08-12 23:16:17 +1000 (Fr, 12 Aug 2016) | 6 lines
+
+Changed paths:
+M       CHANGES.txt
+M       tfceMex_pthread.c
+
+Changed: Data type of dims is now int.
+
+------------------------------------------------------------------------
+r90 | gaser | 2016-08-02 04:05:57 +1000 (Di, 02 Aug 2016) | 25 lines
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile.tfce
+M       cg_progress.m
+M       cg_tfce_estimate.m
+M       compile.m
+M       tbx_cfg_tfce_estimate.m
+M       tfceMex.m
+A       tfceMex_pthread.c
+A       tfceMex_pthread.m
+A       tfceMex_pthread.mexa64
+A       tfceMex_pthread.mexmaci64
+A       tfceMex_pthread.mexw64
+M       tfce_mesh.m
+
+(1) Changed: The step size dh is now estimatet more balanced by using 
+    individual dh's for each t-map.
+(2) Changed: Main function cg_tfce_estimate is now loading all data once into a 
+    matrix Y. This is resulting in a large speed improvement but memory 
+    demand increases with sample size.
+(3) Changed: Now use pthread for tfce calculation with new tfceMex_pthread.c.
+(4) Fixed: Issues with new matlab version and cg_progress.m
+(5) Changed: Graphical output is now only drawn 100 times to save time.
+
+
+------------------------------------------------------------------------
+r89 | gaser | 2016-06-23 01:21:42 +1000 (Do, 23 Jun 2016) | 9 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_list.m
+M       cg_tfce_results.m
+ M      todo
+
+Changed: Added atlas function to results.
+
+
+------------------------------------------------------------------------
+r88 | gaser | 2016-04-11 19:53:27 +1000 (Mo, 11 Apr 2016) | 7 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_results.m
+
+Changed: Added gifit functionality for saving thresholded results.
+
+
+------------------------------------------------------------------------
+r87 | gaser | 2016-01-19 10:49:27 +1100 (Di, 19 Jan 2016) | 7 lines
+
+Changed paths:
+M       CHANGES.txt
+A       todo
+
+New: todo file
+
+
+------------------------------------------------------------------------
+r86 | gaser | 2015-12-08 21:35:21 +1100 (Di, 08 Dez 2015) | 12 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_glm_get_Beta_ResSS.c
+M       cg_glm_get_Beta_ResSS.mexmaci64
+M       cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+M       compile.m
+M       tfceMex.mexmaci64
+M       tfceMex_noopenmp.mexmaci64
+
+(1) Changed: comnpile.m to consider new OSX
+(2) Changed: recompiled mexmaci64 code
+
+------------------------------------------------------------------------
+r85 | gaser | 2015-12-01 21:55:55 +1100 (Di, 01 Dez 2015) | 15 lines
+
+Changed paths:
+M       CHANGES.txt
+M       SPM-Designs-Permutation.doc
+ M      cg_glm_get_Beta_ResSS_noopenmp.mexa64
+ M      cg_glm_get_Beta_ResSS_noopenmp.mexglx
+ M      cg_glm_get_Beta_ResSS_noopenmp.mexmaci
+ M      cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+ M      cg_glm_get_Beta_ResSS_noopenmp.mexw32
+ M      cg_glm_get_Beta_ResSS_noopenmp.mexw64
+M       cg_tfce_estimate.m
+M       cg_tfce_list.m
+
+Fixed: Solved issue with newer matlab version regarding the check for Fgraph 
+in cg_tfce_list.m. Thanks to Joshua Balsters for pointing to this issue.
+
+------------------------------------------------------------------------
+r84 | gaser | 2015-11-25 21:31:34 +1100 (Mi, 25 Nov 2015) | 10 lines
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile.tfce
+M       cg_tfce_estimate.m
+
+(1) Added correction of xX for some weird designs where iH and iB are
+    not correct.
+(2) Added test_mode parameter to run permutations without data.
+(3) Corrected some inconsistencies for longitudinal designs.
+
+------------------------------------------------------------------------
+r83 | gaser | 2015-11-24 23:26:22 +1100 (Di, 24 Nov 2015) | 11 lines
+
+Changed paths:
+M       CHANGES.txt
+A       cg_glm_get_Beta_ResSS_noopenmp.mexa64
+A       cg_glm_get_Beta_ResSS_noopenmp.mexglx
+A       cg_glm_get_Beta_ResSS_noopenmp.mexmaci
+A       cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+A       cg_glm_get_Beta_ResSS_noopenmp.mexw32
+A       cg_glm_get_Beta_ResSS_noopenmp.mexw64
+
+Added cg_glm_get_Beta_ResSS_noopenmp.mex* files.
+
+------------------------------------------------------------------------
+r82 | gaser | 2015-11-05 00:07:20 +1100 (Do, 05 Nov 2015) | 11 lines
+
+Changed paths:
+M       CHANGES.txt
+M       SPM-Designs-Permutation.doc
+M       cg_tfce_estimate.m
+M       tbx_cfg_tfce_estimate.m
+
+(1) tbx_cfg_tfce_estimate.m had some entries that were only working for SPM12.
+    This is now solved. Thanks to Lindsay Hanford for pointing to that error.
+(2) Updated help text.
+(3) Added check whether size of mask image and data fit.
+
+------------------------------------------------------------------------
+r81 | gaser | 2015-11-03 08:29:43 +1100 (Di, 03 Nov 2015) | 8 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+(1) In cg_tfce_estimate.m ind_data_defined was not correctly estimated for
+    some designs.
+(2) Updated table.
+
+------------------------------------------------------------------------
+r80 | gaser | 2015-11-03 08:22:14 +1100 (Di, 03 Nov 2015) | 10 lines
+
+Changed paths:
+M       CHANGES.txt
+M       SPM-Designs-Permutation.doc
+M       cg_tfce_estimate.m
+M       tbx_cfg_tfce_estimate.m
+
+(1) In cg_tfce_estimate.m ind_data_defined was not correctly estimated for
+    some designs.
+(2) Updated table.
+
+------------------------------------------------------------------------
+r79 | gaser | 2015-10-29 19:19:18 +1100 (Do, 29 Okt 2015) | 10 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+M       svn_ci_log
+
+(1) If either no positive or negative T or TFCE-values are found FDR
+    correction crashed This is now solved (thanks to Nikolaos Koustlsouleris
+    for pointing to that issue).
+(2) Use try-commands to allow batch mode without graphical output.
+
+------------------------------------------------------------------------
+r78 | gaser | 2015-09-10 20:23:01 +1000 (Do, 10 Sep 2015) | 24 lines
+
+Changed paths:
+ M      SPM-Designs-Permutation.doc
+M       cg_glm_get_Beta_ResSS.mexw32
+M       cg_glm_get_Beta_ResSS.mexw64
+M       cg_tfce_estimate.m
+M       tbx_cfg_tfce_estimate.m
+M       tfceMex.c
+M       tfceMex.m
+M       tfceMex.mexa64
+M       tfceMex.mexglx
+M       tfceMex.mexmaci64
+M       tfceMex.mexw32
+M       tfceMex.mexw64
+M       tfceMex_noopenmp.mexa64
+M       tfceMex_noopenmp.mexglx
+M       tfceMex_noopenmp.mexmaci64
+M       tfceMex_noopenmp.mexw32
+M       tfceMex_noopenmp.mexw64
+M       tfce_mesh.m
+
+(1) Added option for TBSS data with 2D optimization.
+(2) Changed E-parameter for meshes to 1 in tfce_mesh.m.
+
+
+------------------------------------------------------------------------
+r77 | gaser | 2015-06-26 23:32:07 +1000 (Fr, 26 Jun 2015) | 7 lines
+
+Changed paths:
+M       cg_tfce_estimate.m
+
+Fixed bug in cg_tfce_estimate.m for multiple regressions (Thanks to Marcel
+Zwiers).
+
+
+------------------------------------------------------------------------
+r76 | gaser | 2015-06-17 19:00:05 +1000 (Mi, 17 Jun 2015) | 8 lines
+
+Changed paths:
+A       SPM-Designs-Permutation.doc
+M       cg_tfce_estimate.m
+
+(1) Again corrected bug with exch_blocks in cg_tfce_estimate.m.
+(2) Added SPM-Designs-Permutation.doc.
+
+
+------------------------------------------------------------------------
+r75 | gaser | 2015-06-15 19:03:42 +1000 (Mo, 15 Jun 2015) | 8 lines
+
+Changed paths:
+M       cg_tfce_estimate.m
+
+Corrected bug with exch_blocks in cg_tfce_estimate.m for repeated measurements.
+
+
+
+
+------------------------------------------------------------------------
+r74 | gaser | 2015-02-09 19:05:42 +1100 (Mo, 09 Feb 2015) | 9 lines
+
+Changed paths:
+M       cg_tfce_estimate.m
+M       tfceMex.c
+
+Corrected bug with exch_blocks in cg_tfce_estimate.m.
+
+
+
+
+------------------------------------------------------------------------
+r73 | gaser | 2014-12-01 23:27:00 +1100 (Mo, 01 Dez 2014) | 9 lines
+
+Changed paths:
+M       cg_tfce_estimate.m
+
+(1) Always display permuted design matrix now instead of t-stuff.
+(3) Corrected # of permutations for sparse long. design where not all
+    time points are defined.
+
+
+
+------------------------------------------------------------------------
+r72 | gaser | 2014-11-29 03:28:54 +1100 (Sa, 29 Nov 2014) | 9 lines
+
+Changed paths:
+M       cg_tfce_estimate.m
+
+(1) Added opportunity to estimate exchaneability block labels for repeated
+    Anova designs.
+(2) Corrected estimation of # of permutations for repeated anova.
+
+
+
+------------------------------------------------------------------------
+r71 | gaser | 2014-11-14 20:41:31 +1100 (Fr, 14 Nov 2014) | 10 lines
+
+Changed paths:
+M       cg_progress.m
+M       cg_tfce_estimate.m
+MM      tfce_mesh.m
+
+(1) Some cosmetic changes to cg_tfce_estimate.m.
+(2) cg_tfce_estimate can now also deal with correlational designs with single
+    regressor and dummy block before covariate.
+
+
+------------------------------------------------------------------------
+r70 | gaser | 2014-11-13 21:44:52 +1100 (Do, 13 Nov 2014) | 8 lines
+
+Changed paths:
+M       cg_get_tfce_results.m
+M       cg_tfce_estimate.m
+
+Corrected issues with different file extensions. Now the extension of the 
+previous analysis will be used.
+
+
+------------------------------------------------------------------------
+r69 | gaser | 2014-11-13 01:08:52 +1100 (Do, 13 Nov 2014) | 30 lines
+
+Changed paths:
+M       Makefile.tfce
+M       cg_get_tfce_results.m
+M       cg_glm_get_Beta_ResSS.mexmaci64
+!       cg_glm_get_Beta_ResSS.mexw32
+!       cg_glm_get_Beta_ResSS.mexw64
+M       cg_tfce_estimate.m
+M       cg_tfce_list.m
+M       cg_tfce_results.m
+M       compile.m
+M       spm_TFCE.m
+M       tbx_cfg_tfce_estimate.m
+M       tfceMex.c
+M       tfceMex.mexa64
+M       tfceMex.mexglx
+M       tfceMex.mexmaci64
+M       tfceMex.mexw32
+M       tfceMex.mexw64
+M       tfceMex_noopenmp.mexa64
+M       tfceMex_noopenmp.mexglx
+M       tfceMex_noopenmp.mexmaci64
+M       tfceMex_noopenmp.mexw32
+M       tfceMex_noopenmp.mexw64
+A       tfce_mesh.m
+
+(1) Added support for surfaces!
+(2) Made several changes according to new spm12 code.
+(3) TFCE is now running for SPM8 and SPM12.
+
+
+------------------------------------------------------------------------
+r68 | gaser | 2014-07-28 22:34:27 +1000 (Mo, 28 Jul 2014) | 6 lines
+
+Changed paths:
+M       cg_tfce_estimate.m
+M       compile.m
+
+Handle all multiple regression designs.
+
+------------------------------------------------------------------------
+r67 | gaser | 2014-04-15 22:27:56 +1000 (Di, 15 Apr 2014) | 25 lines
+
+Changed paths:
+M       cg_glm_get_Beta_ResSS.c
+M       cg_glm_get_Beta_ResSS.mexa64
+M       cg_glm_get_Beta_ResSS.mexglx
+M       cg_glm_get_Beta_ResSS.mexmaci64
+M       cg_glm_get_Beta_ResSS.mexw32
+M       cg_glm_get_Beta_ResSS.mexw64
+M       cg_tfce_estimate.m
+M       compile.m
+M       tfceMex.c
+M       tfceMex.mexa64
+M       tfceMex.mexglx
+M       tfceMex.mexmaci64
+M       tfceMex.mexw32
+M       tfceMex.mexw64
+M       tfceMex_noopenmp.mexa64
+M       tfceMex_noopenmp.mexglx
+M       tfceMex_noopenmp.mexmaci64
+M       tfceMex_noopenmp.mexw32
+M       tfceMex_noopenmp.mexw64
+
+(1) Stepsize for TFCE is now estimated using unpermuted data and is then used
+    for all permuted data. Thanks to Chris Rorden for pointing to that issue.
+(2) Recompiled windows versions.
+
+------------------------------------------------------------------------
+r66 | gaser | 2014-01-25 02:36:58 +1100 (Sa, 25 Jan 2014) | 9 lines
+
+Changed paths:
+M       cg_glm_get_Beta_ResSS.mexmaci
+M       cg_tfce_estimate.m
+M       tfceMex.mexmaci
+M       tfceMex_noopenmp.mexmaci
+
+(1) Added support for multiple regression designs where spm.xX.iH is empty.
+(2) Compiled for mexmaci.
+
+------------------------------------------------------------------------
+r65 | gaser | 2013-10-11 17:40:21 +1100 (Fr, 11 Okt 2013) | 7 lines
+
+Changed paths:
+M       cg_tfce_estimate.m
+
+(1) Constrain contrasts (and exchangeability blocks) to effects of interest 
+    only.
+(2) Debug mode now shows color-coded exchangeability blocks).
+
+------------------------------------------------------------------------
+r64 | gaser | 2013-10-02 01:09:01 +1000 (Mi, 02 Okt 2013) | 6 lines
+
+Changed paths:
+M       spm_TFCE.m
+M       cg_get_tfce_results.m
+
+Removed some minor bugs.
+
+------------------------------------------------------------------------
+r63 | gaser | 2013-10-02 00:45:40 +1000 (Mi, 02 Okt 2013) | 6 lines
+
+Changed paths:
+M       Makefile.tfce
+M       CHANGES.txt
+
+Added update to install function in Makefile.tfce.
+
+------------------------------------------------------------------------
+r62 | gaser | 2013-10-02 00:29:17 +1000 (Mi, 02 Okt 2013) | 16 lines
+
+Changed paths:
+M       cg_tfce_estimate.m
+D       TFCE.fig
+M       Contents_info.txt
+!M      spm_TFCE.m
+M       Makefile.tfce
+M       tbx_cfg_tfce_estimate.m
+D       TFCE.m
+D       cg_getTFCE.m
+M       CHANGES.txt
+A  +    cg_get_tfce_results.m
+M       cg_tfce_results.m
+
+(1) Added option for additional mask image to provide SVC.
+(2) Changed GUI back to file menu.
+
+------------------------------------------------------------------------
+r61 | gaser | 2013-05-14 18:46:09 +1000 (Di, 14 Mai 2013) | 17 lines
+
+Changed paths:
+A  +    cg_tfce_estimate.m
+D       tfce.fig
+A  +    TFCE.fig
+M       Contents_info.txt
+D       spm_tfce.m
+A  +    spm_TFCE.m
+M       Makefile.tfce
+M       TFCE.txt
+M       tbx_cfg_tfce_estimate.m
+D       tfce.m
+A  +    TFCE.m
+D       cg_run_tfce_estimate.m
+
+(1) Renamed tfce to TFCE.
+(2) Renamed cg_run_tfce_estimate to cg_tfce_estimate.m.
+
+------------------------------------------------------------------------
+r60 | gaser | 2013-03-13 04:11:04 +1100 (Mi, 13 Mär 2013) | 8 lines
+
+Changed paths:
+M       tbx_cfg_tfce_estimate.m
+M       cg_progress.m
+M       cg_run_tfce_estimate.m
+
+(1) Added some notes.
+(2) Figure now also prints analysis path and processing time.
+
+------------------------------------------------------------------------
+r59 | gaser | 2013-01-30 02:45:20 +1100 (Mi, 30 Jan 2013) | 6 lines
+
+Changed paths:
+M       cg_run_tfce_estimate.m
+
+Corrected calculation of # of permutations for large n's and designs with
+just one subject in cg_run_tfce_estimate.m
+
+------------------------------------------------------------------------
+r58 | gaser | 2013-01-29 20:55:47 +1100 (Di, 29 Jan 2013) | 5 lines
+
+Changed paths:
+M       cg_run_tfce_estimate.m
+
+Removed two typos in cg_run_tfce_estimate.m
+
+------------------------------------------------------------------------
+r57 | gaser | 2012-07-25 18:51:09 +1000 (Mi, 25 Jul 2012) | 6 lines
+
+Changed paths:
+M       tfceMex.c
+M       cg_run_tfce_estimate.m
+
+Removed 2nd warning for not yet supported whitening.
+
+------------------------------------------------------------------------
+r56 | gaser | 2012-02-11 00:48:57 +1100 (Sa, 11 Feb 2012) | 32 lines
+
+Changed paths:
+M       cg_glm_get_Beta_ResSS.c
+M       tfceMex.mexw64
+M       cg_glm_get_Beta_ResSS.mexw32
+M       tfce.fig
+M       cg_glm_get_Beta_ResSS.mexmaci64
+M       Makefile.tfce
+M       tfceMex_noopenmp.mexw64
+M       tfceMex_noopenmp.mexmaci64
+M       tbx_cfg_tfce_estimate.m
+M       cg_glm_get_Beta_ResSS.mexglx
+M       cg_glm_get_Beta_ResSS.mexa64
+M       tfceMex.c
+M       tfceMex.mexw32
+M       compile.m
+M       cg_glm_get_Beta_ResSS.mexmaci
+M       cg_getTFCE.m
+M       tfceMex.mexmaci64
+M       tfceMex_noopenmp.mexmaci
+M       cg_glm_get_Beta_ResSS.mexw64
+M       tfceMex_noopenmp.mexw32
+M       tfceMex.mexa64
+M       tfceMex.mexglx
+M       cg_run_tfce_estimate.m
+M       tfceMex_noopenmp.mexa64
+M       tfceMex_noopenmp.mexglx
+M       tfceMex.mexmaci
+
+(1) Multi-threading using OpenMP!
+(2) Added some options for batch mode.
+(3) Many small changes in cg_run_tfce_estimate.m
+
+------------------------------------------------------------------------
+r55 | gaser | 2012-02-10 11:08:57 +1100 (Fr, 10 Feb 2012) | 5 lines
+
+Changed paths:
+M       cg_run_tfce_estimate.m
+
+Solved issues with Anovas with > 2 groups and contrasts for > 2 columns.
+
+------------------------------------------------------------------------
+r54 | gaser | 2011-11-19 07:48:44 +1100 (Sa, 19 Nov 2011) | 6 lines
+
+Changed paths:
+MM      tfce.fig
+ M      tfce.m
+
+Corrected size of figure.
+
+------------------------------------------------------------------------
+r53 | gaser | 2011-11-19 07:02:04 +1100 (Sa, 19 Nov 2011) | 7 lines
+
+Changed paths:
+M       Makefile.tfce
+M       cg_getTFCE.m
+M       CHANGES.txt
+
+Removed cg_tfce_estimate from Makefile.
+
+------------------------------------------------------------------------
+r52 | gaser | 2011-07-27 18:38:45 +1000 (Mi, 27 Jul 2011) | 7 lines
+
+Changed paths:
+A      tfce.fig
+M      Makefile.tfce
+A      tfce.m
+
+Changed GUI style from menubar to additional window.
+
+------------------------------------------------------------------------
+r51 | gaser | 2011-07-25 20:45:19 +1000 (Mo, 25 Jul 2011) | 6 lines
+
+Changed paths:
+M      cg_getTFCE.m
+
+Removed bug in cg_getTFCE.m that caused, that also values below threshold were
+reported.
+
+------------------------------------------------------------------------
+r50 | gaser | 2011-06-22 01:01:54 +1000 (Mi, 22 Jun 2011) | 54 lines
+
+Changed paths:
+MM     cg_tfce_list.m
+MM     spm_vol_utils.c
+MM     spm_vol_access.c
+ M     cg_glm_get_Beta_ResSS.c
+ M     tfceMex.mexw64
+ M     cg_glm_get_Beta_ResSS.mexw32
+MM     Contents_info.txt
+MM     spm_vol_access.h
+MM     cg_tfce_update.m
+ M     spm_tfce.m
+ M     cg_glm_get_Beta_ResSS.m
+ M     cg_glm_get_Beta_ResSS.mexmaci64
+MM     Makefile.tfce
+ M     TFCE.txt
+ M     tfceMex_noopenmp.mexw64
+ M     tfceMex_noopenmp.mexmaci64
+MM     tbx_cfg_tfce_estimate.m
+ M     cg_glm_get_Beta_ResSS.mexglx
+ M     cg_glm_get_Beta_ResSS.mexa64
+ M     cg_progress.m
+ M     questions.txt
+MM     spm_getdata.c
+MM     tfceMex.c
+MM     Makefile
+MM     spm_getdata.h
+ M     tfceMex.mexw32
+MM     svn_ci_log
+MM     snpm_P_FDR.m
+ M     compile.m
+ M     cg_glm_get_Beta_ResSS.mexmaci
+MM     cg_getTFCE.m
+MM     tfceMex.m
+ M     CHANGES.txt
+ M     tfceMex.mexmaci64
+ M     tfceMex_noopenmp.mexmaci
+ M     cg_glm_get_Beta_ResSS.mexw64
+ M     tfceMex_noopenmp.mexw32
+MM     spm_mapping.c
+ M     tfceMex.mexa64
+ M     tfceMex.mexglx
+MM     spm_mapping.h
+MM     spm_datatypes.h
+MM     Makefile.var
+MM     cg_run_tfce_estimate.m
+MM     spm_make_lookup.c
+ M     cg_tfce_results.m
+ M     tfceMex_noopenmp.mexa64
+ M     tfceMex_noopenmp.mexglx
+MM     spm_make_lookup.h
+ M     tfceMex.mexmaci
+
+Updated svn_ci_log to set svn properties.
+
+------------------------------------------------------------------------
+r49 | gaser | 2011-03-31 20:33:45 +1100 (Do, 31 Mär 2011) | 5 lines
+
+Changed paths:
+M      cg_run_tfce_estimate.m
+
+Removed debug code from cg_run_tfce_estimate.m.
+
+------------------------------------------------------------------------
+r48 | gaser | 2011-03-31 17:39:43 +1100 (Do, 31 Mär 2011) | 6 lines
+
+Changed paths:
+M      cg_tfce_list.m
+M      cg_getTFCE.m
+
+Corrected name of ascii-file, where number of permutations is saved.
+
+------------------------------------------------------------------------
+r47 | gaser | 2011-03-30 21:16:31 +1100 (Mi, 30 Mär 2011) | 5 lines
+
+Changed paths:
+M      cg_run_tfce_estimate.m
+
+Corrected path of mask-image in cg_run_tfce_estimate.m if folder was changed.
+
+------------------------------------------------------------------------
+r46 | gaser | 2011-03-30 19:38:32 +1100 (Mi, 30 Mär 2011) | 10 lines
+
+Changed paths:
+D      cg_tfce_estimate.m
+D      cg_tfce_estimate_multi.m
+M      spm_tfce.m
+M      Makefile.tfce
+A      tbx_cfg_tfce_estimate.m
+A      cg_run_tfce_estimate.m
+
+Added batch mode for TFCE estimate.
+
+------------------------------------------------------------------------
+r45 | gaser | 2011-03-04 02:23:05 +1100 (Fr, 04 Mär 2011) | 7 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+
+(1) Check that number of new filenames are correct before saving updated
+    SPM.mat in cg_tfce_estimate.m.
+(2) Graphical output of histograms slightly changed.
+
+------------------------------------------------------------------------
+r44 | gaser | 2011-03-02 08:54:28 +1100 (Mi, 02 Mär 2011) | 5 lines
+
+Changed paths:
+M       cg_tfce_estimate.m
+
+Corrected estimation for interaction designs.
+
+------------------------------------------------------------------------
+r43 | gaser | 2011-03-02 03:27:46 +1100 (Mi, 02 Mär 2011) | 5 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+
+Removed some debug code.
+
+------------------------------------------------------------------------
+r42 | gaser | 2011-03-02 02:48:46 +1100 (Mi, 02 Mär 2011) | 25 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+M      tfceMex.mexw64
+M      cg_glm_get_Beta_ResSS.mexw32
+M      tfceMex_noopenmp.mexw64
+M      tfceMex_noopenmp.mexmaci64
+M      cg_glm_get_Beta_ResSS.mexa64
+M      cg_glm_get_Beta_ResSS.mexglx
+M      tfceMex.c
+M      tfceMex.mexw32
+M      tfceMex.mexmaci64
+M      tfceMex_noopenmp.mexmaci
+M      cg_glm_get_Beta_ResSS.mexw64
+M      tfceMex_noopenmp.mexw32
+M      tfceMex.mexa64
+M      tfceMex.mexglx
+M      tfceMex_noopenmp.mexa64
+M      tfceMex_noopenmp.mexglx
+M      tfceMex.mexmaci
+
+(1) Allow calculation of tfce-values for inverse contrast (= neg. t-values)
+    in tfceMex.c.
+(2) Recompiled tfceMex.c.
+(3) Allow to use half of permutations for equally sized samples.
+
+------------------------------------------------------------------------
+r41 | gaser | 2011-03-01 21:56:07 +1100 (Di, 01 Mär 2011) | 6 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+M      questions.txt
+
+Removed debug entries.
+
+------------------------------------------------------------------------
+r40 | gaser | 2011-03-01 03:04:22 +1100 (Di, 01 Mär 2011) | 11 lines
+
+Changed paths:
+M      cg_tfce_list.m
+M      cg_tfce_estimate.m
+M      Makefile.tfce
+M      cg_getTFCE.m
+A      CHANGES.txt
+M      cg_tfce_results.m
+
+Rather use old estimation of uncorrected p-values, because SnPM and
+randomize cause uncorrect p-values.
+
+------------------------------------------------------------------------
+r39 | gaser | 2011-02-28 11:03:44 +1100 (Mo, 28 Feb 2011) | 7 lines
+
+Changed paths:
+M       cg_tfce_list.m
+M       cg_tfce_estimate.m
+M       cg_getTFCE.m
+
+Corrected list of p-values.
+
+------------------------------------------------------------------------
+r38 | gaser | 2011-02-26 03:12:37 +1100 (Sa, 26 Feb 2011) | 14 lines
+
+Changed paths:
+M      cg_tfce_list.m
+M      cg_tfce_estimate.m
+M      tfceMex.mexw64
+M      cg_glm_get_Beta_ResSS.mexw32
+M      tfceMex_noopenmp.mexw64
+M      tfceMex.mexw32
+A      snpm_P_FDR.m
+M      cg_getTFCE.m
+M      cg_glm_get_Beta_ResSS.mexw64
+M      tfceMex_noopenmp.mexw32
+
+New claculation of p-values based on snpm8b.
+
+------------------------------------------------------------------------
+r37 | gaser | 2010-12-14 01:01:13 +1100 (Di, 14 Dez 2010) | 5 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+
+Corrected typo in cg_tfce_estimate.m.
+
+------------------------------------------------------------------------
+r36 | gaser | 2010-12-13 20:34:42 +1100 (Mo, 13 Dez 2010) | 5 lines
+
+Changed paths:
+M      Makefile.tfce
+
+Updated Makefile.tfce to consider new files tfceMex_noopen.mex*
+
+------------------------------------------------------------------------
+r35 | gaser | 2010-12-13 20:32:51 +1100 (Mo, 13 Dez 2010) | 5 lines
+
+Changed paths:
+M      Makefile.tfce
+
+Updated Makefile.tfce to consider new files tfceMex_noopen.mex*
+
+------------------------------------------------------------------------
+r34 | gaser | 2010-12-13 20:20:12 +1100 (Mo, 13 Dez 2010) | 21 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+M      tfceMex.mexw64
+M      cg_glm_get_Beta_ResSS.mexw32
+A      tfceMex_noopenmp.mexw64
+A      tfceMex_noopenmp.mexmaci64
+M      cg_glm_get_Beta_ResSS.mexglx
+M      tfceMex.mexw32
+M      compile.m
+M      tfceMex.mexmaci64
+A      tfceMex_noopenmp.mexmaci
+M      cg_glm_get_Beta_ResSS.mexw64
+A      tfceMex_noopenmp.mexw32
+M      tfceMex.mexa64
+M      tfceMex.mexglx
+A      tfceMex_noopenmp.mexa64
+A      tfceMex_noopenmp.mexglx
+M      tfceMex.mexmaci
+
+Additionally provide tfceMex without multi-threading.
+
+------------------------------------------------------------------------
+r33 | gaser | 2010-11-10 09:56:52 +1100 (Mi, 10 Nov 2010) | 8 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+
+Use now check that SPM.xX.K is a structure to decide that the model is a first-
+level analysis with temporal autocorrelations.
+
+
+
+------------------------------------------------------------------------
+r32 | gaser | 2010-11-10 09:55:57 +1100 (Mi, 10 Nov 2010) | 8 lines
+
+Changed paths:
+M      Makefile.tfce
+
+Use now check that SPM.xX.K is a structure to decide that the model is a first-
+level analysis with temporal autocorrelations.
+
+
+
+------------------------------------------------------------------------
+r31 | gaser | 2010-10-14 02:23:23 +1100 (Do, 14 Okt 2010) | 8 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+M      cg_getTFCE.m
+D      CHANGES.txt
+M      tfceMex.mexmaci64
+
+Disabled whitening because of weird effects.
+
+------------------------------------------------------------------------
+r30 | gaser | 2010-09-25 07:41:23 +1000 (Sa, 25 Sep 2010) | 8 lines
+
+Changed paths:
+M       cg_tfce_estimate.m
+M       questions.txt
+A  +    compile.m
+D       make.m
+
+Updated compile.m to additionally provide a single-threaded version of ifceMex.
+
+------------------------------------------------------------------------
+r29 | gaser | 2010-09-17 06:07:12 +1000 (Fr, 17 Sep 2010) | 11 lines
+
+Changed paths:
+M      tfceMex.mexw64
+M      cg_glm_get_Beta_ResSS.mexw32
+A      questions.txt
+M      tfceMex.c
+M      tfceMex.mexw32
+M      cg_glm_get_Beta_ResSS.mexw64
+
+Replaced fprintf by printf in tfceMex.c for correct windows output.
+
+
+------------------------------------------------------------------------
+r28 | gaser | 2010-08-25 18:34:05 +1000 (Mi, 25 Aug 2010) | 5 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+
+Some cosmetic changes to cg_tfce_estimate.m.
+
+------------------------------------------------------------------------
+r27 | gaser | 2010-08-23 09:35:42 +1000 (Mo, 23 Aug 2010) | 8 lines
+
+Changed paths:
+M       tfceMex.c
+!       cg_glm_get_Beta_ResSS.mexmaci
+M       make.m
+!       tfceMex.mexmaci
+
+Updated OPENMP-flags in tfceMex.c
+
+------------------------------------------------------------------------
+r26 | gaser | 2010-08-13 20:39:27 +1000 (Fr, 13 Aug 2010) | 5 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+
+Use try-command for calling tfceMex because compilations are not yet ready.
+
+------------------------------------------------------------------------
+r25 | gaser | 2010-08-13 20:37:18 +1000 (Fr, 13 Aug 2010) | 8 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+M      tfceMex.c
+M      tfceMex.m
+M      tfceMex.mexmaci64
+
+Added option to print # of processors in tfceMex.c
+
+------------------------------------------------------------------------
+r24 | gaser | 2010-08-12 01:24:51 +1000 (Do, 12 Aug 2010) | 18 lines
+
+Changed paths:
+M      tfceMex.mexw64
+M      cg_glm_get_Beta_ResSS.mexw32
+M      Makefile.tfce
+M      cg_glm_get_Beta_ResSS.mexa64
+M      cg_glm_get_Beta_ResSS.mexglx
+M      tfceMex.c
+M      tfceMex.mexw32
+M      tfceMex.mexmaci64
+M      cg_glm_get_Beta_ResSS.mexw64
+M      tfceMex.mexa64
+M      tfceMex.mexglx
+M      make.m
+M      tfceMex.mexmaci
+
+(1) Compiled tfceMex with OpenMP support.
+(2) Updated make.m to provide compilations for different systems.
+
+------------------------------------------------------------------------
+r23 | gaser | 2010-08-11 19:15:10 +1000 (Mi, 11 Aug 2010) | 8 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+M      Makefile.tfce
+A      cg_progress.m
+
+(1) Added cg_pogress.m for estimating remaining processing time.
+(2) Updated cg_tfce_estimate.m for use of cg_progress.m.
+
+------------------------------------------------------------------------
+r22 | gaser | 2010-08-10 22:08:38 +1000 (Di, 10 Aug 2010) | 9 lines
+
+Changed paths:
+M      Contents_info.txt
+A      cg_tfce_update.m
+M      spm_tfce.m
+M      Makefile.tfce
+
+(1) Added update function.
+(2) Updated Contents_info.txt
+
+------------------------------------------------------------------------
+r21 | gaser | 2010-08-10 18:47:45 +1000 (Di, 10 Aug 2010) | 8 lines
+
+Changed paths:
+M      cg_tfce_list.m
+M      cg_tfce_estimate.m
+M      cg_getTFCE.m
+
+(1) Remaining time for estimation is printed.
+(2) Numbers of permutations are saved in spmTFCE_000x.txt file.
+
+------------------------------------------------------------------------
+r20 | gaser | 2010-08-09 17:32:44 +1000 (Mo, 09 Aug 2010) | 11 lines
+
+Changed paths:
+M      cg_glm_get_Beta_ResSS.c
+M      tfceMex.mexw64
+M      Contents_info.txt
+M      spm_tfce.m
+M      Makefile.tfce
+M      cg_glm_get_Beta_ResSS.mexw64
+
+(1) Some cosmetic changes to cg_glm_get_Beta_ResSS.c
+(2) Renamed TFCE.man to tfce.man.
+
+------------------------------------------------------------------------
+r19 | gaser | 2010-07-30 23:58:59 +1000 (Fr, 30 Jul 2010) | 11 lines
+
+Changed paths:
+M      cg_tfce_list.m
+M      cg_tfce_estimate.m
+A      cg_tfce_estimate_multi.m
+M      Makefile.tfce
+
+(1) Added cg_tfce_estimate_multi.m fpr multiple contrasts.
+(2) Modified input for cg_tfce_estimate.m for multiple contrasts.
+(3) Corrected cg_tfce_estimate for reduced designs, where contrast vector 
+    does not comprises all subjects.
+
+------------------------------------------------------------------------
+r18 | gaser | 2010-07-29 00:34:33 +1000 (Do, 29 Jul 2010) | 5 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+
+Added checks for empty index of in cg_tfce_estimate.m
+
+------------------------------------------------------------------------
+r17 | gaser | 2010-07-26 17:08:30 +1000 (Mo, 26 Jul 2010) | 6 lines
+
+Changed paths:
+M      cg_tfce_list.m
+M      cg_getTFCE.m
+
+Considered spm8 updates 4010.
+
+------------------------------------------------------------------------
+r16 | gaser | 2010-07-24 01:21:52 +1000 (Sa, 24 Jul 2010) | 7 lines
+
+Changed paths:
+A      cg_glm_get_Beta_ResSS.mexmaci
+A      cg_glm_get_Beta_ResSS.mexw64
+A      tfceMex.mexmaci
+
+Now really added mexmaci files.
+
+------------------------------------------------------------------------
+r15 | gaser | 2010-07-23 21:20:18 +1000 (Fr, 23 Jul 2010) | 8 lines
+
+Changed paths:
+M      Makefile.tfce
+M      tfceMex.m
+A      make.m
+
+(1) Added make.m for easier compilation.
+(2) Added mexmaci files.
+
+------------------------------------------------------------------------
+r14 | gaser | 2010-07-23 20:43:49 +1000 (Fr, 23 Jul 2010) | 10 lines
+
+Changed paths:
+M      cg_tfce_list.m
+D      spm_TFCE.m
+A  +   spm_tfce.m
+M      Makefile.tfce
+M      cg_getTFCE.m
+
+(1) Renamed spm_TFCE.m to spm_tfce.m.
+(2) Added some additional information for result table in to cg_tfce_list.m.
+
+------------------------------------------------------------------------
+r13 | gaser | 2010-07-23 19:46:27 +1000 (Fr, 23 Jul 2010) | 11 lines
+
+Changed paths:
+M      Contents_info.txt
+M      cg_glm_get_Beta_ResSS.mexmaci64
+M      Makefile.tfce
+M      Makefile
+
+(1) Updated Contents_info.txt and Makefile.tfce to also mention SPM5.
+(2) Changed Makefile to skip creation of an archives, which causes problems
+    with Windows64.
+(3) Added compilation for w64.
+
+------------------------------------------------------------------------
+r12 | gaser | 2010-07-23 02:00:32 +1000 (Fr, 23 Jul 2010) | 8 lines
+
+Changed paths:
+M       cg_glm_get_Beta_ResSS.c
+A       cg_glm_get_Beta_ResSS.mexw32
+A       tfceMex.mexw32
+
+(1) Made cg_glm_get_Beta_ResSS.c conform to compile with w32.
+(2) Added *.mexw32 
+
+------------------------------------------------------------------------
+r11 | gaser | 2010-07-23 01:11:11 +1000 (Fr, 23 Jul 2010) | 7 lines
+
+Changed paths:
+A      tfceMex.mexw64
+M      cg_getTFCE.m
+
+(1) Added tfceMex.mexw64.
+(2) Added warning for FDR.
+
+------------------------------------------------------------------------
+r10 | gaser | 2010-07-23 00:32:17 +1000 (Fr, 23 Jul 2010) | 7 lines
+
+Changed paths:
+D      spm_vol_utils.mexmaci64.a
+D      spm_vol_utils.mexa64.a
+D      spm_vol_utils.mexglx.a
+
+Removed *.a files.
+
+------------------------------------------------------------------------
+r9 | gaser | 2010-07-23 00:26:39 +1000 (Fr, 23 Jul 2010) | 17 lines
+
+Changed paths:
+D      tfce8.txt
+A  +   spm_TFCE.m
+M      Makefile.tfce
+A  +   TFCE.txt
+A      cg_glm_get_Beta_ResSS.mexglx
+A      spm_vol_utils.mexmaci64.a
+A      spm_vol_utils.mexglx.a
+A      spm_vol_utils.mexa64.a
+D      spm_tfce8.m
+M      CHANGES.txt
+A      tfceMex.mexglx
+A      tfceMex.mexa64
+
+(1) Renamed tfce8 to TFCE.
+(2) Compiled for linux
+
+------------------------------------------------------------------------
+r8 | gaser | 2010-07-22 23:26:39 +1000 (Do, 22 Jul 2010) | 14 lines
+
+Changed paths:
+M      cg_tfce_estimate.m
+M      cg_tfce_list.m
+D      tfce8.man
+A      spm_tfce8.m
+M      cg_getTFCE.m
+A  +   tfce8.txt
+M      Makefile.tfce
+M      cg_tfce_results.m
+M      Makefile
+
+(1) Added spm_tfce8.m
+(2) Many changes to get listing of p-values working.
+
+------------------------------------------------------------------------
+r7 | gaser | 2010-07-22 14:37:00 +1000 (Do, 22 Jul 2010) | 8 lines
+
+Changed paths:
+A       cg_tfce_list.m
+M       cg_tfce_estimate.m
+M       CHANGES.txt
+M       cg_tfce_results.m
+
+Preliminary version for listing of results.
+
+------------------------------------------------------------------------
+r6 | gaser | 2010-07-22 02:20:30 +1000 (Do, 22 Jul 2010) | 10 lines
+
+Changed paths:
+A  +   cg_tfce_estimate.m
+A      cg_getTFCE.m
+A      cg_tfce_results.m
+D      cg_tfce8.m
+
+(1) Added cg_tfce_results.m and cg_getTFCE.m for result presentation.
+(2) Renamed cg_tfce8.m to cg_tfce_estimate.m.
+
+
+------------------------------------------------------------------------
+r5 | gaser | 2010-07-21 15:40:41 +1000 (Mi, 21 Jul 2010) | 5 lines
+
+Changed paths:
+M       cg_tfce8.m
+
+New version with corrected p-maps.
+
+------------------------------------------------------------------------
+r4 | gaser | 2010-07-21 15:39:42 +1000 (Mi, 21 Jul 2010) | 6 lines
+
+Changed paths:
+A      CHANGES.txt
+
+Added CHANGES.txt.
+
+
+------------------------------------------------------------------------
+r3 | gaser | 2010-07-21 02:18:42 +1000 (Mi, 21 Jul 2010) | 5 lines
+
+Changed paths:
+M      cg_tfce8.m
+
+Added preliminary version for uncorrected p-values.
+
+------------------------------------------------------------------------
+r2 | gaser | 2010-07-20 23:12:14 +1000 (Di, 20 Jul 2010) | 5 lines
+
+Changed paths:
+M      Makefile.tfce
+
+Added cg_glm_get_Beta_ResSS.m tfceMex.m to Makefile.tfce.
+
+------------------------------------------------------------------------
+r1 | gaser | 2010-07-20 22:29:01 +1000 (Di, 20 Jul 2010) | 1 line
+
+Initial import
+------------------------------------------------------------------------
+
+Changed paths:
+A  +    CHANGES.txt
+        > moved from trunk/CHANGES.txt
+A  +    Contents_info.txt
+        > moved from trunk/Contents_info.txt
+A  +    INSTALL_info.txt
+        > moved from trunk/INSTALL_info.txt
+A  +    Makefile
+        > moved from trunk/Makefile
+A  +    SPM-Designs-Permutation.doc
+        > moved from trunk/SPM-Designs-Permutation.doc
+A  +    TFCE.txt
+        > moved from trunk/TFCE.txt
+A  +    cg_get_tfce_results.m
+        > moved from trunk/cg_get_tfce_results.m
+A  +    cg_progress.m
+        > moved from trunk/cg_progress.m
+A  +    cg_tfce_estimate.m
+        > moved from trunk/cg_tfce_estimate.m
+A  +    cg_tfce_list.m
+        > moved from trunk/cg_tfce_list.m
+A  +    cg_tfce_results.m
+        > moved from trunk/cg_tfce_results.m
+A  +    cg_tfce_update.m
+        > moved from trunk/cg_tfce_update.m
+A  +    compile.m
+        > moved from trunk/compile.m
+A  +    old
+        > moved from trunk/old
+A  +    questions.txt
+        > moved from trunk/questions.txt
+A  +    snpm_P_FDR.m
+        > moved from trunk/snpm_P_FDR.m
+A  +    spm_TFCE.m
+        > moved from trunk/spm_TFCE.m
+A  +    svn_ci_log
+        > moved from trunk/svn_ci_log
+A  +    tbx_cfg_tfce_estimate.m
+        > moved from trunk/tbx_cfg_tfce_estimate.m
+A  +    tfceMex.c
+        > moved from trunk/tfceMex.c
+A  +    tfceMex.m
+        > moved from trunk/tfceMex.m
+A  +    tfceMex.mexa64
+        > moved from trunk/tfceMex.mexa64
+A  +    tfceMex.mexglx
+        > moved from trunk/tfceMex.mexglx
+A  +    tfceMex.mexmaci
+        > moved from trunk/tfceMex.mexmaci
+A  +    tfceMex.mexmaci64
+        > moved from trunk/tfceMex.mexmaci64
+A  +    tfceMex.mexw32
+        > moved from trunk/tfceMex.mexw32
+A  +    tfceMex.mexw64
+        > moved from trunk/tfceMex.mexw64
+A  +    tfceMex_noopenmp.mexa64
+        > moved from trunk/tfceMex_noopenmp.mexa64
+A  +    tfceMex_noopenmp.mexglx
+        > moved from trunk/tfceMex_noopenmp.mexglx
+A  +    tfceMex_noopenmp.mexmaci
+        > moved from trunk/tfceMex_noopenmp.mexmaci
+A  +    tfceMex_noopenmp.mexmaci64
+        > moved from trunk/tfceMex_noopenmp.mexmaci64
+A  +    tfceMex_noopenmp.mexw32
+        > moved from trunk/tfceMex_noopenmp.mexw32
+A  +    tfceMex_noopenmp.mexw64
+        > moved from trunk/tfceMex_noopenmp.mexw64
+A  +    tfceMex_pthread.c
+        > moved from trunk/tfceMex_pthread.c
+A  +    tfceMex_pthread.m
+        > moved from trunk/tfceMex_pthread.m
+A  +    tfceMex_pthread.mexa64
+        > moved from trunk/tfceMex_pthread.mexa64
+A  +    tfceMex_pthread.mexmaci64
+        > moved from trunk/tfceMex_pthread.mexmaci64
+A  +    tfceMex_pthread.mexw64
+        > moved from trunk/tfceMex_pthread.mexw64
+A  +    tfce_mesh.m
+        > moved from trunk/tfce_mesh.m
+A  +    todo
+        > moved from trunk/todo
+D       trunk/CHANGES.txt
+        > moved to CHANGES.txt
+D       trunk/Contents_info.txt
+        > moved to Contents_info.txt
+D       trunk/INSTALL_info.txt
+        > moved to INSTALL_info.txt
+D       trunk/Makefile
+        > moved to Makefile
+D       trunk/SPM-Designs-Permutation.doc
+        > moved to SPM-Designs-Permutation.doc
+D       trunk/TFCE.txt
+        > moved to TFCE.txt
+D       trunk/cg_get_tfce_results.m
+        > moved to cg_get_tfce_results.m
+D       trunk/cg_progress.m
+        > moved to cg_progress.m
+D       trunk/cg_tfce_estimate.m
+        > moved to cg_tfce_estimate.m
+D       trunk/cg_tfce_list.m
+        > moved to cg_tfce_list.m
+D       trunk/cg_tfce_results.m
+        > moved to cg_tfce_results.m
+D       trunk/cg_tfce_update.m
+        > moved to cg_tfce_update.m
+D       trunk/compile.m
+        > moved to compile.m
+D       trunk/old
+        > moved to old
+D       trunk/old/cg_glm_get_Beta_ResSS.c
+D       trunk/old/cg_glm_get_Beta_ResSS.m
+D       trunk/old/cg_glm_get_Beta_ResSS.mexa64
+D       trunk/old/cg_glm_get_Beta_ResSS.mexglx
+D       trunk/old/cg_glm_get_Beta_ResSS.mexmaci
+D       trunk/old/cg_glm_get_Beta_ResSS.mexmaci64
+D       trunk/old/cg_glm_get_Beta_ResSS.mexw32
+D       trunk/old/cg_glm_get_Beta_ResSS.mexw64
+D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexa64
+D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexglx
+D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexmaci
+D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexmaci64
+D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexw32
+D       trunk/old/cg_glm_get_Beta_ResSS_noopenmp.mexw64
+D       trunk/old/spm_datatypes.h
+D       trunk/old/spm_getdata.c
+D       trunk/old/spm_getdata.h
+D       trunk/old/spm_getdata.mexw32.obj
+D       trunk/old/spm_getdata.mexw64.obj
+D       trunk/old/spm_make_lookup.c
+D       trunk/old/spm_make_lookup.h
+D       trunk/old/spm_make_lookup.mexw32.obj
+D       trunk/old/spm_make_lookup.mexw64.obj
+D       trunk/old/spm_mapping.c
+D       trunk/old/spm_mapping.h
+D       trunk/old/spm_mapping.mexw32.obj
+D       trunk/old/spm_mapping.mexw64.obj
+D       trunk/old/spm_vol_access.c
+D       trunk/old/spm_vol_access.h
+D       trunk/old/spm_vol_access.mexw32.obj
+D       trunk/old/spm_vol_access.mexw64.obj
+D       trunk/old/spm_vol_utils.c
+D       trunk/old/utils_double.mexw32.obj
+D       trunk/old/utils_double.mexw64.obj
+D       trunk/old/utils_double_s.mexw32.obj
+D       trunk/old/utils_double_s.mexw64.obj
+D       trunk/old/utils_float.mexw32.obj
+D       trunk/old/utils_float.mexw64.obj
+D       trunk/old/utils_float_s.mexw32.obj
+D       trunk/old/utils_float_s.mexw64.obj
+D       trunk/old/utils_int.mexw32.obj
+D       trunk/old/utils_int.mexw64.obj
+D       trunk/old/utils_int_s.mexw32.obj
+D       trunk/old/utils_int_s.mexw64.obj
+D       trunk/old/utils_schar.mexw32.obj
+D       trunk/old/utils_schar.mexw64.obj
+D       trunk/old/utils_short.mexw32.obj
+D       trunk/old/utils_short.mexw64.obj
+D       trunk/old/utils_short_s.mexw32.obj
+D       trunk/old/utils_short_s.mexw64.obj
+D       trunk/old/utils_uchar.mexw32.obj
+D       trunk/old/utils_uchar.mexw64.obj
+D       trunk/old/utils_uint.mexw32.obj
+D       trunk/old/utils_uint.mexw64.obj
+D       trunk/old/utils_uint_s.mexw32.obj
+D       trunk/old/utils_uint_s.mexw64.obj
+D       trunk/old/utils_ushort.mexw32.obj
+D       trunk/old/utils_ushort.mexw64.obj
+D       trunk/old/utils_ushort_s.mexw32.obj
+D       trunk/old/utils_ushort_s.mexw64.obj
+D       trunk/questions.txt
+        > moved to questions.txt
+D       trunk/snpm_P_FDR.m
+        > moved to snpm_P_FDR.m
+D       trunk/spm_TFCE.m
+        > moved to spm_TFCE.m
+D       trunk/svn_ci_log
+        > moved to svn_ci_log
+D       trunk/tbx_cfg_tfce_estimate.m
+        > moved to tbx_cfg_tfce_estimate.m
+D       trunk/tfceMex.c
+        > moved to tfceMex.c
+D       trunk/tfceMex.m
+        > moved to tfceMex.m
+D       trunk/tfceMex.mexa64
+        > moved to tfceMex.mexa64
+D       trunk/tfceMex.mexglx
+        > moved to tfceMex.mexglx
+D       trunk/tfceMex.mexmaci
+        > moved to tfceMex.mexmaci
+D       trunk/tfceMex.mexmaci64
+        > moved to tfceMex.mexmaci64
+D       trunk/tfceMex.mexw32
+        > moved to tfceMex.mexw32
+D       trunk/tfceMex.mexw64
+        > moved to tfceMex.mexw64
+D       trunk/tfceMex_noopenmp.mexa64
+        > moved to tfceMex_noopenmp.mexa64
+D       trunk/tfceMex_noopenmp.mexglx
+        > moved to tfceMex_noopenmp.mexglx
+D       trunk/tfceMex_noopenmp.mexmaci
+        > moved to tfceMex_noopenmp.mexmaci
+D       trunk/tfceMex_noopenmp.mexmaci64
+        > moved to tfceMex_noopenmp.mexmaci64
+D       trunk/tfceMex_noopenmp.mexw32
+        > moved to tfceMex_noopenmp.mexw32
+D       trunk/tfceMex_noopenmp.mexw64
+        > moved to tfceMex_noopenmp.mexw64
+D       trunk/tfceMex_pthread.c
+        > moved to tfceMex_pthread.c
+D       trunk/tfceMex_pthread.m
+        > moved to tfceMex_pthread.m
+D       trunk/tfceMex_pthread.mexa64
+        > moved to tfceMex_pthread.mexa64
+D       trunk/tfceMex_pthread.mexmaci64
+        > moved to tfceMex_pthread.mexmaci64
+D       trunk/tfceMex_pthread.mexw64
+        > moved to tfceMex_pthread.mexw64
+D       trunk/tfce_mesh.m
+        > moved to tfce_mesh.m
+D       trunk/todo
+        > moved to todo
+
+Changed: Moved back from trunk...
+------------------------------------------------------------------------
+r103 | gaser | 2016-09-23 00:10:09

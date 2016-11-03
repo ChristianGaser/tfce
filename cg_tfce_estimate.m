@@ -380,10 +380,8 @@ for con = 1:length(Ic0)
     if use_half_permutations
       fprintf('Equal sample size found: Use half permutations.\n');
     end
-    fprintf('exchangeability blocks: ');
-    for j=1:n_exch_blocks
-      fprintf('%d ',ind_exch_blocks{j});
-    end
+    fprintf('Exchangeability blocks: ');
+    fprintf('%d ',unique(cell2mat(ind_exch_blocks)));
     fprintf('\n');
     fprintf('# of conditions: %d\n',n_cond);
     
@@ -410,6 +408,9 @@ end
     
       % calculate tfce of unpermuted t-map
       if mesh_detected
+        if ~isstruct(SPM.xVol.G)
+          SPM.xVol.G = gifti(SPM.xVol.G);
+        end
         tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, dh)*dh;
       else
         % only estimate neg. tfce values for non-positive t-values
@@ -617,7 +618,7 @@ end
           % color-coded legend
           y = 1.0;
           text(-0.2,y, 'Columns of design matrix: ', 'Color',cmap(1, :),'FontWeight','Bold','FontSize',10); y = y - 0.10;
-          text(-0.2,y,['Exchangeability blocks: ' num2str_short(sort(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',10); y = y - 0.05;
+          text(-0.2,y,['Exchangeability blocks: ' num2str_short(unique(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',10); y = y - 0.05;
           if ~isempty(xX.iH)
             text(-0.2,y, ['iH - Indicator variables: ' num2str_short(xX.iH)], 'Color',cmap(16,:),'FontWeight','Bold','FontSize',10);
             y = y - 0.05; 

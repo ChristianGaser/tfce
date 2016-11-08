@@ -65,7 +65,7 @@ if isfield(SPM.xX,'W')
     W = SPM.xX.W;
     if any(W~=1)
         fprintf('Whitening of the data is not yet supported.\n');
-        W = speye(size(SPM.xX.X,1));
+%        W = speye(size(SPM.xX.X,1));
     end
 else
     W = speye(size(SPM.xX.X,1));
@@ -247,15 +247,26 @@ for con = 1:length(Ic0)
         for k=1:length(xX.iH)
           n_data_cond = [n_data_cond sum(xX.X(:,xX.iH(k)))];
         end
-        n_cond = n_exch_blocks;
+        for j=1:n_exch_blocks
+          c_exch_blocks = find(c==exch_blocks(j));
+          for k=1:length(c_exch_blocks)
+            n_cond = n_cond + length(find(xX.iH==c_exch_blocks(k)));
+          end
+        end  
+% not sure whether this is really necessary  
+%        if n_cond > 0   
+%        n_cond = n_exch_blocks;
+%        end
     end
 
     use_half_permutations = 0;
     % check if sample size is equal for both conditions
     if n_cond == 2
-        if sum(n_data_cond(find(c==exch_blocks(1)))) == sum(n_data_cond(find(c==exch_blocks(2))))
+        try
+          if sum(n_data_cond(find(c==exch_blocks(1)))) == sum(n_data_cond(find(c==exch_blocks(2))))
             use_half_permutations = 1;
             fprintf('Equal sample sizes: half of permutations are used.\n');
+          end
         end
     end
 
@@ -277,7 +288,7 @@ for con = 1:length(Ic0)
     switch n_cond
     case 0 % correlation
       if n_exch_blocks == 2
-        warning('Interaction design between two regressors found. This should work, but is not yet fully tested and I am unsure whether the # of max. permutations is correctly estimated.')
+        disp('Interaction design between two regressors found. This should work, but is not yet fully tested and I am unsure whether the # of max. permutations is correctly estimated.')
       else
         if repeated_anova
           fprintf('Repeated Anova with contrast for covariate found\n');
@@ -301,6 +312,7 @@ for con = 1:length(Ic0)
       else
         fprintf('Anova found\n');
       end
+
       % use exchangeability blocks for labels
       label = zeros(1,n_data);
       for j=1:n_exch_blocks

@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r105 | gaser | 2016-11-03 14:41:00 +0100 (Do, 03 Nov 2016) | 6 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Exchangeability blocks were redundant for interaction designs.
+
+------------------------------------------------------------------------
 r104 | gaser | 2016-09-22 16:12:12 +0200 (Do, 22 Sep 2016) | 8 lines
 
 Changed paths:
@@ -1904,6 +1913,6 @@ Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
 
-Fixed: Exchangeability blocks were redundant for interaction designs.
+Fixed: Interaction contrasts were not correctly accepted.
 ------------------------------------------------------------------------
-r105 | gaser | 2016-11-03 14:40:54
+r106 | gaser | 2016-11-08 14:48:58

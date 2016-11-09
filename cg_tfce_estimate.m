@@ -18,7 +18,7 @@ col   = [0.25 0 0; 1 0 0; 1 0.75 0];
 alpha = [0.05 0.01 0.001];
     
 % give same results each time
-rand('state',0);
+rand('twister',0);
 
 % tolerance for comparing real numbers
 tol = 1e-4;

@@ -8,6 +8,9 @@ function cg_progress(action,varargin)
 %
 % FORMAT cg_progress('Clear')
 % Clears the progress output and prints processing time.
+%_______________________________________________________________________
+% Christian Gaser
+% $Id$
 
 global sum_time time_new time_old iter_old n_iterations arg2 arg3
 

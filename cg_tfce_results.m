@@ -1,4 +1,18 @@
 function varargout = cg_tfce_results(varargin)
+% User interface for TFCE results: Display and analysis of regional effects
+% FORMAT [hReg,xSPM,SPM] = cg_tfce_results('Setup',[xSPM])
+%
+% hReg   - handle of MIP XYZ registry object
+%          (see spm_XYZreg.m for details)
+% xSPM   - structure containing specific SPM, distribution & filtering details
+%          (see spm_getSPM.m for contents)
+% SPM    - SPM structure containing generic parameters
+%          (see spm_spm.m for contents)
+%_______________________________________________________________________
+% Christian Gaser
+% $Id$
+
+% based on spm_results_ui.m
 
 %-Condition arguments
 %--------------------------------------------------------------------------

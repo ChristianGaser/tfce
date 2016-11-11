@@ -1,4 +1,12 @@
 function cg_tfce_estimate(job)
+% main TFCE function for estimating TFCE statistics
+%
+% FORMAT cg_tfce_estimate(job)
+% job - job from tbx_cfg_tfce_estimate
+% 
+%_______________________________________________________________________
+% Christian Gaser
+% $Id$
 
 % display permuted design matrix (otherwise show t distribution)
 show_permuted_designmatrix = 1;

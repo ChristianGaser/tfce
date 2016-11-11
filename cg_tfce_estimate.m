@@ -201,7 +201,8 @@ if ~isempty(ind_mask)
   
   % whitening matrix
   if isfield(SPM.xX,'W')
-    Y = Y*single(full(SPM.xX.W));
+    W = single(full(SPM.xX.W));
+    Y = Y*W;
     fprintf('Whitening of the data is not yet supported.\n');
   end
 else

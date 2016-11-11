@@ -67,18 +67,7 @@ if isstruct(SPM.xX.K)
     fprintf('ERROR: No first level analysis with temporal correlations allowed.\n');
     return
 end
-    
-% whitening matrix
-if isfield(SPM.xX,'W')
-    W = SPM.xX.W;
-    if any(W~=1)
-        fprintf('Whitening of the data is not yet supported.\n');
-%        W = speye(size(SPM.xX.X,1));
-    end
-else
-    W = speye(size(SPM.xX.X,1));
-end
-    
+        
 % get some parameters from SPM
 xX     = SPM.xX;
 VY     = SPM.xY.VY;
@@ -206,9 +195,15 @@ if ~isempty(ind_mask)
   % load data
   for i=1:n
     tmp = spm_data_read(VY(i));
-    Y(:,i) = single(full(W(i,i)))*tmp(ind_mask);
+    Y(:,i) = tmp(ind_mask);
   end
   clear tmp;
+  
+  % whitening matrix
+  if isfield(SPM.xX,'W')
+    Y = Y*single(full(SPM.xX.W));
+    fprintf('Whitening of the data is not yet supported.\n');
+  end
 else
   error('Empty mask.');
 end

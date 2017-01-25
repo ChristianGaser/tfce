@@ -233,6 +233,14 @@ for con = 1:length(Ic0)
     [indi, indj] = find(c~=0);
     n_contrasts_lines = size(c,2);
     ind_con = unique(indi)';
+    
+    % check for contrasts that are defined for columns with subject effects
+    if ~isempty(xX.iB)
+      if max(ind_con) > min(xX.iB)
+        fprintf('ERROR: No contrasts on subjects/block effects allowed.\n');
+        return
+      end
+    end
 
     c_name  = deblank(xCon.name);
 

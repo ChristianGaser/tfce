@@ -1,4 +1,14 @@
 ------------------------------------------------------------------------
+r110 | gaser | 2016-11-11 16:58:05 +0100 (Fr, 11 Nov 2016) | 7 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Forgot to define W in cg_tfce_estimate.m
+
+
+------------------------------------------------------------------------
 r109 | gaser | 2016-11-11 16:40:53 +0100 (Fr, 11 Nov 2016) | 7 lines
 
 Changed paths:
@@ -1952,7 +1962,6 @@ Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
 
-Fixed: Forgot to define W in cg_tfce_estimate.m
-
+Fixed: Check for contrasts for columns with subject effects in repeated anovas.
 ------------------------------------------------------------------------
-r110 | gaser | 2016-11-11 16:57:53
+r111 | gaser | 2017-01-25 19:35:37

@@ -8,6 +8,13 @@ function cg_tfce_estimate(job)
 % Christian Gaser
 % $Id$
 
+disp('---------------------------------------');
+disp('Experimental Version');
+disp('---------------------------------------');
+
+% convert to z-statistic
+convert_to_z = 1;
+
 % display permuted design matrix (otherwise show t distribution)
 show_permuted_designmatrix = 1;
 
@@ -17,16 +24,17 @@ test_mode = 0;
 % define stepsize for tfce
 n_steps_tfce = 100;
     
-% define histogram bins
-% use value > 1000 to reliable estimate p<0.001 levels
-n_hist_bins = 1100;
-    
 % colors and alpha levels
 col   = [0.25 0 0; 1 0 0; 1 0.75 0];
 alpha = [0.05 0.01 0.001];
     
 % give same results each time
-rand('twister',0);
+if exist('rng','builtin') == 5
+  rng('default')
+  rng(0)
+else
+  rand('state',0);
+end
 
 % tolerance for comparing real numbers
 tol = 1e-4;
@@ -194,17 +202,24 @@ if ~isempty(ind_mask)
   
   % load data
   for i=1:n
-    tmp = spm_data_read(VY(i));
+    if mesh_detected
+      tmp = spm_data_read(VY(i));
+    else % nifti is much faster to read
+      N = nifti(VY(i).fname);
+      % deal with 4D data and use conventional but slower spm_data_read
+      if size(N.dat.dim,2) == 4
+        tmp = spm_data_read(VY(i));        
+      else
+        tmp = N.dat(:,:,:);
+      end
+    end
     Y(:,i) = tmp(ind_mask);
   end
   clear tmp;
   
   % whitening matrix
-  if isfield(SPM.xX,'W')
-    W = single(full(SPM.xX.W));
-    Y = Y*W;
-    fprintf('Whitening of the data is not yet supported.\n');
-  end
+  W = single(full(xX.W));
+  Y = Y*W;
 else
   error('Empty mask.');
 end
@@ -252,39 +267,33 @@ for con = 1:length(Ic0)
     
     % check for exchangeability blocks and design matrix
     if n_exch_blocks == 1
-        n_cond = length(find(xX.iH==ind_con)); % check whether the contrast is defined at columns for condition effects
+      n_cond = length(find(xX.iH==ind_con)); % check whether the contrast is defined at columns for condition effects
     else
-        n_cond = 0;
-        n_data_cond = [];
-        for k=1:length(xX.iH)
-          n_data_cond = [n_data_cond sum(xX.X(:,xX.iH(k)))];
+      n_cond = 0;
+      n_data_cond = [];
+      for k=1:length(xX.iH)
+        n_data_cond = [n_data_cond sum(xX.X(:,xX.iH(k)))];
+      end
+      for j=1:n_exch_blocks
+        c_exch_blocks = find(c==exch_blocks(j));
+        for k=1:length(c_exch_blocks)
+          n_cond = n_cond + length(find(xX.iH==c_exch_blocks(k)));
         end
-        for j=1:n_exch_blocks
-          c_exch_blocks = find(c==exch_blocks(j));
-          for k=1:length(c_exch_blocks)
-            n_cond = n_cond + length(find(xX.iH==c_exch_blocks(k)));
-          end
-        end  
-% not sure whether this is really necessary  
-%        if n_cond > 0   
-%        n_cond = n_exch_blocks;
-%        end
+      end  
     end
 
     use_half_permutations = 0;
     % check if sample size is equal for both conditions
     if n_cond == 2
-        try
-          if sum(n_data_cond(find(c==exch_blocks(1)))) == sum(n_data_cond(find(c==exch_blocks(2))))
-            use_half_permutations = 1;
-            fprintf('Equal sample sizes: half of permutations are used.\n');
-          end
+      try
+        % repated Anova or F-test don't allow to use only half of the permutions
+        if repeated_anova || strcmp(xCon.STAT,'F')
+          use_half_permutations = 0;
+        elseif sum(n_data_cond(find(c==exch_blocks(1)))) == sum(n_data_cond(find(c==exch_blocks(2))))
+          use_half_permutations = 1;
+          fprintf('Equal sample sizes: half of permutations are used.\n');
         end
-    end
-
-    % repated Anova or F-test don't allow to use only half of the permutions
-    if repeated_anova || strcmp(xCon.STAT,'F')
-      use_half_permutations = 0;
+      end
     end
     
     ind_exch_blocks = cell(n_exch_blocks,1);
@@ -410,21 +419,45 @@ for con = 1:length(Ic0)
     fprintf('# of conditions: %d\n',n_cond);
     
     n_perm = min([n_perm n_perm_full]);
-
-if 0
-    [xXX, xXZ, xConc] = partition_design(xX.X,xCon.c,'beckmann')
-    xX.X = [xXX xXZ(:,2:end)];
-    xCon.c = xConc(1:end-1,:);
-    tmp=xCon.c 
-end
            
     if ~test_mode
 
       % compute unpermuted t/F-map
-      if strcmp(xCon.STAT,'T')
-        t0 = calc_Ttest(Y,xX.X,xCon.c,ind_mask,VY,W);
+      [t0, df2] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim);
+      
+      mask_0 = (t0 == 0);
+      mask_1 = (t0 ~= 0);
+      mask_P = (t0 > 0);
+      mask_N = (t0 < 0);
+
+      df1 = size(xCon.c,2);
+
+      %---------------------------------------------------------------
+      % save unpermuted map
+      %---------------------------------------------------------------
+
+      % prepare output files
+      Vt = VY(1);
+      Vt.dt(1)    = 16;
+      Vt.pinfo(1) = 1;
+
+      name = sprintf('%s_%04d',xCon.STAT,Ic);
+      Vt.fname = fullfile(cwd,[name file_ext]);
+      Vt.descrip = sprintf('%s Contrast %04d',xCon.STAT,Ic);
+      if spm12
+        Vt = spm_data_hdr_write(Vt);
+        spm_data_write(Vt,t0);
       else
-        t0 = calc_Ftest(Y,xX,xCon,ind_mask,VY,W);
+        spm_write_vol(Vt,t0);
+      end
+
+      % transform to z statistic
+      if convert_to_z
+        if strcmp(xCon.STAT,'T')
+          t0 = spm_t2z(t0,df2);
+        else
+          t0 = palm_gtoz(t0,df1,df2);
+        end
       end
 
       % get dh for unpermuted map
@@ -450,17 +483,15 @@ end
       t0_max    = max(t0(:));
       tfce0_min = min(tfce0(:));
       t0_min    = min(t0(:));
-    
-      % get vector for histogram bins
-      tfce_bins = linspace(0, max(abs(tfce0(:))), n_hist_bins);
-      t_bins    = linspace(0, max(abs(t0(:))), n_hist_bins);
-    
+          
       % prepare countings
-      t_hist       = zeros(1, n_hist_bins);
-      tfce_hist    = zeros(1, n_hist_bins);
+      tperm        = zeros(size(t));
+      tfceperm     = zeros(size(t));
+      t_min        = [];
       t_max        = [];
       t_max_th     = [];
       t_th         = [];
+      tfce_min     = [];
       tfce_max     = [];
       tfce_max_th  = [];
       tfce_th      = [];
@@ -665,21 +696,19 @@ end
       if ~test_mode
         % calculate permuted t-map
         if i==1
-          t = t0;
+          t    = t0;
           tfce = tfce0;
         else
-          % -----------------------------------------------------
-          % -----------------------------------------------------
-          % What about W for whitening the data??? Should this also permuted???
-          % -----------------------------------------------------
-          % -----------------------------------------------------
-        
-          if strcmp(xCon.STAT,'T')
-            t = calc_Ttest(Y,Xperm,xCon.c,ind_mask,VY,W);
-          else
-            xXperm = xX;
-            xXperm.X = Xperm;
-            t = calc_Ftest(Y,xXperm,xCon,ind_mask,VY,W);
+          xXperm   = xX;
+          xXperm.X = Xperm;
+
+          t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
+          if convert_to_z
+            if strcmp(xCon.STAT,'T')
+              t(mask_1) = spm_t2z(t(mask_1),df2);
+            else
+              t(mask_1) = palm_gtoz(t(mask_1),df1,df2);
+            end
           end
         
           % use individual dh
@@ -690,7 +719,7 @@ end
             tfce = tfce_mesh(SPM.xVol.G.faces, t, dh)*dh;
           else
             % only estimate neg. tfce values for non-positive t-values
-            if min(t0(:)) < 0
+            if min(t(:)) < 0
               tfce = tfceMex_pthread(t,dh,E,H,1,job.singlethreaded)*dh;
             else
               tfce = tfceMex_pthread(t,dh,E,H,0,job.singlethreaded)*dh;
@@ -707,6 +736,12 @@ end
           % maximum statistic
           tfce_max = [tfce_max max(tfce(:)) -min(tfce(:))];
           t_max    = [t_max max(t(:)) -min(t(:))];
+          tfce_min = [tfce_min min(tfce(:)) -max(tfce(:))];
+          t_min    = [t_min min(t(:)) -max(t(:))];
+          tperm(mask_P)    = tperm(mask_P) + 2*(t(mask_P) >= t0(mask_P));
+          tperm(mask_N)    = tperm(mask_N) - 2*(t(mask_N) <= t0(mask_N));
+          tfceperm(mask_P) = tfceperm(mask_P) + 2*(tfce(mask_P) >= tfce0(mask_P));
+          tfceperm(mask_N) = tfceperm(mask_N) - 2*(tfce(mask_N) <= tfce0(mask_N));
         end
       else
         label_matrix = [label_matrix; rand_label];
@@ -715,54 +750,41 @@ end
           % maximum statistic
           tfce_max = [tfce_max max(tfce(:))];
           t_max    = [t_max max(t(:))];
+          tfce_min = [tfce_min min(tfce(:))];
+          t_min    = [t_min min(t(:))];
+          tperm(mask_P)    = tperm(mask_P) + (t(mask_P) >= t0(mask_P));
+          tperm(mask_N)    = tperm(mask_N) - (t(mask_N) <= t0(mask_N));
+          tfceperm(mask_P) = tfceperm(mask_P) + (tfce(mask_P) >= tfce0(mask_P));
+          tfceperm(mask_N) = tfceperm(mask_N) - (tfce(mask_N) <= tfce0(mask_N));
         end
       end
         
       if ~test_mode
-        % cummulate histogram
-        tfce_gt0 = tfce(find(tfce>0));
-        if ~isempty(tfce_gt0)
-          tfce_hist = tfce_hist + hist(tfce_gt0, tfce_bins);
-        end
-        t_gt0 = t(find(t>0));
-        if ~isempty(t_gt0)
-          t_hist = t_hist + hist(t_gt0, t_bins);
-        end
-      
-        if use_half_permutations
-          tfce_lt0 = tfce(find(tfce<0));
-          if ~isempty(tfce_lt0)
-            tfce_hist = tfce_hist + hist(-tfce_lt0, tfce_bins);
-          end
-          t_lt0 = t(find(t<0));
-          if ~isempty(t_lt0)
-            t_hist = t_hist + hist(-t_lt0, t_bins);
-          end
-        end
-      
         % use cummulated sum to find threshold
-        tfce_max = sort(tfce_max);
-        t_max    = sort(t_max);
+        stfce_max = sort(tfce_max);
+        st_max    = sort(t_max);
+        stfce_min = sort(tfce_min,2,'descend');
+        st_min    = sort(t_min,2,'descend');
     
         % find corrected thresholds
-        ind_max  = ceil((1-alpha).*length(t_max));
-        t_max_th = [t_max_th; t_max(ind_max);];
+        ind_max  = ceil((1-alpha).*length(st_max));
+        t_max_th = [t_max_th; st_max(ind_max)];
         if use_half_permutations
-          t_max_th = [t_max_th; t_max(ind_max);];
+          t_max_th = [t_max_th; st_max(ind_max)];
         end
         
-        ind_max     = ceil((1-alpha).*length(tfce_max));
-        tfce_max_th = [tfce_max_th; tfce_max(ind_max);];
+        ind_max     = ceil((1-alpha).*length(stfce_max));
+        tfce_max_th = [tfce_max_th; stfce_max(ind_max)];
         if use_half_permutations
-          tfce_max_th = [tfce_max_th; tfce_max(ind_max);];
+          tfce_max_th = [tfce_max_th; stfce_max(ind_max)];
         end
     
         % plot thresholds and histograms
         try
           h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
-          plot_distribution(tfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);
+          plot_distribution(stfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);
           if ~show_permuted_designmatrix
-            plot_distribution(t_max, t_max_th, 't-value', alpha, col, 2, t0_max, t0_min);
+            plot_distribution(st_max, t_max_th, 't-value', alpha, col, 2, t0_max, t0_min);
           end
         end
       
@@ -816,15 +838,6 @@ end
       if n_perm < 1000, n_alpha = 2; end
       if n_perm <  100, n_alpha = 1; end
     
-      % pepare output files
-      Vt = VY(1);
-      Vt.dt(1)    = 16;
-      Vt.pinfo(1) = 1;
-        
-      mask_0 = find(t0 == 0);
-      mask_P = find(t0 > 0);
-      mask_N = find(t0 < 0);
-
       %---------------------------------------------------------------
       % save unpermuted TFCE map
       %---------------------------------------------------------------
@@ -838,20 +851,8 @@ end
         spm_write_vol(Vt,tfce0);
       end
     
-      %---------------------------------------------------------------
-      % save unpermuted map
-      %---------------------------------------------------------------
-      name = sprintf('%s_%04d',xCon.STAT,Ic);
-      Vt.fname = fullfile(cwd,[name file_ext]);
-      Vt.descrip = sprintf('%s Contrast %04d',xCon.STAT,Ic);
-      if spm12
-        Vt = spm_data_hdr_write(Vt);
-        spm_data_write(Vt,t0);
-      else
-        spm_write_vol(Vt,t0);
-      end
-    
       % save ascii file with number of permutations
+      name = sprintf('%s_%04d',xCon.STAT,Ic);
       fid = fopen(fullfile(cwd,[name '.txt']),'w');
       fprintf(fid,'%d\n',n_perm);
       fclose(fid);
@@ -864,24 +865,20 @@ end
       name = sprintf('TFCE_log_p_%04d',Ic);
       Vt.fname = fullfile(cwd,[name file_ext]);
       Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
-    
-      nPtfce = zeros(size(tfce0));
-    
+        
       % estimate p-values
-      tfce_cumsum = cumsum(tfce_hist);
-      for j=n_hist_bins:-1:1
-        tmp = min(find(tfce_cumsum>=ceil(j/n_hist_bins*sum(tfce_hist))));
-        nPtfce((tfce0  > tfce_bins(tmp)) & (nPtfce==0)) =  j/n_hist_bins;
-        nPtfce((-tfce0 > tfce_bins(tmp)) & (nPtfce==0)) = -j/n_hist_bins;
-      end
-    
-      nPtfce(mask_P) = 1 - nPtfce(mask_P);
-      nPtfce(mask_N) = 1 + nPtfce(mask_N);
-      nPtfce(mask_0) = NaN;
-
+      nPtfce = tfceperm/n_perm;
       nPtfcelog10 = zeros(size(tfce0));
-      nPtfcelog10(mask_P) = -log10(nPtfce(mask_P));
-      nPtfcelog10(mask_N) =  log10(nPtfce(mask_N));
+    
+      if ~isempty(mask_P)
+        nPtfcelog10(mask_P) = -log10(nPtfce(mask_P));
+      end
+      if ~isempty(mask_N)
+        nPtfce(mask_N) = -nPtfce(mask_N);
+        nPtfcelog10(mask_N) =  log10(nPtfce(mask_N));
+      end
+      
+      nPtfce(mask_0) = NaN;
       nPtfcelog10(mask_0) = NaN;
 
       if spm12
@@ -898,23 +895,20 @@ end
       Vt.fname = fullfile(cwd,[name file_ext]);
       Vt.descrip = sprintf('%s Contrast %04d',xCon.STAT,Ic);
     
-      nPt = zeros(size(t0));
       nPtlog10 = zeros(size(t0));
     
       % estimate p-values
-      t_cumsum = cumsum(t_hist);
-      for j=n_hist_bins:-1:1
-        tmp = min(find(t_cumsum>=ceil(j/n_hist_bins*sum(t_hist))));
-        nPt((t0  > t_bins(tmp)) & (nPt==0)) =  j/n_hist_bins;
-        nPt((-t0 > t_bins(tmp)) & (nPt==0)) = -j/n_hist_bins;
-      end
+      nPt = tperm/n_perm;
      
-      nPt(mask_P) = 1 - nPt(mask_P);
-      nPt(mask_N) = 1 + nPt(mask_N);
+      if ~isempty(mask_P)
+        nPtlog10(mask_P) = -log10(nPt(mask_P));
+      end
+      if ~isempty(mask_N)
+        nPt(mask_N) = -nPt(mask_N);
+        nPtlog10(mask_N) =  log10(nPt(mask_N));
+      end
+      
       nPt(mask_0) = NaN;
-
-      nPtlog10(mask_P) = -log10(nPt(mask_P));
-      nPtlog10(mask_N) =  log10(nPt(mask_N));
       nPtlog10(mask_0) = NaN;
 
       if spm12
@@ -935,23 +929,39 @@ end
 
       corrP = zeros(size(t));
     
-      for t2 = tfce_max
-        %-FWE-corrected p is proportion of randomisation greater or
-        % equal to statistic.
-        %-Use a > b -tol rather than a >= b to avoid comparing
-        % two reals for equality.
-        corrP = corrP + (t2 > tfce0 - tol);
-        corrP = corrP - (t2 > -tfce0 - tol);
+      if ~isempty(mask_P)
+        for t2 = tfce_max
+          %-FWE-corrected p is proportion of randomisation greater or
+          % equal to statistic.
+          %-Use a > b -tol rather than a >= b to avoid comparing
+          % two reals for equality.
+          corrP(mask_P) = corrP(mask_P) + (t2 > tfce0(mask_P)  - tol);
+        end
       end
-      corrP = corrP / n_perm;  
-
-      corrP(mask_P) = 1 + corrP(mask_P);
-      corrP(mask_N) = 1 - corrP(mask_N);
-      corrP(mask_0) = NaN;
-
+      
+      if ~isempty(mask_N)
+        for t2 = tfce_min
+          %-FWE-corrected p is proportion of randomisation greater or
+          % equal to statistic.
+          %-Use a > b -tol rather than a >= b to avoid comparing
+          % two reals for equality.
+          corrP(mask_N) = corrP(mask_N) - (t2 < tfce0(mask_N) + tol);
+        end
+      end
+      
+      corrP = corrP/n_perm;  
       corrPlog10 = zeros(size(tfce0));
-      corrPlog10(mask_P) = -log10(corrP(mask_P));
-      corrPlog10(mask_N) =  log10(corrP(mask_N));
+
+      if ~isempty(mask_P)
+        corrPlog10(mask_P) = -log10(corrP(mask_P));
+      end
+      
+      if ~isempty(mask_N)
+        corrP(mask_N) = -corrP(mask_N);
+        corrPlog10(mask_N) =  log10(corrP(mask_N));
+      end
+      
+      corrP(mask_0) = NaN;
       corrPlog10(mask_0) = NaN;
 
       if spm12
@@ -970,23 +980,38 @@ end
 
       corrP = zeros(size(t));
     
-      for t2 = t_max
-        %-FWE-corrected p is proportion of randomisation greater or
-        % equal to statistic.
-        %-Use a > b -tol rather than a >= b to avoid comparing
-        % two reals for equality.
-        corrP = corrP + (t2 > t0 - tol);
-        corrP = corrP - (t2 > -t0 - tol);
+      if ~isempty(mask_P)
+        for t2 = t_max
+          %-FWE-corrected p is proportion of randomisation greater or
+          % equal to statistic.
+          %-Use a > b -tol rather than a >= b to avoid comparing
+          % two reals for equality.
+          corrP(mask_P) = corrP(mask_P) + (t2 > t0(mask_P) - tol);
+        end
       end
+      if ~isempty(mask_N)
+        for t2 = t_min
+          %-FWE-corrected p is proportion of randomisation greater or
+          % equal to statistic.
+          %-Use a > b -tol rather than a >= b to avoid comparing
+          % two reals for equality.
+          corrP(mask_N) = corrP(mask_N) - (t2 < t0(mask_N) + tol);
+        end
+      end
+      
       corrP = corrP / n_perm;  
-
-      corrP(mask_P) = 1 + corrP(mask_P);
-      corrP(mask_N) = 1 - corrP(mask_N);
-      corrP(mask_0) = NaN;
-
       corrPlog10 = zeros(size(tfce0));
-      corrPlog10(mask_P) = -log10(corrP(mask_P));
-      corrPlog10(mask_N) =  log10(corrP(mask_N));
+
+      if ~isempty(mask_P)
+        corrP(mask_P) = corrP(mask_P);
+        corrPlog10(mask_P) = -log10(corrP(mask_P));
+      end
+      if ~isempty(mask_N)
+        corrP(mask_N) = -corrP(mask_N);
+        corrPlog10(mask_N) =  log10(corrP(mask_N));
+      end
+
+      corrP(mask_0) = NaN;
       corrPlog10(mask_0) = NaN;
     
       if spm12
@@ -1005,30 +1030,29 @@ end
       Vt.fname = fullfile(cwd,[name file_ext]);
       Vt.descrip = sprintf('TFCE Contrast %04d',Ic);
 
+      corrPfdr = NaN(size(t));
+      corrPfdrlog10 = zeros(size(tfce0));
+
       if ~isempty(mask_P)
         [snP_pos,I_pos] = sort(nPtfce(mask_P));
-        corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
-        corrPfdr_pos(I_pos) = corrPfdr_pos;
+        if ~isempty(snP_pos)
+          corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
+          corrPfdr_pos(I_pos) = corrPfdr_pos;
+          corrPfdr(mask_P) = corrPfdr_pos;
+          corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
+        end
       end
-    
     
       if ~isempty(mask_N)
         [snP_neg,I_neg] = sort(nPtfce(mask_N));
-        corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
-        corrPfdr_neg(I_neg) = corrPfdr_neg;
+        if ~isempty(snP_neg)
+          corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
+          corrPfdr_neg(I_neg) = corrPfdr_neg;
+          corrPfdr(mask_N) = corrPfdr_neg;
+          corrPfdrlog10(mask_N) =  log10(corrPfdr(mask_N));
+        end
       end
-    
-      corrPfdr = NaN(size(t));
-      if ~isempty(mask_P)
-        corrPfdr(mask_P) = corrPfdr_pos;
-      end
-      if ~isempty(mask_N)
-        corrPfdr(mask_N) = corrPfdr_neg;
-      end
-    
-      corrPfdrlog10 = zeros(size(tfce0));
-      corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
-      corrPfdrlog10(mask_N) =  log10(corrPfdr(mask_N));
+        
       corrPfdrlog10(mask_0) = NaN;
 
       if spm12
@@ -1045,29 +1069,29 @@ end
       Vt.fname = fullfile(cwd,[name file_ext]);
       Vt.descrip = sprintf('%s Contrast %04d',xCon.STAT,Ic);
 
+      corrPfdr = NaN(size(t));
+      corrPfdrlog10 = zeros(size(tfce0));
+
       if ~isempty(mask_P)
-        [snP_pos,I_pos] = sort(nPt(mask_P));
-        corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
-        corrPfdr_pos(I_pos) = corrPfdr_pos;
+        if ~isempty(snP_pos)
+          [snP_pos,I_pos] = sort(nPt(mask_P));
+          corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
+          corrPfdr_pos(I_pos) = corrPfdr_pos;
+          corrPfdr(mask_P) = corrPfdr_pos;
+          corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
+        end
       end
     
       if ~isempty(mask_N)
         [snP_neg,I_neg] = sort(nPt(mask_N));
-        corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
-        corrPfdr_neg(I_neg) = corrPfdr_neg;
+        if ~isempty(snP_neg)
+          corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
+          corrPfdr_neg(I_neg) = corrPfdr_neg;
+          corrPfdr(mask_N) = corrPfdr_neg;
+          corrPfdrlog10(mask_N) =  log10(corrPfdr(mask_N));
+        end
       end
     
-      corrPfdr = NaN(size(t));
-      if ~isempty(mask_P)
-        corrPfdr(mask_P) = corrPfdr_pos;
-      end
-      if ~isempty(mask_N)
-        corrPfdr(mask_N) = corrPfdr_neg;
-      end  
-    
-      corrPfdrlog10 = zeros(size(tfce0));
-      corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
-      corrPfdrlog10(mask_N) =  log10(corrPfdr(mask_N));
       corrPfdrlog10(mask_0) = NaN;
 
       if spm12
@@ -1077,7 +1101,8 @@ end
         spm_write_vol(Vt,corrPfdrlog10);
       end
     end % test_mode
-  end
+    
+end
 
 colormap(gray)
 
@@ -1166,65 +1191,55 @@ if sz_val_max >= 20
   xlabel('Permutations')   
 end
 
-
 %---------------------------------------------------------------
-function t = calc_Ttest(Y,X,c,ind_mask,V,W)
-% compute t-statistic using GLM
-%
-% Y        - masked data as vector
-% X        - design structure
-% c        - contrast
-% ind_mask - index of mask image
-% dim      - image dimension
-% W        - whitening matrix
-
-n_data = size(X,1);
-
-X = W*X;
-pKX  = pinv(X);
-Bcov = pinv(X'*X);
-trRV = n_data - rank(X);
-
-[Beta, ResSS] = calc_beta(Y,X);
-ResMS = ResSS/trRV;
-
-con = Beta*c;
-clear Beta
-
-t = zeros(V(1).dim);
-t(ind_mask) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
-
-%---------------------------------------------------------------
-function F = calc_Ftest(Y,xX,xCon,ind_mask,V,W)
-% compute F-statistic using GLM
+function [T, trRV] = calc_GLM(Y,xX,xCon,ind_mask,dim)
+% compute T- or F-statistic using GLM
 %
 % Y        - masked data as vector
 % xX       - design structure
 % xCon     - contrast structure
 % ind_mask - index of mask image
 % dim      - image dimension
-% W        - whitening matrix
+%
+% Output:
+% T        - T/F-values
+% trRV     - df
 
+c = xCon.c;
 n_data = size(xX.X,1);
 
-X = W*xX.X;
-[Beta, ResSS] = calc_beta(Y,X);
-trRV = n_data - rank(X);
+xKXs = spm_sp('Set',xX.W*xX.X);
+xKXs.X = full(xKXs.X);
+pKX = spm_sp('x-',xKXs);
+
+Beta = Y*pKX';
+res0 = Beta*single(xKXs.X') - Y;     %-Residuals
+ResSS = double(sum(res0.^2,2)); %-Residual SSQ
+
+%[Beta, ResSS] = calc_beta(Y,X);
+trRV = n_data - rank(xX.X);
 ResMS = ResSS/trRV;
 
-X1o           = spm_FcUtil('X1o',xCon,xX.xKXs);
-[trMV,trMVMV] = spm_SpUtil('trMV',X1o,xX.V);
+T = zeros(dim);
 
-%-Compute ESS
-%----------------------------------------------------------
-% Residual (in parameter space) forming matrix
-h  = spm_FcUtil('Hsqr',xCon,xX.xKXs);
+if strcmp(xCon.STAT,'T')
+  Bcov = pKX*pKX';
+  con = Beta*c;
 
-ess = sum((h*Beta').^2,1)';
-MVM = ess/trMV;
+  T(ind_mask) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
+else
+  X1o           = spm_FcUtil('X1o',xCon,xKXs);
+  [trMV,trMVMV] = spm_SpUtil('trMV',X1o,xX.V);
 
-F = zeros(V(1).dim);
-F(ind_mask) = double(MVM./ResMS);
+  %-Compute ESS
+  % Residual (in parameter space) forming matrix
+  h  = spm_FcUtil('Hsqr',xCon,xKXs);
+
+  ess = sum((h*Beta').^2,1)';
+  MVM = ess/trMV;
+
+  T(ind_mask) = double(MVM./ResMS);
+end
 
 %---------------------------------------------------------------
 
@@ -1311,44 +1326,28 @@ res0 = beta*single(X') - Y;     %-Residuals
 ResSS = double(sum(res0.^2,2)); %-Residual SSQ
 
 %---------------------------------------------------------------
-function [X,Z,eCm] = partition_design(M,C,meth)
-% Partition a design matrix into regressors of interest and
-% nuisance according to a given contrast.
-% 
-% Usage
-% [XZ] = palm_partition(M,C,meth)
-% 
+function Z = palm_gtoz(G,df1,df2)
+% Convert a G-statistic (or any of its particular cases)
+% to a z-statistic (normally distributed).
+%
+% Usage:
+% Z = palm_gtoz(G,df1,df2)
+%
 % Inputs:
-% M    : Design matrix, to be partitioned.
-% C    : Contrast that will define the partitioning.
-% meth : Method for the partitioning. It can be:
-%        - 'Guttman'
-%        - 'Beckmann'
-%        - 'Ridgway'
+% G        : G statistic.
+% df1, df2 : Degrees of freedom (non-infinite).
 % 
 % Outputs:
-% XZ   : Matrix with regressors of interest and no interest.
-% eCm  : Effective contrast, equivalent to the original,
-%        for the partitioned model [X Z], and considering
-%        all regressors.
+% Z        : Z-score
 %
-% References:
-% * Guttman I. Linear Models: An Introduction. Wiley,
-%   New York, 1982.
-% * Smith SM, Jenkinson M, Beckmann C, Miller K,
-%   Woolrich M. Meaningful design and contrast estimability
-%   in FMRI. Neuroimage 2007;34(1):127-36.
-% * Ridgway GR. Statistical analysis for longitudinal MR
-%   imaging of dementia. PhD thesis. 2009.
-% * Winkler AM, Ridgway GR, Webster MG, Smith SM, Nichols TE.
-%   Permutation inference for the general linear model.
-%   Neuroimage. 2014 May 15;92:381-97.
+% If df2 = NaN and df1 = 1, G is treated as Pearson's r.
+% If df2 = NaN and df1 > 1, G is treated as R^2.
+% If df2 = NaN and df1 = 0, G is treated as z already.
+% 
 % _____________________________________
-% A. Winkler, G. Ridgway & T. Nichols
+% Anderson Winkler
 % FMRIB / University of Oxford
-% Mar/2012 (1st version)
-% Aug/2013 (major revision)
-% Dec/2015 (this version)
+% Jan/2014
 % http://brainder.org
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1369,45 +1368,459 @@ function [X,Z,eCm] = partition_design(M,C,meth)
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-switch lower(meth),
-    case 'guttman', % works for evperdat (3D)
-        idx   = any(C~=0,2);
-        X     = M(:,idx,:);
-        Z     = M(:,~idx,:);
-        eCm   = vertcat(C(idx,:),C(~idx,:));
+% Note that for speed, there's no argument checking.
+
+% If df2 is NaN, this is r, R^2, or z already
+if isnan(df2(1)),
+    
+    if df1 == 0,
         
-    case 'beckmann', % works for evperdat (3D)
-        Cu    = null(C');
-        D        = pinv(M'*M);
-        CDCi     = pinv(C'*D*C);
-        Cv       = Cu - C*CDCi*C'*D*Cu;
-        F3       = pinv(Cv'*D*Cv);
-        X = zeros(size(M,1),size(CDCi,2),size(M,3));
-        Z = zeros(size(M,1),size(F3,2),size(M,3));
-        X = M*D*C*CDCi;
-        Z = M*D*Cv*F3;
-        eCm = vertcat(eye(size(X,2)),...
-            zeros(size(Z,2),size(X,2)));
+        % If df1 is zero, this is already a z-stat (this is here more for
+        % compatibility).
+        Z = G;
         
-    case 'ridgway', % works for evperdat (3D)
-        rC    = rank(C);
-        rM    = rank(M(:,:,ceil(size(M,3)/2)));
-        rZ    = rM - rC;
-        pinvC = pinv(C');
-        C0    = eye(size(M,2)) - C*pinv(C);
-        for t = 1:size(M,3),
-            if t == 1,
-                X = zeros(size(M,1),size(pinvC,2),size(M,3));
-                Z = zeros(size(M,1),rZ,size(M,3));
-            end
-            tmpX = M(:,:,t)*pinvC;
-            [tmpZ,~,~]  = svd(M(:,:,t)*C0);
-            Z(:,:,t) = tmpZ(:,1:rZ);
-            X(:,:,t) = tmpX-Z(:,:,t)*pinv(Z(:,:,t))*tmpX;
-        end
-        eCm = vertcat(eye(size(X,2)),...
-            zeros(size(Z,2),size(X,2)));
+    elseif df1 == 1,
         
-    otherwise
-        error('''%s'' - Unknown partitioning scheme',meth);
+        % If rank(C) = 1, i.e., df1 = 1, this is r, so
+        % do a Fisher's r-to-z stransformation
+        Z = atanh(G);
+        
+    elseif df1 > 1,
+        
+        % If rank(C) > 1, i.e., df1 > 1, this is R^2, so
+        % use a probit transformation.
+        Z = -erfcinv(2*G)*sqrt(2); %Z = norminv(G);
+        
+    end
+
+else
+    siz = size(G);
+    Z   = zeros(siz);
+    df2 = bsxfun(@times,ones(siz),df2);
+    if df1 == 1,
+        
+        % Deal with precision issues working on each
+        % tail separately
+        idx = G > 0;
+        %Z( idx) = -erfinv(2*palm_gcdf(-G( idx),1,df2( idx))-1)*sqrt(2);
+        %Z(~idx) =  erfinv(2*palm_gcdf( G(~idx),1,df2(~idx))-1)*sqrt(2);
+        Z( idx) =  erfcinv(2*palm_gcdf(-G( idx),1,df2( idx)))*sqrt(2);
+        Z(~idx) = -erfcinv(2*palm_gcdf( G(~idx),1,df2(~idx)))*sqrt(2);
+        
+    elseif df1 == 0,
+        
+        % If df1 is zero, this is already a z-stat (this is here more for
+        % compatibility).
+        Z = G;
+        
+    else
+        
+        % G-vals above the upper half are treated as
+        % "upper tail"; otherwise, "lower tail".
+        thr = (1./betainv(.5,df2/2,df1/2)-1).*df2/df1;
+        idx = G > thr;
+        
+        % Convert G-distributed variables to Beta-distributed
+        % variables with parameters a=df1/2 and b=df2/2
+        B = (df1.*G./df2)./(1+df1.*G./df2);
+        a = df1/2;
+        b = df2/2;
+        
+        % Convert to Z through a Beta incomplete function
+        %Z( idx) = -erfinv(2*betainc(1-B( idx),b( idx),a)-1)*sqrt(2);
+        %Z(~idx) =  erfinv(2*betainc(  B(~idx),a,b(~idx))-1)*sqrt(2);
+        Z( idx) =  erfcinv(2*betainc(1-B( idx),b( idx),a))*sqrt(2);
+        Z(~idx) = -erfcinv(2*betainc(  B(~idx),a,b(~idx)))*sqrt(2);
+        
+    end
 end
+
+% Copyright (C) 2012 Rik Wehbring
+% Copyright (C) 1995-2012 Kurt Hornik
+%
+% This file is part of Octave.
+%
+% Octave is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 3 of the License, or (at
+% your option) any later version.
+%
+% Octave is distributed in the hope that it will be useful, but
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+% General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with Octave; see the file COPYING.  If not, see
+% <http://www.gnu.org/licenses/>.
+
+% -*- texinfo -*-
+% @deftypefn {Function File} {} betainv (@var{x}, @var{a}, @var{b})
+% For each element of @var{x}, compute the quantile (the inverse of
+% the CDF) at @var{x} of the Beta distribution with parameters @var{a}
+% and @var{b}.
+% @end deftypefn
+
+% Author: KH <Kurt.Hornik@wu-wien.ac.at>
+% Description: Quantile function of the Beta distribution
+
+function inv = betainv (x, a, b)
+
+if (nargin ~= 3)
+  print_usage ();
+end
+
+if (~isscalar (a) || ~isscalar (b))
+  [retval, x, a, b] = common_size (x, a, b);
+  if (retval > 0)
+    error ('betainv: X, A, and B must be of common size or scalars');
+  end
+end
+
+if (iscomplex (x) || iscomplex (a) || iscomplex (b))
+  error ('betainv: X, A, and B must not be complex');
+end
+
+if (isa (x, 'single') || isa (a, 'single') || isa (b, 'single'))
+  inv = zeros (size (x), 'single');
+else
+  inv = zeros (size (x));
+end
+
+k = (x < 0) | (x > 1) | ~(a > 0) | ~(b > 0) | isnan (x);
+inv(k) = NaN;
+
+k = (x == 1) & (a > 0) & (b > 0);
+inv(k) = 1;
+
+k = find ((x > 0) & (x < 1) & (a > 0) & (b > 0));
+if (any (k))
+  if (~isscalar (a) || ~isscalar (b))
+    a = a(k);
+    b = b(k);
+    y = a ./ (a + b);
+  else
+    y = a / (a + b) * ones (size (k));
+  end
+  x = x(k);
+  
+  if (isa (y, 'single'))
+    myeps = eps ('single');
+  else
+    myeps = eps;
+  end
+  
+  l = find (y < myeps);
+  if (any (l))
+    y(l) = sqrt (myeps) * ones (length (l), 1);
+  end
+  l = find (y > 1 - myeps);
+  if (any (l))
+    y(l) = 1 - sqrt (myeps) * ones (length (l), 1);
+  end
+  
+  y_old = y;
+  for i = 1 : 10000
+    h     = (betacdf (y_old, a, b) - x) ./ betapdf (y_old, a, b);
+    y_new = y_old - h;
+    ind   = find (y_new <= myeps);
+    if (any (ind))
+      y_new (ind) = y_old (ind) / 10;
+    end
+    ind = find (y_new >= 1 - myeps);
+    if (any (ind))
+      y_new (ind) = 1 - (1 - y_old (ind)) / 10;
+    end
+    h = y_old - y_new;
+    if (max (abs (h)) < sqrt (myeps))
+      break;
+    end
+    y_old = y_new;
+  end
+  
+  inv(k) = y_new;
+end
+
+
+function gcdf = palm_gcdf(G,df1,df2)
+% Convert a pivotal statistic computed with 'pivotal.m'
+% (or simplifications) to a parametric p-value.
+% The output is 1-p, i.e. the CDF.
+% 
+% Usage:
+% cdf = palm_gcdf(G,df1,df2)
+% 
+% Inputs:
+% G        : G or Z statistic.
+% df1, df2 : Degrees of freedom (non infinite).
+%            df1 must be a scalar
+%            For z, use df1 = 0.
+%            For Chi2, use df1 = -1, and df2 as the df.
+% 
+% Outputs:
+% cdf      : Parametric cdf (1-p), based on a
+%            t, F, z or Chi2 distribution.
+% 
+% _____________________________________
+% Anderson Winkler
+% FMRIB / University of Oxford
+% Aug/2013
+% http://brainder.org
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% PALM -- Permutation Analysis of Linear Models
+% Copyright (C) 2015 Anderson M. Winkler
+% 
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% any later version.
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+% Note that for speed, there's no argument checking,
+% and some lines are repeated inside the conditions.
+
+if df1 > 1,
+    
+    % G or F
+    df2 = bsxfun(@times,ones(size(G)),df2);
+    B = (df1.*G./df2)./(1+df1.*G./df2);
+    gcdf = betainc(B,df1/2,df2/2);
+
+elseif df1 == 1,
+    
+    % Student's t, Aspin's v
+    df2 = bsxfun(@times,ones(size(G)),df2);
+    ic = df2 == 1;
+    in = df2 > 1e7;
+    ig = ~(ic|in);
+    gcdf = zeros(size(G));
+    if any(ig(:)),
+        gcdf(ig) = betainc(1./(1+G(ig).^2./df2(ig)),df2(ig)/2,.5)/2;
+    end
+    ig = G > 0 & ig;
+    gcdf(ig) = 1 - gcdf(ig);
+    if any(ic(:)),
+        gcdf(ic) = .5 + atan(G(ic))/pi;
+    end
+    if any(in(:)),
+        gcdf(ic) = palm_gcdf(G(in),0);
+    end
+
+elseif df1 == 0,
+    
+    % Normal distribution
+    gcdf = erfc(-G/sqrt(2))/2;
+    
+elseif df1 < 0,
+    
+    % Chi^2, via lower Gamma incomplete for precision and speed
+    %df2 = bsxfun(@times,ones(size(G)),df2);
+    gcdf = palm_gammainc(G/2,df2/2,'lower');
+    
+end
+
+% Copyright (C) 2012 Rik Wehbring
+% Copyright (C) 1995-2012 Kurt Hornik
+% Copyright (C) 2010 Christos Dimitrakakis
+%
+% This file is part of Octave.
+%
+% Octave is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 3 of the License, or (at
+% your option) any later version.
+%
+% Octave is distributed in the hope that it will be useful, but
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+% General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with Octave; see the file COPYING.  If not, see
+% <http://www.gnu.org/licenses/>.
+
+% -*- texinfo -*-
+% @deftypefn {Function File} {} betapdf (@var{x}, @var{a}, @var{b})
+% For each element of @var{x}, compute the probability density function (PDF)
+% at @var{x} of the Beta distribution with parameters @var{a} and @var{b}.
+% @end deftypefn
+
+% Author: KH <Kurt.Hornik@wu-wien.ac.at>, CD <christos.dimitrakakis@gmail.com>
+% Description: PDF of the Beta distribution
+
+function pdf = betapdf (x, a, b)
+
+  if (nargin ~= 3)
+    print_usage ();
+  end
+
+  if (~isscalar (a) || ~isscalar (b))
+    [retval, x, a, b] = common_size (x, a, b);
+    if (retval > 0)
+      error ('betapdf: X, A, and B must be of common size or scalars');
+    end
+  end
+
+  if (iscomplex (x) || iscomplex (a) || iscomplex (b))
+    error ('betapdf: X, A, and B must not be complex');
+  end
+
+  if (isa (x, 'single') || isa (a, 'single') || isa (b, 'single'));
+    pdf = zeros (size (x), 'single');
+  else
+    pdf = zeros (size (x));
+  end
+
+  k = ~(a > 0) | ~(b > 0) | isnan (x);
+  pdf(k) = NaN;
+
+  k = (x > 0) & (x < 1) & (a > 0) & (b > 0) & ((a ~= 1) | (b ~= 1));
+  if (isscalar (a) && isscalar (b))
+    pdf(k) = exp ((a - 1) * log (x(k))...
+                  + (b - 1) * log (1 - x(k))...
+                  + lgamma (a + b) - lgamma (a) - lgamma (b));
+  else
+    pdf(k) = exp ((a(k) - 1) .* log (x(k))...
+                  + (b(k) - 1) .* log (1 - x(k))...
+                  + lgamma (a(k) + b(k)) - lgamma (a(k)) - lgamma (b(k)));
+  end
+
+  % Most important special cases when the density is finite.
+  k = (x == 0) & (a == 1) & (b > 0) & (b ~= 1);
+  if (isscalar (a) && isscalar (b))
+    pdf(k) = exp (lgamma (a + b) - lgamma (a) - lgamma (b));
+  else
+    pdf(k) = exp (lgamma (a(k) + b(k)) - lgamma (a(k)) - lgamma (b(k)));
+  end
+
+  k = (x == 1) & (b == 1) & (a > 0) & (a ~= 1);
+  if (isscalar (a) && isscalar (b))
+    pdf(k) = exp (lgamma (a + b) - lgamma (a) - lgamma (b));
+  else
+    pdf(k) = exp (lgamma (a(k) + b(k)) - lgamma (a(k)) - lgamma (b(k)));
+  end
+
+  k = (x >= 0) & (x <= 1) & (a == 1) & (b == 1);
+  pdf(k) = 1;
+
+  % Other special case when the density at the boundary is infinite.
+  k = (x == 0) & (a < 1);
+  pdf(k) = Inf;
+
+  k = (x == 1) & (b < 1);
+  pdf(k) = Inf;
+
+function [errorcode, varargout] = common_size (varargin)
+
+if (nargin < 2)
+  error ('common_size: only makes sense if nargin >= 2');
+end
+
+% Find scalar args.
+nscal = cellfun (@numel, varargin) ~= 1;
+
+i = find (nscal, 1);
+
+if (isempty (i))
+  errorcode = 0;
+  varargout = varargin;
+else
+  match = cellfun (@size_equal, varargin, repmat(varargin(i),size(varargin)));
+  if (any (nscal & ~match))
+    errorcode = 1;
+    varargout = varargin;
+  else
+    errorcode = 0;
+    if (nargout > 1)
+      scal = ~nscal;
+      varargout = varargin;
+      dims = size (varargin{i});
+      for s = find(scal)
+        varargout{s} = repmat(varargin{s}, dims);
+      end
+    end
+  end
+end
+
+% Copyright (C) 2012 Rik Wehbring
+% Copyright (C) 1995-2012 Kurt Hornik
+%
+% This file is part of Octave.
+%
+% Octave is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 3 of the License, or (at
+% your option) any later version.
+%
+% Octave is distributed in the hope that it will be useful, but
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+% General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with Octave; see the file COPYING.  If not, see
+% <http://www.gnu.org/licenses/>.
+
+% -*- texinfo -*-
+% @deftypefn {Function File} {} betacdf (@var{x}, @var{a}, @var{b})
+% For each element of @var{x}, compute the cumulative distribution function
+% (CDF) at @var{x} of the Beta distribution with parameters @var{a} and
+% @var{b}.
+% @end deftypefn
+
+% Author: KH <Kurt.Hornik@wu-wien.ac.at>
+% Description: CDF of the Beta distribution
+
+function cdf = betacdf (x, a, b)
+
+  if (nargin ~= 3)
+    print_usage ();
+  end
+
+  if (~isscalar (a) || ~isscalar (b))
+    [retval, x, a, b] = common_size (x, a, b);
+    if (retval > 0)
+      error ('betacdf: X, A, and B must be of common size or scalars');
+    end
+  end
+
+  if (iscomplex (x) || iscomplex (a) || iscomplex (b))
+    error ('betacdf: X, A, and B must not be complex');
+  end
+
+  if (isa (x, 'single') || isa (a, 'single') || isa (b, 'single'))
+    cdf = zeros (size (x), 'single');
+  else
+    cdf = zeros (size (x));
+  end
+
+  k = isnan (x) | ~(a > 0) | ~(b > 0);
+  cdf(k) = NaN;
+
+  k = (x >= 1) & (a > 0) & (b > 0);
+  cdf(k) = 1;
+
+  k = (x > 0) & (x < 1) & (a > 0) & (b > 0);
+  if (isscalar (a) && isscalar (b))
+    cdf(k) = betainc (x(k), a, b);
+  else
+    cdf(k) = betainc (x(k), a(k), b(k));
+  end
+
+function eq = size_equal(a,b)
+eq = isequal(size(a),size(b));
+
+function a = iscomplex(X)
+a = ~isreal(X);
+
+function varargout = lgamma(varargin)
+varargout{1:nargout} = gammaln(varargin{:});

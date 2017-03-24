@@ -1,4 +1,20 @@
 ------------------------------------------------------------------------
+r112 | gaser | 2017-02-17 11:44:01 +0100 (Fr, 17 Feb 2017) | 13 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+(1) Added: Conversion to z-statistics according to palm which makes TFCE
+    distribution more reliable for very small datasets.
+(2) Changed: 3D data are now read with nifti strauture which is much more 
+    faster.
+(3) Changed: Estimation of uncorrected thresholds is not using cummulated
+    histogram.
+(4) Changed: Shared function for estimating GLM for F- and T-statistics.
+(5) Added: Palm function for F-to-z transformation are now added.
+
+------------------------------------------------------------------------
 r111 | gaser | 2017-01-25 19:35:39 +0100 (Mi, 25 Jan 2017) | 6 lines
 
 Changed paths:
@@ -1970,14 +1986,10 @@ Initial import
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
+M       cg_tfce_results.m
 
-(1) Added: Conversion to z-statistics according to palm which makes TFCE
-    distribution more reliable for very small datasets.
-(2) Changed: 3D data are now read with nifti strauture which is much more 
-    faster.
-(3) Changed: Estimation of uncorrected thresholds is not using cummulated
-    histogram.
-(4) Changed: Shared function for estimating GLM for F- and T-statistics.
-(5) Added: Palm function for F-to-z transformation are now added.
+(1) Changed: Completely reorganized and recoded permutation with some ideas from 
+    palm
+(2) Changed: Added z-transformation and Freeman-Lane shuffling
 ------------------------------------------------------------------------
-r112 | gaser | 2017-02-17 11:43:57
+r113 | gaser | 2017-03-24 20:07:55

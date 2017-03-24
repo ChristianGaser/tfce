@@ -132,11 +132,10 @@ switch lower(Action), case 'setup'                         %-Set up results
     %-Setup design interrogation menu
     %----------------------------------------------------------------------
     hDesRepUI = spm_DesRep('DesRepUI',SPM);
-%figure(Finter)
  
     %-Atlas menu
     %----------------------------------------------------------------------
-    if isequal(units,{'mm' 'mm' 'mm'})
+    if isequal(units,{'mm' 'mm' 'mm'}) & strcmp(spm('ver'),'SPM12')
         hAtlasUI = cg_tfce_results('SetupAtlasMenu',Finter);
     end
 

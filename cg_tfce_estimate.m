@@ -17,9 +17,6 @@ show_permuted_designmatrix = 1;
 % allow to test permutations without analyzing data
 test_mode = 0;
 
-% Freedman-Lane partioning of design matrix (otherwise use Draper-Stoneman "Shuffle Z" partitioning)
-freedman_lane = 1;
-
 % define stepsize for tfce
 n_steps_tfce = 100;
     
@@ -550,6 +547,13 @@ for con = 1:length(Ic0)
   Hz = Z*pinv(Z);
   Rz = eye(size(X,1)) - Hz;
   
+  % if Hz is zero then no confounds were found and we can skip the time-consuming
+  % Freedman-Lane permutation
+  if all(~any(Hz)) & job.freedman_lane
+    fprintf('No nuisance parameters were found: Use Draper-Stoneman permutation.\n');
+    job.freedman_lane = 0;
+  end
+  
   stopStatus = false;
   if ~test_mode, cg_progress('Init',n_perm,'Calculating','Permutations'); end
   
@@ -644,8 +648,8 @@ for con = 1:length(Ic0)
     % only permute columns, where contrast is defined
     Xperm = xX.X;
     
-    % Draper-Stone shuffling of design matrix only
-    if ~freedman_lane
+    % Draper-Stone permutation of design matrix only
+    if ~job.freedman_lane
       Xperm(:,ind_X2) = Pset*Xperm(:,ind_X2);
     end
 
@@ -746,12 +750,13 @@ for con = 1:length(Ic0)
         xXperm   = xX;
         xXperm.X = Xperm;
 
-        % Freedman-Lane shuffling of data
-        if freedman_lane
-          t = calc_GLM(Y*(Pset*Rz+Hz),xXperm,xCon,ind_mask,VY(1).dim);
+        % Freedman-Lane permutation of data
+        if job.freedman_lane
+          t = calc_GLM(Y*(Pset'*Rz+Hz),xXperm,xCon,ind_mask,VY(1).dim);
         else
           t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
         end
+        
         if convert_to_z
           % use faster z-transformation of SPM for T-statistics
           if strcmp(xCon.STAT,'T')
@@ -775,6 +780,7 @@ for con = 1:length(Ic0)
             tfce = tfceMex_pthread(t,dh,E,H,0,job.singlethreaded)*dh;
           end
         end
+        
       end
     end % test_mode
     

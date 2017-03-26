@@ -1,4 +1,16 @@
 ------------------------------------------------------------------------
+r113 | gaser | 2017-03-24 20:08:00 +0100 (Fr, 24 Mär 2017) | 9 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+M       cg_tfce_results.m
+
+(1) Changed: Completely reorganized and recoded permutation with some ideas from 
+    palm
+(2) Changed: Added z-transformation and Freeman-Lane shuffling
+
+------------------------------------------------------------------------
 r112 | gaser | 2017-02-17 11:44:01 +0100 (Fr, 17 Feb 2017) | 13 lines
 
 Changed paths:
@@ -1986,10 +1998,9 @@ Initial import
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
-M       cg_tfce_results.m
+M       tbx_cfg_tfce_estimate.m
 
-(1) Changed: Completely reorganized and recoded permutation with some ideas from 
-    palm
-(2) Changed: Added z-transformation and Freeman-Lane shuffling
+(1) Changed: Added choice of permutation method to the GUI.
+(2) Fixed: Corrected Freeman-Lane permutation where Pset was not transposed.
 ------------------------------------------------------------------------
-r113 | gaser | 2017-03-24 20:07:55
+r114 | gaser | 2017-03-27 00:17:21

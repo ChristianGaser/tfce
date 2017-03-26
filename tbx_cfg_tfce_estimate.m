@@ -94,14 +94,14 @@ tbss.help = {[...
 % ---------------------------------------------------------------------
 % variance smoothing
 % ---------------------------------------------------------------------
-vFWHM         = cfg_entry;
-vFWHM.tag     = 'vFWHM';
-vFWHM.name    = 'Variance smoothing (for low DFs)';
-vFWHM.help    = {'For low degrees of freedom (n<20) the variance is estimated poorly and smoothing the variance can help in obtaining a more reliable estimate. By smoothing the variance the noise from the variance will be smoothed, but not the signal which results in a so-called pseudo t-statistics.'
+freedman_lane         = cfg_menu;
+freedman_lane.tag     = 'freedman_lane';
+freedman_lane.name    = 'Permutation method to deal with nuisance variables';
+freedman_lane.labels = {'Draper-Stoneman','Freedman-Lane'};
+freedman_lane.values  = {0 1};
+freedman_lane.val     = {1};
+freedman_lane.help    = {'A number of methods are available to obtain parameter estimates and construct a reference distribution in the presence of nuisance variables. We focus on Freedman-Lane permutation method as default and also offer Draper-Stoneman which is the prefered permutation method if no nuisance parameters exist.'
 }';
-vFWHM.strtype = 'e';
-vFWHM.val     = {0};
-vFWHM.num     = [0 Inf];
 
 % ---------------------------------------------------------------------
 % conspec Contrast query
@@ -135,6 +135,6 @@ singlethreaded.help = {[...
 tfce_estimate          = cfg_exbranch;
 tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
-tfce_estimate.val      = {spmmat mask conspec tbss singlethreaded};
+tfce_estimate.val      = {spmmat mask conspec freedman_lane tbss singlethreaded};
 tfce_estimate.help     = {''};
 tfce_estimate.prog     = @cg_tfce_estimate;

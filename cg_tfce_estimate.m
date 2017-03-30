@@ -9,7 +9,7 @@ function cg_tfce_estimate(job)
 % $Id$
 
 % convert to z-statistic
-convert_to_z = 1;
+convert_to_z = 0;
 
 % display permuted design matrix (otherwise show t distribution)
 show_permuted_designmatrix = 1;

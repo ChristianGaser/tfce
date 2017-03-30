@@ -1,4 +1,17 @@
 ------------------------------------------------------------------------
+r115 | gaser | 2017-03-29 13:34:38 +0200 (Mi, 29 Mär 2017) | 10 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+M       tbx_cfg_tfce_estimate.m
+
+(1) Changed: If no mask file is found then test mode is automatically selected.
+(2) Fixed: Prevent neg. values for F-test after z-transformation.
+(3) Fixed: Prevent Nan and Inf values after z-transformation.
+(4) Fixed: Incorrect permutations for repeated measurement ANOVAs
+
+------------------------------------------------------------------------
 r114 | gaser | 2017-03-27 00:17:26 +0200 (Mo, 27 Mär 2017) | 8 lines
 
 Changed paths:
@@ -2009,11 +2022,7 @@ Initial import
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
-M       tbx_cfg_tfce_estimate.m
 
-(1) Changed: If no mask file is found then test mode is automatically selected.
-(2) Fixed: Prevent neg. values for F-test after z-transformation.
-(3) Fixed: Prevent Nan and Inf values after z-transformation.
-(4) Fixed: Incorrect permutations for repeated measurement ANOVAs
+Changed: Deselected z-transformation by default.
 ------------------------------------------------------------------------
-r115 | gaser | 2017-03-29 13:34:33
+r116 | gaser | 2017-03-30 14:39:56

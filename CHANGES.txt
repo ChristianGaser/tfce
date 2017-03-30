@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r116 | gaser | 2017-03-30 14:40:00 +0200 (Do, 30 Mär 2017) | 6 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Changed: Deselected z-transformation by default.
+
+------------------------------------------------------------------------
 r115 | gaser | 2017-03-29 13:34:38 +0200 (Mi, 29 Mär 2017) | 10 lines
 
 Changed paths:
@@ -2021,8 +2030,8 @@ Initial import
 
 Changed paths:
 M       CHANGES.txt
-M       cg_tfce_estimate.m
+M       tbx_cfg_tfce_estimate.m
 
-Changed: Deselected z-transformation by default.
+Changed: Use Draper-Stoneman permutation as default.
 ------------------------------------------------------------------------
-r116 | gaser | 2017-03-30 14:39:56
+r117 | gaser | 2017-03-30 14:41:27

@@ -636,7 +636,7 @@ for con = 1:length(Ic0)
     end   
     
     % create permutation set
-    Pset = sparse(n_data_with_contrast,n_data_with_contrast);
+    Pset = sparse(n_data,n_data);
     if n_cond == 1 % one-sample t-test
       for k=1:n_data_with_contrast
         Pset(k,k) = rand_label(k);

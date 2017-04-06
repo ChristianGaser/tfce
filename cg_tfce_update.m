@@ -81,7 +81,7 @@ if rnew > r
         if restart
           rehash
           toolbox_path_cache
-          eval(['spm fmri']);
+          eval(['spm fmri; spm_TFCE']);
         end
       catch
         fprintf('Update failed: check file permissions. Download zip-file only.\n');

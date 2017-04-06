@@ -1,4 +1,16 @@
 ------------------------------------------------------------------------
+r118 | gaser | 2017-04-06 08:52:30 +0200 (Do, 06 Apr 2017) | 9 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+M       cg_tfce_update.m
+
+Fixed: Reduced designs where not all data are covered by the contrast
+       are now working.
+
+
+------------------------------------------------------------------------
 r117 | gaser | 2017-03-30 14:41:31 +0200 (Do, 30 Mär 2017) | 6 lines
 
 Changed paths:
@@ -2040,10 +2052,7 @@ Initial import
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
-M       cg_tfce_update.m
 
-Fixed: Reduced designs where not all data are covered by the contrast
-       are now working.
-
+Fixed: Global scaling was not working.
 ------------------------------------------------------------------------
-r118 | gaser | 2017-04-06 08:52:28
+r119 | gaser | 2017-04-06 22:04:41

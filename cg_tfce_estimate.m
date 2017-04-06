@@ -163,17 +163,26 @@ if ~test_mode
     
   % if first image was not found you have to select all files again
   if ~exist(VY(1).fname);
+  
     n = size(SPM.xY.VY,1);
     if mesh_detected
-      P = spm_select(size(SPM.xY.VY,1),'mesh','select images');
+      P = spm_select(n,'mesh','select images');
     else
-      P = spm_select(size(SPM.xY.VY,1),'image','select images');
+      P = spm_select(n,'image','select images');
     end
+    
     if spm12
       VY = spm_data_hdr_read(P);
     else
       VY = spm_vol(P);
     end
+    
+    %-Apply gSF to memory-mapped scalefactors to implement scaling
+    %--------------------------------------------------------------------------
+    for i = 1:n
+      VY(i).pinfo(1:2,:) = VY(i).pinfo(1:2,:)*SPM.xGX.gSF(i); % FIXME % for meshes
+    end
+    
     SPM.xY.VY = VY;
       
     % update SPM
@@ -197,6 +206,7 @@ if ~test_mode
   else
     mask = spm_read_vols(Vmask);
   end
+  
   ind_mask = find(mask>0);
   n = numel(VY);
 
@@ -205,16 +215,10 @@ if ~test_mode
   
     % load data
     for i=1:n
-      if mesh_detected
+      if spm12
         tmp = spm_data_read(VY(i));
-      else % nifti is much faster to read
-        N = nifti(VY(i).fname);
-        % deal with 4D data and use conventional but slower spm_data_read
-        if size(N.dat.dim,2) == 4
-          tmp = spm_data_read(VY(i));        
-        else
-          tmp = N.dat(:,:,:);
-        end
+      else 
+        tmp = spm_read_vols(VY(i));
       end
       Y(:,i) = tmp(ind_mask);
     end

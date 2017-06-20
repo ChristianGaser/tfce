@@ -686,7 +686,7 @@ for con = 1:length(Ic0)
     Xperm(:,ind_X) = Pset*Xperm(:,ind_X);
       
     % correct interaction designs
-    if n_exch_blocks >= 2
+    if n_exch_blocks >= 2 & n_cond==0
       Xperm2 = Xperm;
       Xperm2(:,ind_X) = 0;
       for j=1:n_exch_blocks

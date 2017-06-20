@@ -99,7 +99,7 @@ freedman_lane.tag     = 'freedman_lane';
 freedman_lane.name    = 'Permutation method to deal with nuisance variables';
 freedman_lane.labels = {'Draper-Stoneman','Freedman-Lane'};
 freedman_lane.values  = {0 1};
-freedman_lane.val     = {0};
+freedman_lane.val     = {1};
 freedman_lane.help    = {'A number of methods are available to obtain parameter estimates and construct a reference distribution in the presence of nuisance variables. We focus on Freedman-Lane permutation method as default and also offer Draper-Stoneman which is the prefered permutation method if no nuisance variables exist. If no nuisance variables were found in the model then Draper-Stoneman method is automatically used.'
 }';
 

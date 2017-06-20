@@ -314,22 +314,36 @@ for con = 1:length(Ic0)
       ind_exch_blocks{j} = ind_X(j);
     end
   end
-      
+
+  fprintf('\n');
+  
   % check design
   switch n_cond
   case 0 % correlation
-    if n_exch_blocks == 2
-      disp('Interaction design between two regressors found. This should work, but is not yet fully tested and I am unsure whether the # of max. permutations is correctly estimated.')
+    label = 1:n_data;
+
+    if n_exch_blocks >= 2
+      fprintf('Interaction design between two or more regressors found\n')
+      
+      % force use of Freedman-Lane method for interaction designs and F-test because
+      % Draper-Stoneman method causes problems
+      if strcmp(xCon.STAT,'F') & ~job.freedman_lane
+        fprintf('Switch to Freedman-Lane method for considering nuisance variables\n')
+        job.freedman_lane = 1;
+      end
+      
+      % remove all entries where contrast is not defined
+      label(all(xX.X(:,ind_X)==0,2)) = [];
     else
       if repeated_anova
         fprintf('Repeated Anova with contrast for covariate found\n');
       else
         fprintf('Multiple regression design found\n');
       end
-    end
-    label = 1:n_data;
+    end    
   case 1 % one-sample t-test
     fprintf('One sample t-test found\n');
+    
     % use exchangeability blocks for labels
     label = zeros(1,n_data);
     for j=1:n_exch_blocks
@@ -430,19 +444,12 @@ for con = 1:length(Ic0)
   
   n_perm = min([n_perm n_perm_full]);
          
-  % deal with interaction design
-  if n_cond == 0 & n_exch_blocks == 2
-    ind_X2 = [ind_X xX.iH];
-  else
-    ind_X2 = ind_X;
-  end
-  
   % Guttman partioning of design matrix into effects of interest X and nuisance variables Z
-  X = xX.X(:,ind_X2);
+  X = xX.X(:,ind_X);
   ind_Z = [xX.iH xX.iC xX.iB xX.iG];
-  ind_Z(ind_X2) = [];
+  ind_Z(ind_X) = [];
   Z = xX.X(:,ind_Z);
-  
+    
   Hz = Z*pinv(Z);
   Rz = eye(size(X,1)) - Hz;
   
@@ -676,14 +683,26 @@ for con = 1:length(Ic0)
     % only permute columns, where contrast is defined
     Xperm = xX.X;
     
-    % Draper-Stone permutation of design matrix only
-    if ~job.freedman_lane
-      Xperm(:,ind_X2) = Pset*Xperm(:,ind_X2);
+    Xperm(:,ind_X) = Pset*Xperm(:,ind_X);
+      
+    % correct interaction designs
+    if n_exch_blocks >= 2
+      Xperm2 = Xperm;
+      Xperm2(:,ind_X) = 0;
+      for j=1:n_exch_blocks
+        ind_Xj = find(xX.X(:,ind_X(j)));
+        Xperm2(ind_Xj,ind_X(j)) = sum(Xperm(ind_Xj,ind_X),2);
+      end
+      Xperm = Xperm2;
     end
 
-    Xperm_debug = xX.X;
-    Xperm_debug(:,ind_X2) = Pset*Xperm_debug(:,ind_X2);
+    Xperm_debug = Xperm;
 
+    % Permutation for Freedan-Lane is only for Data Y and not for design matrix
+    if job.freedman_lane
+      Xperm = xX.X;
+    end
+    
     if show_permuted_designmatrix
       % scale covariates and nuisance variables to a range 0.8..1
       % to properly display these variables with indicated colors
@@ -709,14 +728,14 @@ for con = 1:length(Ic0)
       if n_cond==1 % one-sample t-test
         for j=1:n_data_with_contrast
           if rand_label(j) > 0
-            Xperm_debug(ind_label(j),ind_X2) = 60*rand_label(j)*Xperm_debug(ind_label(j),ind_X2);
+            Xperm_debug(ind_label(j),ind_X) = 60*rand_label(j)*Xperm_debug(ind_label(j),ind_X);
           else
-            Xperm_debug(ind_label(j),ind_X2) = 56*rand_label(j)*Xperm_debug(ind_label(j),ind_X2);
+            Xperm_debug(ind_label(j),ind_X) = 56*rand_label(j)*Xperm_debug(ind_label(j),ind_X);
           end
         end
       else % correlation or Anova
         % scale exchangeability blocks also to values 0.8..1
-        val = Xperm_debug(:,ind_X2);
+        val = Xperm_debug(:,ind_X);
         ind0 = find(val==0);
         mn = repmat(min(val),length(val),1); mx = repmat(max(val),length(val),1);
         val = 0.8 + 0.2*(val-mn)./(mx-mn);
@@ -724,7 +743,7 @@ for con = 1:length(Ic0)
         % rescue zero entries
         val(ind0) = 0;
       
-        Xperm_debug(:,ind_X2) = 60*val;
+        Xperm_debug(:,ind_X) = 60*val;
       end
 
     end

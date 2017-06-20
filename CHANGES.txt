@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r119 | gaser | 2017-04-06 22:04:46 +0200 (Do, 06 Apr 2017) | 6 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Global scaling was not working.
+
+------------------------------------------------------------------------
 r118 | gaser | 2017-04-06 08:52:30 +0200 (Do, 06 Apr 2017) | 9 lines
 
 Changed paths:
@@ -2052,7 +2061,8 @@ Initial import
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
+M       tbx_cfg_tfce_estimate.m
 
-Fixed: Global scaling was not working.
+Fixed: Complex interaction designs are now fully considered.
 ------------------------------------------------------------------------
-r119 | gaser | 2017-04-06 22:04:41
+r120 | gaser | 2017-06-20 16:28:41

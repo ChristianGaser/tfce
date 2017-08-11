@@ -16,43 +16,59 @@ n_steps = ceil(t_max/dh);
 %--------------------------------------------------------------------------
 A       = spm_mesh_adjacency(faces);
 A       = A + speye(size(A));
+A1 = A;
+A2 = A;
+
+clear A
+
+t1 = t;
+t2 = t;
+clear t
 
 for j = 1:n_steps
 
   thresh = j*dh;
 
   % positive t-values
-  T   = (t >= thresh);
+  T   = (t1 >= thresh);
   ind = find(T);
   
-  C = find_connected_component(A, T);
-  C = C(ind);
-    
-  for i = 1:max(C)
-    M = find(C == i);
-    k = length(M);
-    tfce(ind(M)) = tfce(ind(M)) + power(k,E)*power(thresh,H)*T(ind(M));
-  end
+  if ~isempty(ind)
   
-  % negative t-values
-  if min(t(:)) < 0
-    T   = (-t >= thresh);
-    ind = find(T);
-  
-    C = find_connected_component(A, T);
+    [C, A1] = find_connected_component(A1, T);
     C = C(ind);
     
     for i = 1:max(C)
       M = find(C == i);
       k = length(M);
-      tfce(ind(M)) = tfce(ind(M)) - power(k,E)*power(thresh,H)*T(ind(M));
+      tfce(ind(M)) = tfce(ind(M)) + power(k,E)*power(thresh,H)*T(ind(M));
     end
+    t1 = t1(ind);  
   end
   
+  % negative t-values
+  if min(t2(:)) < 0
+    T   = (-t2 >= thresh);
+    ind = find(T);
+  
+    if ~isempty(ind)
+      [C, A2] = find_connected_component(A2, T);
+      C = C(ind);
+    
+      for i = 1:max(C)
+        M = find(C == i);
+        k = length(M);
+        tfce(ind(M)) = tfce(ind(M)) - power(k,E)*power(thresh,H)*T(ind(M));
+      end
+    end
+
+    t2 = t2(ind);  
+  end
+
 end
 
 %--------------------------------------------------------------------------
-function C = find_connected_component(A, T)
+function [C, A1] = find_connected_component(A, T)
 % find connected components 
 % FORMAT C = find_connected_component(A,T)
 % A        - a [nxn[ (reduced) adjacency matrix

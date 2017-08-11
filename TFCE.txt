@@ -1,6 +1,6 @@
 %  http://dbm.neuro.uni-jena.de/tfce/
 % __________________________________________________________________________
-% Copyright (C) 2013 Christian Gaser christian.gaser@uni-jena.de
+% Copyright (C) 2017 Christian Gaser christian.gaser@uni-jena.de
 % 
 % ==========================================================================
 % Description
@@ -11,5 +11,7 @@
 % Jena, Department of Psychiatry) and is available to the scientific 
 % community under the terms of the GNU General Public License.
 % 
+% Simply use an existing statistical (parametric) design and apply the TFCE-
+% toolbox to a predefined contrast.
 % __________________________________________________________________________
-%                                                Christian Gaser 2013/10/05
+%                                                Christian Gaser 2017/31/07

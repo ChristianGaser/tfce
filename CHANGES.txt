@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r121 | gaser | 2017-06-20 17:03:38 +0200 (Di, 20 Jun 2017) | 6 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Check for interaction design in r120 was not correct.
+
+------------------------------------------------------------------------
 r120 | gaser | 2017-06-20 16:28:46 +0200 (Di, 20 Jun 2017) | 7 lines
 
 Changed paths:
@@ -2070,8 +2079,12 @@ Initial import
 
 Changed paths:
 M       CHANGES.txt
-M       cg_tfce_estimate.m
+M       TFCE.txt
+M       tbx_cfg_tfce_estimate.m
+M       tfce_mesh.m
 
-Fixed: Check for interaction design in r120 was not correct.
+(1) Changed: Saved computation time for meshes by 50%!
+(2) Changed: Use Draper-Stoneman correction for nuisance variables as
+    default.
 ------------------------------------------------------------------------
-r121 | gaser | 2017-06-20 17:03:36
+r122 | gaser | 2017-08-11 22:48:04

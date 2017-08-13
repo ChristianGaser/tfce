@@ -1,4 +1,17 @@
 ------------------------------------------------------------------------
+r122 | gaser | 2017-08-11 22:48:09 +0200 (Fr, 11 Aug 2017) | 10 lines
+
+Changed paths:
+M       CHANGES.txt
+M       TFCE.txt
+M       tbx_cfg_tfce_estimate.m
+M       tfce_mesh.m
+
+(1) Changed: Saved computation time for meshes by 50%!
+(2) Changed: Use Draper-Stoneman correction for nuisance variables as
+    default.
+
+------------------------------------------------------------------------
 r121 | gaser | 2017-06-20 17:03:38 +0200 (Di, 20 Jun 2017) | 6 lines
 
 Changed paths:
@@ -2079,12 +2092,8 @@ Initial import
 
 Changed paths:
 M       CHANGES.txt
-M       TFCE.txt
-M       tbx_cfg_tfce_estimate.m
 M       tfce_mesh.m
 
-(1) Changed: Saved computation time for meshes by 50%!
-(2) Changed: Use Draper-Stoneman correction for nuisance variables as
-    default.
+Fixed: Removed peak error in tfce_mesh.m
 ------------------------------------------------------------------------
-r122 | gaser | 2017-08-11 22:48:04
+r123 | gaser | 2017-08-13 17:38:29

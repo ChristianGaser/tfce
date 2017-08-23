@@ -22,7 +22,7 @@ n_steps_tfce = 100;
     
 % colors and alpha levels
 col   = [0.25 0 0; 1 0 0; 1 0.75 0];
-alpha = [0.05 0.01 0.001];
+alpha = [0.05      0.01   0.001];
     
 % give same results each time
 if exist('rng','builtin') == 5
@@ -90,12 +90,14 @@ if repeated_anova
   for i=1:n_data
     groupListed(exch_block_labels(i)) = true;
   end
+  
   for i = 1: max(exch_block_labels)
     if ~groupListed(i) 
       fprintf('Error: block %d must be assigned to at least one design row in the blocks file.\n',i);
       return
     end
   end
+  
   fprintf('Please note that permutation is only done within subjects for repeated Anova.\n',i);
 else
   exch_block_labels = ones(1,n_data);
@@ -1500,8 +1502,6 @@ else
     % Deal with precision issues working on each
     % tail separately
     idx = G > 0;
-    %Z( idx) = -erfinv(2*palm_gcdf(-G( idx),1,df2( idx))-1)*sqrt(2);
-    %Z(~idx) =  erfinv(2*palm_gcdf( G(~idx),1,df2(~idx))-1)*sqrt(2);
     Z( idx) =  erfcinv(2*palm_gcdf(-G( idx),1,df2( idx)))*sqrt(2);
     Z(~idx) = -erfcinv(2*palm_gcdf( G(~idx),1,df2(~idx)))*sqrt(2);
     

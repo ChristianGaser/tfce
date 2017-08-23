@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r123 | gaser | 2017-08-13 17:38:33 +0200 (So, 13 Aug 2017) | 6 lines
+
+Changed paths:
+M       CHANGES.txt
+M       tfce_mesh.m
+
+Fixed: Removed peak error in tfce_mesh.m
+
+------------------------------------------------------------------------
 r122 | gaser | 2017-08-11 22:48:09 +0200 (Fr, 11 Aug 2017) | 10 lines
 
 Changed paths:
@@ -2092,8 +2101,8 @@ Initial import
 
 Changed paths:
 M       CHANGES.txt
-M       tfce_mesh.m
+M       cg_tfce_estimate.m
 
-Fixed: Removed peak error in tfce_mesh.m
+Changed: Some formatting.
 ------------------------------------------------------------------------
-r123 | gaser | 2017-08-13 17:38:29
+r124 | gaser | 2017-08-23 14:21:14

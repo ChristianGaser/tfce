@@ -525,7 +525,7 @@ for con = 1:length(Ic0)
       if ~isstruct(SPM.xVol.G)
         SPM.xVol.G = gifti(SPM.xVol.G);
       end
-      tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, dh)*dh;
+      tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, dh, E, H)*dh;
     else
       % only estimate neg. tfce values for non-positive t-values
       if min(t0(:)) < 0
@@ -823,7 +823,7 @@ for con = 1:length(Ic0)
         
         % compute tfce
         if mesh_detected
-          tfce = tfce_mesh(SPM.xVol.G.faces, t, dh)*dh;
+          tfce = tfce_mesh(SPM.xVol.G.faces, t, dh, E, H)*dh;
         else
           % only estimate neg. tfce values for non-positive t-values
           if min(t(:)) < 0

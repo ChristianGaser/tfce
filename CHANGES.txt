@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r124 | gaser | 2017-08-23 14:21:20 +0200 (Mi, 23 Aug 2017) | 6 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Changed: Some formatting.
+
+------------------------------------------------------------------------
 r123 | gaser | 2017-08-13 17:38:33 +0200 (So, 13 Aug 2017) | 6 lines
 
 Changed paths:
@@ -2102,7 +2111,10 @@ Initial import
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
+M       tfceMex_pthread.m
+M       tfce_mesh.m
 
-Changed: Some formatting.
+(1) Changed: Added some help text.
+(2) Changed: Added TFCE parameters E and H to tfce_mesh.m function.
 ------------------------------------------------------------------------
-r124 | gaser | 2017-08-23 14:21:14
+r125 | gaser | 2017-08-23 16:59:40

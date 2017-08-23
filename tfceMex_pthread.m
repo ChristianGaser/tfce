@@ -1,9 +1,10 @@
 tfce = tfceMex_pthread(t, dh, E, H, calc_neg, single_threaded)
 % FORMAT tfce = tfceMex(t, dh, E, H, calc_neg, single_threaded)
+% Estimate TFCE
 % t         - T map 
-% dh        - steps size (e.g. dh = max(abs(t))/100)
-% E         - TFCE parameter
-% H         - TFCE parameter
+% dh        - step size (e.g. dh = max(abs(t))/100)
+% E         - TFCE parameter for extent
+% H         - TFCE parameter for height
 % calc_neg  - also calc neg. TFCE values (default)
 % single_threaded - use single thread only
 %

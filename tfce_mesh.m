@@ -1,11 +1,14 @@
-function tfce = tfce_mesh(faces, t, dh)
-% FORMAT tfce = tfce_mesh(faces, t, dh)
+function tfce = tfce_mesh(faces, t, dh, E, H)
+% FORMAT tfce = tfce_mesh(faces, t, dh, E, H)
+% Estimate TFCE
+% faces     - faces of surface 
+% t         - T map 
+% dh        - step size (e.g. dh = max(abs(t))/100)
+% E         - TFCE parameter for extent
+% H         - TFCE parameter for height
 %
 % Christian Gaser
 % $Id$
-
-E = 1.0;
-H = 2.0;
 
 tfce = zeros(size(t));
 t_max = max(abs(t(:)));

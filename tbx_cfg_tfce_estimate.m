@@ -94,13 +94,15 @@ tbss.help = {[...
 % ---------------------------------------------------------------------
 % variance smoothing
 % ---------------------------------------------------------------------
-freedman_lane         = cfg_menu;
-freedman_lane.tag     = 'freedman_lane';
-freedman_lane.name    = 'Permutation method to deal with nuisance variables';
-freedman_lane.labels = {'Draper-Stoneman','Freedman-Lane'};
-freedman_lane.values  = {0 1};
-freedman_lane.val     = {0};
-freedman_lane.help    = {'A number of methods are available to obtain parameter estimates and construct a reference distribution in the presence of nuisance variables. Freedman-Lane permutation method can be optionally used if any nuisance variables exist. If no nuisance variables were found in the model then Draper-Stoneman method is automatically used.'
+nuisance_method         = cfg_menu;
+nuisance_method.tag     = 'nuisance_method';
+nuisance_method.name    = 'Permutation method to deal with nuisance variables';
+nuisance_method.labels = {'Draper-Stoneman','Freedman-Lane','Automatic Selection'};
+nuisance_method.values  = {0 1 2};
+nuisance_method.val     = {2};
+nuisance_method.help    = {'A number of methods are available to obtain parameter estimates and construct a reference distribution in the presence of nuisance variables. Freedman-Lane permutation method can be optionally used if any nuisance variables exist. If no nuisance variables were found in the model then Draper-Stoneman method is automatically used. '
+                     ''
+'If you are unsure which method is the most appropriate for your data you can also try the automatic mode. Here the method with the more liberal results is finally used after checking the thresholds for the first 50 permutations.'
 }';
 
 % ---------------------------------------------------------------------
@@ -135,6 +137,6 @@ singlethreaded.help = {[...
 tfce_estimate          = cfg_exbranch;
 tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
-tfce_estimate.val      = {spmmat mask conspec freedman_lane tbss singlethreaded};
+tfce_estimate.val      = {spmmat mask conspec nuisance_method tbss singlethreaded};
 tfce_estimate.help     = {''};
 tfce_estimate.prog     = @cg_tfce_estimate;

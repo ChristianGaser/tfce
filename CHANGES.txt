@@ -1,4 +1,16 @@
 ------------------------------------------------------------------------
+r125 | gaser | 2017-08-23 16:59:44 +0200 (Mi, 23 Aug 2017) | 9 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+M       tfceMex_pthread.m
+M       tfce_mesh.m
+
+(1) Changed: Added some help text.
+(2) Changed: Added TFCE parameters E and H to tfce_mesh.m function.
+
+------------------------------------------------------------------------
 r124 | gaser | 2017-08-23 14:21:20 +0200 (Mi, 23 Aug 2017) | 6 lines
 
 Changed paths:
@@ -2111,10 +2123,9 @@ Initial import
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
-M       tfceMex_pthread.m
-M       tfce_mesh.m
+M       tbx_cfg_tfce_estimate.m
 
-(1) Changed: Added some help text.
-(2) Changed: Added TFCE parameters E and H to tfce_mesh.m function.
+(1) Changed: Added automatic mode for selection of best nuisance method.
+(2) Changed: Removed test-mode in cg_tfce_estimate.m.
 ------------------------------------------------------------------------
-r125 | gaser | 2017-08-23 16:59:40
+r126 | gaser | 2017-08-24 00:05:46

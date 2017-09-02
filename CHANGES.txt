@@ -1,4 +1,15 @@
 ------------------------------------------------------------------------
+r126 | gaser | 2017-08-24 00:05:53 +0200 (Do, 24 Aug 2017) | 8 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+M       tbx_cfg_tfce_estimate.m
+
+(1) Changed: Added automatic mode for selection of best nuisance method.
+(2) Changed: Removed test-mode in cg_tfce_estimate.m.
+
+------------------------------------------------------------------------
 r125 | gaser | 2017-08-23 16:59:44 +0200 (Mi, 23 Aug 2017) | 9 lines
 
 Changed paths:
@@ -2123,9 +2134,7 @@ Initial import
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
-M       tbx_cfg_tfce_estimate.m
 
-(1) Changed: Added automatic mode for selection of best nuisance method.
-(2) Changed: Removed test-mode in cg_tfce_estimate.m.
+Changed: Added again test mode for checking designs without data.
 ------------------------------------------------------------------------
-r126 | gaser | 2017-08-24 00:05:46
+r127 | gaser | 2017-09-03 00:22:08

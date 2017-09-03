@@ -141,6 +141,9 @@ if ~test_mode
     test_mode = 1;
   end
 
+end
+
+if ~test_mode
   % get mask file
   if isempty(job.mask)
     maskname = fullfile(cwd,['mask' file_ext]);

@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r127 | gaser | 2017-09-03 00:22:12 +0200 (So, 03 Sep 2017) | 6 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Changed: Added again test mode for checking designs without data.
+
+------------------------------------------------------------------------
 r126 | gaser | 2017-08-24 00:05:53 +0200 (Do, 24 Aug 2017) | 8 lines
 
 Changed paths:
@@ -2135,6 +2144,7 @@ Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
 
-Changed: Added again test mode for checking designs without data.
+Fixed: Automatic detection of test-mode in cg_tfce_estimate.m was not
+working correctly.
 ------------------------------------------------------------------------
-r127 | gaser | 2017-09-03 00:22:08
+r128 | gaser | 2017-09-03 11:48:19

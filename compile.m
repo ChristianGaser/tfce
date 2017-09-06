@@ -1,20 +1,14 @@
 function make
 
-disp('Compilerflag aendern in /TC')
-% check for windows systems
-if strcmp(mexext,'mexw32') || strcmp(mexext,'mexw64')
-    obj = '.obj';
-    WIN32 = ' -DSPM_WIN32 ';
-else
-    obj = '.o';
-    WIN32 = '';
+if ispc
+  disp('Compilerflag aendern in /TC')
 end
 
-if strcmp(mexext,'mexmaci64')
-   mexflag=' -O -largeArrayDims -Dchar16_t=UINT16_T CFLAGS=''$CFLAGS -pthread -Wall -ansi -pedantic -Wextra'' ';
-else
-   mexflag=' -O -largeArrayDims CFLAGS=''$CFLAGS -pthread -Wall -ansi -pedantic -Wextra'' ';
+if strcmp(mexext,'mexmaci64') && verLessThan('matlab','9.2')
+  warning('WARNING: Matlab version should be at least R2017a for compilation under Mac.');
 end
+
+mexflag=' -O -largeArrayDims CFLAGS=''$CFLAGS -pthread -Wall -ansi -pedantic -Wextra'' ';
 
 eval(['mex ' mexflag ' -O tfceMex_pthread.c'])
 

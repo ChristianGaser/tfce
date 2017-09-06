@@ -126,7 +126,7 @@ if ~test_mode
   if job.tbss || mesh_detected
     E = 1.0; H = 2.0;
   else
-    E = 0.5; H = 2.0;
+    E = job.E_weight; H = 2.0;
   end
 
   % check for mask image that should exist for any analysis
@@ -286,7 +286,7 @@ for con = 1:length(Ic0)
 
   % name of contrast
   c_name0 = deblank(xCon.name);
-  c_name = [c_name0 ' (' str_permutation_method ')   '];
+  c_name = sprintf('%s (E=%1.1f H=%1.1f %s)',c_name0, E, H, str_permutation_method);
 
   % find exchangeability blocks using contrasts without zero values
   exch_blocks   = c(ind_X);
@@ -964,7 +964,7 @@ for con = 1:length(Ic0)
             spm_figure('Clear',Fgraph);
             figure(Fgraph)
           
-            c_name = [c_name0 ' (Freedman-Lane)   '];
+            c_name = sprintf('%s (E=%1.1f H=%1.1f Freedman-Lane)',c_name0, E, H);
             h = axes('position',[0.45 0.95 0.1 0.05],'Units','normalized','Parent',...
               Fgraph,'Visible','off');
               

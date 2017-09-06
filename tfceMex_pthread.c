@@ -31,7 +31,7 @@ typedef struct{
     double *inData;   
     double *outData;
     double thresh;    
-    const int *dims;    
+    const mwSize *dims;    
     double E;
     double H;  
     int calc_neg;  
@@ -45,14 +45,15 @@ typedef struct{
 void* ThreadFunc( void* pArguments )
 {
   double valToAdd;
-  int i, j, k, ti, tj, tk, maxi, maxj, maxk, mini, minj, mink, ind1, growingInd, growingCur;
-  long ind;
-  int numVoxels, calc_neg;
+  int i, j, k, ti, tj, tk, maxi, maxj, maxk, mini, minj, mink, growingInd, growingCur;
+  long ind, ind1;
+  int calc_neg;
+  long numVoxels;
   char *flagUsed;
   short *growing;
   double *inData, *outData;
   double thresh, E, H;    
-  const int *dims;    
+  const mwSize *dims;    
   pthread_mutex_t mutex;
    
   myargument arg;
@@ -66,7 +67,7 @@ void* ThreadFunc( void* pArguments )
   H        = arg.H;    
   calc_neg = arg.calc_neg;
   
-  numVoxels = dims[0] * dims[1] * dims[2];
+  numVoxels = (long)dims[0] * (long)dims[1] * (long)dims[2];
 
   if (arg.threaded)
     pthread_mutex_lock(&mutex);
@@ -78,7 +79,7 @@ void* ThreadFunc( void* pArguments )
 
   for (k = 0; k < (int)dims[2]; ++k) for (j = 0; j < (int)dims[1]; ++j) for (i = 0; i < (int)dims[0]; ++i)
   {
-    ind = (long)k*(dims[0]*dims[1]) + (j*dims[0]) + i;
+    ind = (long)k*((long)dims[0]*(long)dims[1]) + ((long)j*(long)dims[0]) + (long)i;
             
     /* estimate positive tfce values */ 
     if (!flagUsed[ind] && (inData[ind] >= thresh))
@@ -102,7 +103,7 @@ void* ThreadFunc( void* pArguments )
         
         for (tk = mink; tk < maxk; ++tk) for (tj = minj; tj < maxj; ++tj) for (ti = mini; ti < maxi; ++ti)
         {
-          ind1 = tk*(dims[0]*dims[1]) + (tj*dims[0]) + ti;
+          ind1 = (long)tk*((long)dims[0]*(long)dims[1]) + ((long)tj*(long)dims[0]) + (long)ti;
           
           if (!flagUsed[ind1] && inData[ind1] >= thresh)
           {
@@ -148,7 +149,7 @@ void* ThreadFunc( void* pArguments )
         
         for (tk = mink; tk < maxk; ++tk) for (tj = minj; tj < maxj; ++tj) for (ti = mini; ti < maxi; ++ti)
         {
-          ind1 = tk*(dims[0]*dims[1]) + (tj*dims[0]) + ti;
+          ind1 = (long)tk*((long)dims[0]*(long)dims[1]) + ((long)tj*(long)dims[0]) + (long)ti;
           
           if (!flagUsed[ind1] && -inData[ind1] >= thresh)
           {
@@ -180,14 +181,14 @@ void* ThreadFunc( void* pArguments )
     pthread_mutex_unlock(&mutex);
     pthread_exit(0);    
   }
-  
+  return NULL;
 }
 
-void tfce(double *inData, double *outData, double dh, const int *dims, double E, double H, int calc_neg)
+void tfce(double *inData, double *outData, double dh, const mwSize *dims, double E, double H, int calc_neg)
 {
   double fmax = 0.0, curThr, tmp_value;
   int i, Nthreads;
-  int numVoxels = dims[0] * dims[1] * dims[2];
+  long numVoxels = (long)dims[0] * (long)dims[1] * (long)dims[2];
   pthread_mutex_t mutex;   
   myargument *ThreadArgs;  
 
@@ -243,11 +244,11 @@ void tfce(double *inData, double *outData, double dh, const int *dims, double E,
 
 }
 
-void tfce_singlethreaded(double *inData, double *outData, double dh, const int *dims, double E, double H, int calc_neg)
+void tfce_singlethreaded(double *inData, double *outData, double dh, const mwSize *dims, double E, double H, int calc_neg)
 {
   double fmax = 0.0, tmp_value;
   int i, n_steps;
-  int numVoxels = dims[0] * dims[1] * dims[2];
+  long numVoxels = (long)dims[0] * (long)dims[1] * (long)dims[2];
   myargument arg;
   
   for (i = 0; i < numVoxels; ++i)
@@ -281,7 +282,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 /* Declarations */
 double *inData, *outData, dh, E, H;
 int ndim, calc_neg;
-const int *dims;
+const mwSize *dims;
 
 /* check inputs */
 if (nrhs<4)

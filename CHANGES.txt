@@ -1,4 +1,14 @@
 ------------------------------------------------------------------------
+r128 | gaser | 2017-09-03 11:48:25 +0200 (So, 03 Sep 2017) | 7 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Automatic detection of test-mode in cg_tfce_estimate.m was not
+working correctly.
+
+------------------------------------------------------------------------
 r127 | gaser | 2017-09-03 00:22:12 +0200 (So, 03 Sep 2017) | 6 lines
 
 Changed paths:
@@ -2143,8 +2153,15 @@ Initial import
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
+M       compile.m
+M       tbx_cfg_tfce_estimate.m
+M       tfceMex_pthread.c
+M       tfceMex_pthread.mexmaci64
 
-Fixed: Automatic detection of test-mode in cg_tfce_estimate.m was not
-working correctly.
+(1) Changed: Recompiled mex-files using Matlab R2017a for Mac because of
+compatibility issues.
+(2) Fixed: Wrong data type for dims parameter in mex-files.
+(3) Added: Larger weighting for broader clusters can be now selected in 
+the GUI.
 ------------------------------------------------------------------------
-r128 | gaser | 2017-09-03 11:48:19
+r129 | gaser | 2017-09-06 12:52:15

@@ -92,7 +92,7 @@ tbss.help = {[...
 'Use 2D optimization (e.g. for TBSS data) with internal TFCE parameters H=2, E=1.']};
 
 % ---------------------------------------------------------------------
-% variance smoothing
+% method to deal with nuisance variables
 % ---------------------------------------------------------------------
 nuisance_method         = cfg_menu;
 nuisance_method.tag     = 'nuisance_method';
@@ -103,6 +103,20 @@ nuisance_method.val     = {2};
 nuisance_method.help    = {'A number of methods are available to obtain parameter estimates and construct a reference distribution in the presence of nuisance variables. Freedman-Lane permutation method can be optionally used if any nuisance variables exist. If no nuisance variables were found in the model then Draper-Stoneman method is automatically used. '
                      ''
 'If you are unsure which method is the most appropriate for your data you can also try the automatic mode. Here the method with the more liberal results is finally used after checking the thresholds for the first 50 permutations.'
+}';
+
+% ---------------------------------------------------------------------
+% weighting of cluster-size
+% ---------------------------------------------------------------------
+E_weight         = cfg_menu;
+E_weight.tag     = 'E_weight';
+E_weight.name    = 'Weighting of cluster size';
+E_weight.labels = {'More weighting of focal effects (E=0.5)','More weighting of larger clusters (E=0.6)','Very large weighting of larger clusters (E=0.7)'};
+E_weight.values  = {0.5 0.6 0.7};
+E_weight.val     = {0.5};
+E_weight.help    = {'The idea of the TFCE approach is to combine focal effects with large voxel height as well as broad effects. The weighting of these effects is defined using the parameters E (extent) and H (height). Smith and Nichols (Neuroimage 2009) empirically estimated E=0.5 and H=2 for volume data to provide good statistical power. However, the empirically derived values found to be very sensitive for local effects, but not for broader effects. Thus, you can try to change the weighting if you expect more broader effects or even very broad effects by changing the weighting parameter E.'
+                     ''
+'Please note that for surfaces and TBSS data the weightings are different from that of 3D volume data with E=1 and H=2 and will be fixed and not changed by this setting.'
 }';
 
 % ---------------------------------------------------------------------
@@ -137,6 +151,6 @@ singlethreaded.help = {[...
 tfce_estimate          = cfg_exbranch;
 tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
-tfce_estimate.val      = {spmmat mask conspec nuisance_method tbss singlethreaded};
+tfce_estimate.val      = {spmmat mask conspec nuisance_method tbss E_weight singlethreaded};
 tfce_estimate.help     = {''};
 tfce_estimate.prog     = @cg_tfce_estimate;

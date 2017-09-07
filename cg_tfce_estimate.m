@@ -549,8 +549,6 @@ for con = 1:length(Ic0)
   
   end % test_mode
 
-  label_matrix = [];
-  
   % general initialization
   try % use try commands to allow batch mode without graphical output
     Fgraph = spm_figure('GetWin','Graphics');
@@ -597,9 +595,11 @@ for con = 1:length(Ic0)
     if perm==1 % first permutation is always unpermuted model
       if n_cond == 1 % one-sample t-test
         rand_label = ones(1,n_data_with_contrast);
+        label_matrix = rand_label;
       else % correlation or Anova
         rand_order = ind_label;
         rand_order_sorted = rand_order;
+        label_matrix = rand_order;
       end
     else
       % init permutation and
@@ -956,7 +956,11 @@ for con = 1:length(Ic0)
           tfce_max        = [];
           tfce_max_th     = [];
           tfce_th         = [];
-          label_matrix    = [];
+          if n_cond == 1 % one-sample t-test
+            label_matrix = ones(1,n_data_with_contrast);
+          else % correlation or Anova
+            label_matrix = ind_label;
+          end
           
           % redraw plot 
           try % use try commands to allow batch mode without graphical output

@@ -1014,7 +1014,7 @@ for con = 1:length(Ic0)
       end
     else
       if ~rem(perm,progress_step)
-        if ~test_mode, cg_progress('Set',i,Fgraph); end
+        if ~test_mode, cg_progress('Set',perm,Fgraph); end
         drawnow
       end
     end

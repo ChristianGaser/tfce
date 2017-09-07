@@ -1,4 +1,14 @@
 ------------------------------------------------------------------------
+r132 | gaser | 2017-09-07 10:29:59 +0200 (Do, 07 Sep 2017) | 7 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Changed: Updated code for initialization in cg_tfce_estimate.
+
+
+------------------------------------------------------------------------
 r131 | gaser | 2017-09-07 10:24:01 +0200 (Do, 07 Sep 2017) | 6 lines
 
 Changed paths:
@@ -2191,7 +2201,7 @@ Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
 
-Changed: Updated code for initialization in cg_tfce_estimate.
+Fixed: Corrected error in cg_tfce_estimate for progress status.
 
 ------------------------------------------------------------------------
-r132 | gaser | 2017-09-07 10:29:56
+r133 | gaser | 2017-09-07 10:33:12

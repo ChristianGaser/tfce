@@ -601,6 +601,7 @@ for con = 1:length(Ic0)
         rand_order_sorted = rand_order;
         label_matrix = rand_order;
       end
+      label_matrix0 = label_matrix;
     else
       % init permutation and
       % check that each permutation is used only once
@@ -956,11 +957,7 @@ for con = 1:length(Ic0)
           tfce_max        = [];
           tfce_max_th     = [];
           tfce_th         = [];
-          if n_cond == 1 % one-sample t-test
-            label_matrix = ones(1,n_data_with_contrast);
-          else % correlation or Anova
-            label_matrix = ind_label;
-          end
+          label_matrix    = label_matrix0;
           
           % redraw plot 
           try % use try commands to allow batch mode without graphical output

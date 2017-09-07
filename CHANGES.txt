@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r131 | gaser | 2017-09-07 10:24:01 +0200 (Do, 07 Sep 2017) | 6 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Corrected ismember error for newer matlab versions in cg_tfce_estimate.
+
+------------------------------------------------------------------------
 r130 | gaser | 2017-09-07 09:47:37 +0200 (Do, 07 Sep 2017) | 8 lines
 
 Changed paths:
@@ -2182,6 +2191,7 @@ Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
 
-Fixed: Corrected ismember error for newer matlab versions in cg_tfce_estimate.
+Changed: Updated code for initialization in cg_tfce_estimate.
+
 ------------------------------------------------------------------------
-r131 | gaser | 2017-09-07 10:23:47
+r132 | gaser | 2017-09-07 10:29:56

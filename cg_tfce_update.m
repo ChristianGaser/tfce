@@ -29,15 +29,12 @@ end
 
 url = 'http://dbm.neuro.uni-jena.de/tfce/';
 
-% get new release number
-if usejava('jvm')
-  [s,sts] = urlread(url);
-  if ~sts
-    fprintf('Cannot access %s. Please check your proxy and/or firewall to allow access.\n. You can download your update at %s\n',url,url); 
-    return
-  end
-else
-  fprintf('Please enable Java (JVM) to use update function.\n. You can download your update at %s\n',url); 
+% get new release numbers
+[s,sts] = urlread(url);
+if ~sts
+  sts = NaN;
+  msg = sprintf('Cannot access %s. Please check your proxy and/or firewall to allow access.\nYou can download your update at %s\n',url,url); 
+  if ~nargout, error(msg); else varargout = {sts, msg}; end
   return
 end
 
@@ -55,44 +52,46 @@ else
 end
 
 if rnew > r
-  fprintf('A new version of TFCE is available on: %s\n',url);
-  fprintf('Your version: %d - New version: %d\n',r,rnew);
-  if ~update
-    fprintf('In order to update use Toolbox|tfce|Check for updates\n',r,rnew);
-  end
+  sts = n;
+  msg = sprintf('         A new version of TFCE is available on:\n');
+  msg = [msg sprintf('   %s\n',url)];
+  msg = [msg sprintf('        (Your version: %d - New version: %d)\n',r,rnew)];
+  if ~nargout, fprintf(msg); else varargout = {sts, msg}; end
+else
+    sts = 0;
+    msg = sprintf('Your version of TFCE is up to date.');
+    if ~nargout, fprintf([blanks(9) msg '\n']);
+    else varargout = {sts, msg}; end
+    return
+end
 
-  if update
-    d = fullfile(spm('Dir'),'toolbox'); 
-    overwrite = spm_input('Update',1,'m','Do not update|Download zip-file only|Overwrite old TFCE installation',[-1 0 1],3);
-    switch overwrite
-    case 1
-      try
-        % list mex-files and delete these files to prevent that old
-        % compiled files are used
-        mexfiles = dir(fullfile(d,'tfce','*.mex*'));
-        for i=1:length(mexfiles)
-          name = fullfile(d,'tfce',mexfiles(i).name);
-          spm_unlink(name);
-        end
-        fprintf('Download TFCE\n');
-        s = unzip([url sprintf('tfce_r%d.zip',rnew)], d);
-        fprintf('%d files have been updated.\nSPM should be restarted.\n',numel(s));
-        restart = spm_input('Restart SPM',1,'m','no|yes',[0 1],2);
-        if restart
-          rehash
-          toolbox_path_cache
-          eval(['spm fmri; spm_TFCE']);
-        end
-      catch
-        fprintf('Update failed: check file permissions. Download zip-file only.\n');
-        web([url sprintf('tfce_r%d.zip',rnew)],'-browser');
-        fprintf('Unzip file to %s\n',d);
+if update
+  d = fullfile(spm('Dir'),'toolbox'); 
+  overwrite = spm_input('Update',1,'m','Do not update|Download zip-file only|Overwrite old TFCE installation',[-1 0 1],3);
+  switch overwrite
+  case 1
+    try
+      % list mex-files and delete these files to prevent that old
+      % compiled files are used
+      mexfiles = dir(fullfile(d,'tfce','*.mex*'));
+      for i=1:length(mexfiles)
+        name = fullfile(d,'tfce',mexfiles(i).name);
+        spm_unlink(name);
       end
-    case 0
+      fprintf('Download TFCE\n');
+      s = unzip([url sprintf('tfce_r%d.zip',rnew)], d);
+      fprintf('%d files have been updated.\nSPM will be restarted.\n',numel(s));
+      rehash
+      rehash toolboxcache;
+      toolbox_path_cache
+      eval(['spm fmri; spm_TFCE']);
+    catch
+      fprintf('Update failed: check file permissions. Download zip-file only.\n');
       web([url sprintf('tfce_r%d.zip',rnew)],'-browser');
       fprintf('Unzip file to %s\n',d);
     end
+  case 0
+    web([url sprintf('tfce_r%d.zip',rnew)],'-browser');
+    fprintf('Unzip file to %s\n',d);
   end
-elseif update
-  fprintf('You already have the newest version %d.\n',r);
 end

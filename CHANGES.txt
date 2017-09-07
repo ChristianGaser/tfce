@@ -1,4 +1,21 @@
 ------------------------------------------------------------------------
+r129 | gaser | 2017-09-06 12:52:18 +0200 (Mi, 06 Sep 2017) | 14 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+M       compile.m
+M       tbx_cfg_tfce_estimate.m
+M       tfceMex_pthread.c
+M       tfceMex_pthread.mexmaci64
+
+(1) Changed: Recompiled mex-files using Matlab R2017a for Mac because of
+compatibility issues.
+(2) Fixed: Wrong data type for dims parameter in mex-files.
+(3) Added: Larger weighting for broader clusters can be now selected in 
+the GUI.
+
+------------------------------------------------------------------------
 r128 | gaser | 2017-09-03 11:48:25 +0200 (So, 03 Sep 2017) | 7 lines
 
 Changed paths:
@@ -2152,16 +2169,10 @@ Initial import
 
 Changed paths:
 M       CHANGES.txt
-M       cg_tfce_estimate.m
-M       compile.m
-M       tbx_cfg_tfce_estimate.m
-M       tfceMex_pthread.c
-M       tfceMex_pthread.mexmaci64
+M       TFCE.txt
+M       cg_tfce_update.m
+M       tfceMex_pthread.mexa64
 
-(1) Changed: Recompiled mex-files using Matlab R2017a for Mac because of
-compatibility issues.
-(2) Fixed: Wrong data type for dims parameter in mex-files.
-(3) Added: Larger weighting for broader clusters can be now selected in 
-the GUI.
+Changed: Updated intro text and update function.
 ------------------------------------------------------------------------
-r129 | gaser | 2017-09-06 12:52:15
+r130 | gaser | 2017-09-07 09:47:33

@@ -7,11 +7,17 @@
 % ==========================================================================
 % This toolbox is a an extensions to SPM (Wellcome Department of Cognitive 
 % Neurology) to provide non-parametric statistics based on threshold-free
-% cluster enhancement (TFCE). It is developed by Christian Gaser (University of 
+% cluster enhancement (TFCE).
+% The idea of the TFCE approach is to combine focal effects with large voxel 
+% height as well as broad effects. In contrast to common approaches that 
+% consider cluster-based thresholding no initial (and arbitrary) cluster-
+% forming threshold is necessary. Furthermore, TFCE is fairly robust to 
+% nonstationarity in the data, which can be often seen in VBM data. 
+% The toolbox is developed by Christian Gaser (University of 
 % Jena, Department of Psychiatry) and is available to the scientific 
 % community under the terms of the GNU General Public License.
 % 
-% Simply use an existing statistical (parametric) design and apply the TFCE-
-% toolbox to a predefined contrast.
+% The toolbox can be applied to (almost) any existing statistical (parametric) 
+% SPM design for 3D volume or surface data.
 % __________________________________________________________________________
-%                                                Christian Gaser 2017/31/07
+%                                                Christian Gaser 2017/06/09

@@ -1,11 +1,21 @@
 ------------------------------------------------------------------------
-r135 | gaser | 2017-09-08 16:03:12
+r136 | gaser | 2017-10-19 11:12:16
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: If only one constant factors such as mean is used in the design this
+is now correctly detected for choosing method to deal with nuisance parameters.
+------------------------------------------------------------------------
+r135 | gaser | 2017-09-08 16:03:15 +0200 (Fr, 08 Sep 2017) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
 M       svn_ci_log
 
 Changed: Updated svn log system
+
 ------------------------------------------------------------------------
 r134 | gaser | 2017-09-08 15:38:03 +0200 (Fr, 08 Sep 2017) | 7 lines
 

@@ -464,11 +464,11 @@ for con = 1:length(Ic0)
     
   Hz = Z*pinv(Z);
   Rz = eye(size(X,1)) - Hz;
-  
+
   if ~test_mode
     % if Hz is zero or Ic is empty then no confounds were found and we can skip the time-consuming
     % Freedman-Lane permutation
-    if (all(~any(Hz)) | isempty(xX.iC))
+    if (all(~any(Hz)) | isempty(xX.iC)) | all(~any(diff(Hz)))
       exist_nuisance = 0;
     else
       exist_nuisance = 1;
@@ -478,7 +478,7 @@ for con = 1:length(Ic0)
       fprintf('No nuisance variables were found: Use Draper-Stoneman permutation.\n\n');
       nuisance_method = 0;
     end
-    
+
     % compute unpermuted t/F-map
     [t0, df2] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim);
     

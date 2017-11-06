@@ -485,6 +485,18 @@ k   = 0;           % extent threshold {voxels}
 topoFDR = false;
     
 if  mesh_detected
+    % underlying mesh not found
+    if ~exist(SPM.xVol.G)
+        [pth, nam, ext] = spm_fileparts(SPM.xVol.G);
+        % use cat12 template surfaces
+        SPM.xVol.G = fullfile(spm('Dir'),'toolbox','cat12','templates_surfaces',...
+                [nam ext]);
+                
+        % and finally allow manual selection if nothing works
+        if ~exist(SPM.xVol.G)
+            SPM.xVol.G = spm_select(1,[nam ext],'select underling mesh');
+        end
+    end
     G = export(gifti(SPM.xVol.G),'patch');
 end
 

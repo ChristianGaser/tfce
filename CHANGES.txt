@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r137 | gaser | 2017-11-06 17:08:01
+r138 | gaser | 2017-11-06 21:17:58
+
+Changed paths:
+M       CHANGES.txt
+M       cg_get_tfce_results.m
+
+Changed: If underlying mesh saved in SPM.xVol.G is not found a mesh with the
+same name in the toolbox/cat12/templates_surfaces folder is used.
+------------------------------------------------------------------------
+r137 | gaser | 2017-11-06 17:08:08 +0100 (Mo, 06 Nov 2017) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -10,6 +19,7 @@ M       cg_tfce_list.m
 (1) Added: cat_surf_max.m as modified version of spm_mesh_max because for some 
     rare data only one global maximum was returned.
 (2) Changed: Replaced spm_mesh_max by cat_surf_max in cg_tfce_list.m.
+
 ------------------------------------------------------------------------
 r136 | gaser | 2017-10-19 11:12:23 +0200 (Do, 19 Okt 2017) | 7 lines
 

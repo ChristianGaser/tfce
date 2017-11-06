@@ -183,6 +183,7 @@ switch lower(varargin{1}), case 'list'                            %-List
 
     if STAT~='P'
         R     = full(xSPM.R);         % Resel counts
+        FWHM  = full(xSPM.FWHM);      % Full width at half max
         FWHM  = FWHM(DIM);            % Full width at max/2
         FWmm  = FWHM.*VOX;            % FWHM {units}
         V2R   = 1/prod(FWHM);         % voxels to resels
@@ -347,7 +348,7 @@ switch lower(varargin{1}), case 'list'                            %-List
     %-Table filtering note
     %----------------------------------------------------------------------
     if isinf(Num)
-        TabDat.str = sprintf('table shows all local maxima > %.1fmm apart',Dis);
+        TabDat.str = sprintf('table shows all local maxima more than %.1fmm apart',Dis);
     else
         TabDat.str = sprintf(['table shows %d local maxima ',...
             'more than %.1fmm apart'],Num,Dis);
@@ -436,16 +437,16 @@ switch lower(varargin{1}), case 'list'                            %-List
     %----------------------------------------------------------------------
     minz          = abs(min(min(varargin{2}.Z)));
     Z       = 1 + minz + varargin{2}.Z;
+
     if strcmp(spm('ver'),'SPM12')
         if ~spm_mesh_detect(xSPM.Vspm)
             [N,Z,XYZ,A]  = spm_max(Z,XYZ);
         else
-            [N,Z,XYZ,A]  = spm_mesh_max(Z,varargin{2}.XYZ,xSPM.G);
+            [N,Z,XYZ,A]  = cat_surf_max(Z,varargin{2}.XYZ,xSPM.G);
         end
     else 
         [N,Z,XYZ,A]  = spm_max(Z,XYZ);
     end
-    
     Z             = Z - minz - 1;
 
     % find corresponding p-values for Z
@@ -500,6 +501,7 @@ switch lower(varargin{1}), case 'list'                            %-List
     %----------------------------------------------------------------------
     HlistXYZ = [];
     HlistClust = [];
+
     while numel(find(isfinite(Z)))
 
         % Paginate if necessary
@@ -842,8 +844,6 @@ switch lower(varargin{1}), case 'list'                            %-List
         end
         fprintf('%c',repmat('=',1,80)), fprintf('\n\n')
 
-
-
     %======================================================================
     case 'xlslist'                                  %-Export table to Excel
     %======================================================================
@@ -854,7 +854,7 @@ switch lower(varargin{1}), case 'list'                            %-List
         if nargin == 3, ofile = varargin{3};
         else            ofile = [tempname '.xls']; end
         
-        d          = [TabDat.hdr;TabDat.dat];
+        d          = [TabDat.hdr(1:2,:);TabDat.dat];
         xyz        = d(3:end,end);
         xyz        = num2cell([xyz{:}]');
         d(:,end+1) = d(:,end);
@@ -978,4 +978,5 @@ switch lower(varargin{1}), case 'list'                            %-List
         %==================================================================
         error('Unknown action string')
 end
+
 %==========================================================================

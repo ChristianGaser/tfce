@@ -14,7 +14,7 @@ convert_to_z = 0;
 % method to deal with nuisance variables
 % 0 - Draper-Stoneman
 % 1 - Freedman-Lane
-% 2 - Automatic selection based on (lower) t-thresholds after 50 permutations
+% 2 - Smith
 nuisance_method = job.nuisance_method;
 
 % display permuted design matrix (otherwise show t distribution)
@@ -278,10 +278,12 @@ for con = 1:length(Ic0)
   end
 
   switch nuisance_method 
-  case {0, 2}
+  case 0
     str_permutation_method = 'Draper-Stoneman';
   case 1
     str_permutation_method = 'Freedman-Lane';
+  case 2
+    str_permutation_method = 'Smith';
   end
 
   % name of contrast
@@ -542,10 +544,6 @@ for con = 1:length(Ic0)
     tfce_max     = [];
     tfce_max_th  = [];
     tfce_th      = [];
-    tDS_max      = [];
-    tFL_max      = [];
-    sum_DS       = 0;
-    sum_FL       = 0;
   
   end % test_mode
 
@@ -588,9 +586,7 @@ for con = 1:length(Ic0)
   
   perm = 1;
   while perm<=n_perm
-  
-   perm_lt_50 = perm < (50*(use_half_permutations+1));
-  
+    
     % randomize subject vector
     if perm==1 % first permutation is always unpermuted model
       if n_cond == 1 % one-sample t-test
@@ -682,8 +678,13 @@ for con = 1:length(Ic0)
     % only permute columns, where contrast is defined
     Xperm = xX.X;
     
-    Xperm(:,ind_X) = Pset*Xperm(:,ind_X);
-      
+    switch nuisance_method 
+    case {0, 1} % Draper-Stoneman is permuting X
+      Xperm(:,ind_X) = Pset*Xperm(:,ind_X);
+    case 2 % Smith method is additionally orthogonalizing X with respect to Z
+      Xperm(:,ind_X) = Pset*Rz*Xperm(:,ind_X);
+    end
+            
     % correct interaction designs
     if n_exch_blocks >= 2 & n_cond==0
       Xperm2 = Xperm;
@@ -697,13 +698,8 @@ for con = 1:length(Ic0)
 
     Xperm_debug = Xperm;
     
-    % track for both DS as well as FL correction for the first 50 permutations
-    if perm_lt_50
-      XpermDS = Xperm;
-      XpermFL = xX.X;
-    end
-
-    % Permutation for Freedan-Lane is only for Data Y and not for design matrix
+    % Permutation for Freedan-Lane is only for Data Y and not for design matrix,
+    % Use permuted design matrix only for visualization
     if nuisance_method==1
       Xperm = xX.X;
     end
@@ -798,26 +794,15 @@ for con = 1:length(Ic0)
       if perm==1
         t    = t0;
         tfce = tfce0;
-        tDS = t; tFL = t;
       else
         xXperm   = xX;
         xXperm.X = Xperm;
   
-        xXpermDS   = xX;
-        xXpermDS.X = XpermDS;
-        xXpermFL   = xX;
-        xXpermFL.X = XpermFL;
-  
         % Freedman-Lane permutation of data
-        if nuisance_method==1
+        if nuisance_method == 1
           t = calc_GLM(Y*(Pset'*Rz+Hz),xXperm,xCon,ind_mask,VY(1).dim);
         else
           t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
-          % track for both DS as well as FL correction for the first 50 permutations
-          if perm_lt_50 & nuisance_method==2
-            tDS = t;
-            tFL = calc_GLM(Y*(Pset'*Rz+Hz),xXpermFL,xCon,ind_mask,VY(1).dim);
-          end
         end
         
         if convert_to_z
@@ -832,12 +817,6 @@ for con = 1:length(Ic0)
         % remove all NaN and Inf's
         t(isinf(t) | isnan(t)) = 0;
         
-        % track for both DS as well as FL correction for the first 50 permutations
-        if perm_lt_50 & nuisance_method==2
-          tDS(isinf(tDS) | isnan(tDS)) = 0;
-          tFL(isinf(tFL) | isnan(tFL)) = 0;
-        end
-  
         % use individual dh
         dh = max(abs(t(:)))/n_steps_tfce;
         
@@ -871,11 +850,6 @@ for con = 1:length(Ic0)
         tfceperm(mask_P) = tfceperm(mask_P) + 2*(tfce(mask_P) >= tfce0(mask_P));
         tfceperm(mask_N) = tfceperm(mask_N) - 2*(tfce(mask_N) <= tfce0(mask_N));
         
-        % track for both DS as well as FL correction for the first 50 permutations
-        if perm_lt_50 & nuisance_method==2
-          tDS_max = [tDS_max max(tDS(:)) -min(tDS(:))];
-          tFL_max = [tFL_max max(tFL(:)) -min(tFL(:))];
-        end
       end
     else
       if n_cond == 1 % one-sample t-test
@@ -895,11 +869,6 @@ for con = 1:length(Ic0)
         tfceperm(mask_P) = tfceperm(mask_P) + (tfce(mask_P) >= tfce0(mask_P));
         tfceperm(mask_N) = tfceperm(mask_N) - (tfce(mask_N) <= tfce0(mask_N));
   
-        % track for both DS as well as FL correction for the first 50 permutations
-        if perm_lt_50 & nuisance_method==2
-          tDS_max = [tDS_max max(tDS(:))];
-          tFL_max = [tFL_max max(tFL(:))];
-        end
       end
     end
       
@@ -922,71 +891,7 @@ for con = 1:length(Ic0)
       if use_half_permutations
         tfce_max_th = [tfce_max_th; stfce_max(ind_max)];
       end
-  
-      % track for both DS as well as FL correction for the first 50 permutations
-      if perm_lt_50 & nuisance_method==2
-        % use cummulated sum to find threshold
-        stDS_max    = sort(tDS_max);
-        stFL_max    = sort(tFL_max);
-    
-        % find corrected thresholds for p<0.05
-        ind_maxDS  = ceil((1-alpha(1)).*length(stDS_max));
-        ind_maxFL  = ceil((1-alpha(1)).*length(stFL_max));
-        
-        % check where FL has lower corrected thresholds compared to DS for 50 permutations
-        sum_DS = sum_DS + stDS_max(ind_maxDS);
-        sum_FL = sum_FL + stFL_max(ind_maxFL);
       
-      end
-  
-      % check after 50 permutations if automatic mode was chosen
-      if ~perm_lt_50 & nuisance_method==2
-      
-        % check whether t-thresholds for Freedman-Lane or Draper-Stoneman is lower
-        if sum_FL < sum_DS
-          fprintf('\nSwitch to Freedman-Lane method because of more liberal thresholds\n')
-          
-          % reset some variables and start again from 1
-          nuisance_method = 1;
-          perm            = 1;
-          t_min           = [];
-          t_max           = [];
-          t_max_th        = [];
-          t_th            = [];
-          tfce_min        = [];
-          tfce_max        = [];
-          tfce_max_th     = [];
-          tfce_th         = [];
-          label_matrix    = label_matrix0;
-          
-          % redraw plot 
-          try % use try commands to allow batch mode without graphical output
-            Fgraph = spm_figure('GetWin','Graphics');
-            spm_figure('Clear',Fgraph);
-            figure(Fgraph)
-          
-            c_name = sprintf('%s (E=%1.1f H=%1.1f Freedman-Lane)',c_name0, E, H);
-            h = axes('position',[0.45 0.95 0.1 0.05],'Units','normalized','Parent',...
-              Fgraph,'Visible','off');
-              
-            text(0.5,0.6,c_name,...
-              'FontSize',spm('FontSize',10),...
-              'FontWeight','Bold',...
-              'HorizontalAlignment','Center',...
-              'VerticalAlignment','middle')
-          
-            text(0.5,0.25,spm_str_manip(SPM.swd,'a50'),...
-              'FontSize',spm('FontSize',8),...
-              'HorizontalAlignment','Center',...
-              'VerticalAlignment','middle')
-  
-          end
-        else
-          % keep on going with Draper-Stoneman
-          nuisance_method = 0;
-        end
-      end
-  
       % plot thresholds and histograms
       try
         h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
@@ -1052,6 +957,8 @@ for con = 1:length(Ic0)
       str_permutation_method = 'Draper-Stoneman';
     case 1
       str_permutation_method = 'Freedman-Lane';
+    case 2
+      str_permutation_method = 'Smith';
     end
   
     % prepare output files

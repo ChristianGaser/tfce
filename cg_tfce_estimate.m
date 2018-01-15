@@ -197,7 +197,7 @@ if ~test_mode
       
     % update SPM
     if size(SPM.xY.VY,1)==n
-      save(job.spmmat{1},'SPM');
+      save(job.spmmat{1},'SPM','-v7.3');
     else
       fprintf('ERROR: Number of files is not correct\n');
       return
@@ -288,7 +288,12 @@ for con = 1:length(Ic0)
 
   % name of contrast
   c_name0 = deblank(xCon.name);
-  c_name = sprintf('%s (E=%1.1f H=%1.1f %s)',c_name0, E, H, str_permutation_method);
+
+  if test_mode
+    c_name = '';
+  else
+    c_name = sprintf('%s (E=%1.1f H=%1.1f %s)',c_name0, E, H, str_permutation_method);
+  end
 
   % find exchangeability blocks using contrasts without zero values
   exch_blocks   = c(ind_X);
@@ -586,7 +591,7 @@ for con = 1:length(Ic0)
   
   perm = 1;
   while perm<=n_perm
-    
+
     % randomize subject vector
     if perm==1 % first permutation is always unpermuted model
       if n_cond == 1 % one-sample t-test
@@ -1427,8 +1432,9 @@ if length(ind) > 1
     while find(iCG==j), j = j + 1; end
   end
   
-  % not sure whether this will always work but usually iB (subject effects) should be longer than iH (time effects)
-  if length(iF{1}) > length(iF{2})
+  % not sure whether this will always work but usually iB (subject effects) should be larger than iH (time effects)
+%  if length(iF{1}) > length(iF{2})
+if 0 % will be probably not always correct 
     xX.iB = iF{1};
     xX.iH = iF{2};
   else

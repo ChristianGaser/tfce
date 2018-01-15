@@ -1,5 +1,16 @@
 ------------------------------------------------------------------------
-r140 | gaser | 2017-12-01 00:08:45
+r141 | gaser | 2018-01-15 08:46:17
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+M       tbx_cfg_tfce_estimate.m
+
+(1) Changed: Force use of -v7.3 option to save SPM.mat in cg_tfce_estimate.m
+(2) Changed: Removed check whether iB (subject effects) should be larger than 
+    iH (time effects), because this was not always working in cg_tfce_estimate.m
+------------------------------------------------------------------------
+r140 | gaser | 2017-12-01 00:08:53 +0100 (Fr, 01 Dez 2017) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -9,6 +20,7 @@ M       tbx_cfg_tfce_estimate.m
 
 Changed: Added Smith permutation method as default to deal with nuisance
 parameters.
+
 ------------------------------------------------------------------------
 r139 | gaser | 2017-11-30 15:57:39 +0100 (Do, 30 Nov 2017) | 9 lines
 

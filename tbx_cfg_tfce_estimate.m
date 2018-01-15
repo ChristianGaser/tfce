@@ -101,7 +101,7 @@ nuisance_method.labels = {'Draper-Stoneman','Smith','Freedman-Lane (experimental
 nuisance_method.values  = {0 2 1};
 nuisance_method.val     = {2};
 nuisance_method.help    = {'A number of methods are available to obtain parameter estimates and construct a reference distribution in the presence of nuisance variables. Smith permutation method can be optionally used if any nuisance variables exist and is selected by default. If no nuisance variables were found in the model then Draper-Stoneman method is automatically used. '
-'Freedman-Lane is another permutation method to deal with nuisance parameters. However, behaviour of that method was found to be strange under some circumstances and it is only kept here for compatibility purposes. '
+'Freedman-Lane is another permutation method to deal with nuisance parameters. However, behaviour of that method was found to be strange under some circumstances and you have to apply this method very carefully. '
 }';
 
 % ---------------------------------------------------------------------

@@ -190,7 +190,18 @@ if ~test_mode
     %-Apply gSF to memory-mapped scalefactors to implement scaling
     %--------------------------------------------------------------------------
     for i = 1:n
-      VY(i).pinfo(1:2,:) = VY(i).pinfo(1:2,:)*SPM.xGX.gSF(i); % FIXME % for meshes
+      VY(i).pinfo(1:2,:) = VY(i).pinfo(1:2,:)*SPM.xGX.gSF(i);
+      if mesh_detected
+          VY(i).private.private.data{1}.data.scl_slope = ...
+              VY(i).private.private.data{1}.data.scl_slope * gSF(i);
+          VY(i).private.private.data{1}.data.scl_inter = ...
+              VY(i).private.private.data{1}.data.scl_inter * gSF(i);
+      else
+          VY(i).private.dat.scl_slope = ...
+              VY(i).private.dat.scl_slope * gSF(i);
+          VY(i).private.dat.scl_inter = ...
+              VY(i).private.dat.scl_inter * gSF(i);
+      end
     end
     
     SPM.xY.VY = VY;

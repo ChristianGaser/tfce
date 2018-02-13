@@ -31,7 +31,7 @@ col   = [0.25 0 0; 1 0 0; 1 0.75 0];
 alpha = [0.05      0.01   0.001];
     
 % give same results each time
-if exist('rng','builtin') == 5
+if exist('rng','file') == 2
   rng('default')
   rng(0)
 else
@@ -160,7 +160,7 @@ if ~test_mode
     end
   catch
     if mesh_detected
-      maskname = spm_select(1,'mesh','select mask image');
+      maskname = spm_select(1,'mesh','select surface mask');
     else
       maskname = spm_select(1,'image','select mask image');
     end
@@ -174,9 +174,10 @@ if ~test_mode
   % if first image was not found you have to select all files again
   if ~exist(VY(1).fname);
   
+    fprintf('Data not found. Please select data in the order defined in the design matrix.\n');
     n = size(SPM.xY.VY,1);
     if mesh_detected
-      P = spm_select(n,'mesh','select images');
+      P = spm_select(n,'mesh','select surfaces');
     else
       P = spm_select(n,'image','select images');
     end

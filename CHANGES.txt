@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r142 | gaser | 2018-02-12 22:34:32
+r143 | gaser | 2018-02-13 08:42:36
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Check for rng-function was not correct (builtin-flag is necessary) in
+cg_tfce_estimate.m
+------------------------------------------------------------------------
+r142 | gaser | 2018-02-12 22:34:39 +0100 (Mo, 12 Feb 2018) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -8,6 +17,7 @@ M       cg_tfce_estimate.m
 
 (1) Changed: Updated global scaling in cg_tfce_estimate.m
 (2) Changed: Updated table in SPM-Designs-Permutation.doc.
+
 ------------------------------------------------------------------------
 r141 | gaser | 2018-01-15 08:46:22 +0100 (Mo, 15 Jan 2018) | 9 lines
 

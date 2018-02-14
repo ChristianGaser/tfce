@@ -786,6 +786,7 @@ for con = 1:length(Ic0)
     % display permuted design matrix
     try
       if show_permuted_designmatrix
+        figure(Fgraph);
         subplot(2,2,3);
         image(Xperm_debug); axis off
         title('Permuted design matrix','FontWeight','bold');
@@ -804,21 +805,21 @@ for con = 1:length(Ic0)
           % color-coded legend
           y = 1.0;
           text(-0.2,y, 'Columns of design matrix: ', 'Color',cmap(1, :),'FontWeight','Bold','FontSize',10); y = y - 0.10;
-          text(-0.2,y,['Exchangeability blocks: ' num2str_short(unique(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',10); y = y - 0.05;
+          text(-0.2,y,['Exchangeability block/variable: ' num2str_short(unique(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',10); y = y - 0.05;
           if ~isempty(xX.iH)
-            text(-0.2,y, ['iH - Indicator variables: ' num2str_short(xX.iH)], 'Color',cmap(16,:),'FontWeight','Bold','FontSize',10);
+            text(-0.2,y, ['iH - Indicator variable: ' num2str_short(xX.iH)], 'Color',cmap(16,:),'FontWeight','Bold','FontSize',10);
             y = y - 0.05; 
           end
           if ~isempty(xX.iC)
-            text(-0.2,y, ['iC - Covariates: ' num2str_short(xX.iC)], 'Color',cmap(24,:),'FontWeight','Bold','FontSize',10);
+            text(-0.2,y, ['iC - Covariate: ' num2str_short(xX.iC)], 'Color',cmap(24,:),'FontWeight','Bold','FontSize',10);
             y = y - 0.05;
           end
           if ~isempty(xX.iB)
-            text(-0.2,y, ['iB - Block effects: ' num2str_short(xX.iB)], 'Color',cmap(32,:),'FontWeight','Bold','FontSize',10);
+            text(-0.2,y, ['iB - Block variable: ' num2str_short(xX.iB)], 'Color',cmap(32,:),'FontWeight','Bold','FontSize',10);
             y = y - 0.05;
           end
           if ~isempty(xX.iG)
-            text(-0.2,y, ['iG - Nuisance variables: ' num2str_short(xX.iG)], 'Color',cmap(48,:),'FontWeight','Bold','FontSize',10);
+            text(-0.2,y, ['iG - Nuisance variable: ' num2str_short(xX.iG)], 'Color',cmap(48,:),'FontWeight','Bold','FontSize',10);
             y = y - 0.05;
           end
         end
@@ -938,6 +939,7 @@ for con = 1:length(Ic0)
       
       % plot thresholds and histograms
       try
+        figure(Fgraph);
         h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
         plot_distribution(stfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);
         if ~show_permuted_designmatrix
@@ -1311,7 +1313,7 @@ if sz_val_max >= 20
   val_th = val_th(:,1:n_alpha);
 
   [hmax, xmax] = hist(val_max, 20);
-    
+      
   subplot(2,2,(2*order)-1)
   
   h = bar(xmax,hmax);

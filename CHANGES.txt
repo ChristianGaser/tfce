@@ -1,5 +1,13 @@
 ------------------------------------------------------------------------
-r144 | gaser | 2018-02-14 09:11:02
+r145 | gaser | 2018-02-14 17:44:27
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Changed: Updated some graphical output in cg_tfce_estimate.m
+------------------------------------------------------------------------
+r144 | gaser | 2018-02-14 09:11:08 +0100 (Mi, 14 Feb 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +15,7 @@ M       cg_tfce_estimate.m
 
 Changed: Added again variance smoothing for volumes to cg_tfce_estimate.m
 (experimental).
+
 ------------------------------------------------------------------------
 r143 | gaser | 2018-02-13 08:42:40 +0100 (Di, 13 Feb 2018) | 7 lines
 

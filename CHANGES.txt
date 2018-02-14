@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r143 | gaser | 2018-02-13 08:42:36
+r144 | gaser | 2018-02-14 09:11:02
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Changed: Added again variance smoothing for volumes to cg_tfce_estimate.m
+(experimental).
+------------------------------------------------------------------------
+r143 | gaser | 2018-02-13 08:42:40 +0100 (Di, 13 Feb 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +16,7 @@ M       cg_tfce_estimate.m
 
 Fixed: Check for rng-function was not correct (builtin-flag is necessary) in
 cg_tfce_estimate.m
+
 ------------------------------------------------------------------------
 r142 | gaser | 2018-02-12 22:34:39 +0100 (Mo, 12 Feb 2018) | 8 lines
 

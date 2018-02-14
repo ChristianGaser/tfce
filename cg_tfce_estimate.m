@@ -11,6 +11,9 @@ function cg_tfce_estimate(job)
 % convert to z-statistic
 convert_to_z = 0;
 
+% variance smoothing (only for 3D images)
+vFWHM = 0;
+
 % method to deal with nuisance variables
 % 0 - Draper-Stoneman
 % 1 - Freedman-Lane
@@ -77,7 +80,11 @@ if isstruct(SPM.xX.K)
   fprintf('ERROR: No first level analysis with temporal correlations allowed.\n');
   return
 end
-        
+
+% correct variance smoothing filter by voxel size    
+vx = sqrt(sum(SPM.xY.VY(1).mat(1:3,1:3).^2));
+vFWHM = vFWHM./vx;
+
 % get some parameters from SPM
 xX     = SPM.xX;
 VY     = SPM.xY.VY;
@@ -257,6 +264,12 @@ if ~test_mode
   t  = zeros(Vmask.dim);
   
 end % if ~test_mode
+
+% variance smoothing not yet supported for meshes
+if mesh_detected & vFWHM > 0
+  fprintf('Warning: Variance smoothing for surfaces is not yet supported.\n');
+  vFWHM = 0;
+end
 
 % go through all contrasts
 for con = 1:length(Ic0)
@@ -499,7 +512,11 @@ for con = 1:length(Ic0)
     end
 
     % compute unpermuted t/F-map
-    [t0, df2] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim);
+    if vFWHM > 0
+      [t0, df2, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim,vFWHM);
+    else
+      [t0, df2] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim);
+    end
     
     mask_0 = (t0 == 0);
     mask_1 = (t0 ~= 0);
@@ -579,7 +596,7 @@ for con = 1:length(Ic0)
       'HorizontalAlignment','Center',...
       'VerticalAlignment','middle')
   
-    text(0.5,0.25,spm_str_manip(SPM.swd,'a50'),...
+    text(0.5,0.25,spm_str_manip(spm_fileparts(job.spmmat{1}),'a50'),...
       'FontSize',spm('FontSize',8),...
       'HorizontalAlignment','Center',...
       'VerticalAlignment','middle')
@@ -766,7 +783,6 @@ for con = 1:length(Ic0)
 
     end
           
-    
     % display permuted design matrix
     try
       if show_permuted_designmatrix
@@ -781,27 +797,30 @@ for con = 1:length(Ic0)
         cmap(1,:) = [0 0 0];
         colormap(cmap)
       
-        subplot(2,2,4); axis off
-      
-        % color-coded legend
-        y = 1.0;
-        text(-0.2,y, 'Columns of design matrix: ', 'Color',cmap(1, :),'FontWeight','Bold','FontSize',10); y = y - 0.10;
-        text(-0.2,y,['Exchangeability blocks: ' num2str_short(unique(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',10); y = y - 0.05;
-        if ~isempty(xX.iH)
-          text(-0.2,y, ['iH - Indicator variables: ' num2str_short(xX.iH)], 'Color',cmap(16,:),'FontWeight','Bold','FontSize',10);
-          y = y - 0.05; 
-        end
-        if ~isempty(xX.iC)
-          text(-0.2,y, ['iC - Covariates: ' num2str_short(xX.iC)], 'Color',cmap(24,:),'FontWeight','Bold','FontSize',10);
-          y = y - 0.05;
-        end
-        if ~isempty(xX.iB)
-          text(-0.2,y, ['iB - Block effects: ' num2str_short(xX.iB)], 'Color',cmap(32,:),'FontWeight','Bold','FontSize',10);
-          y = y - 0.05;
-        end
-        if ~isempty(xX.iG)
-          text(-0.2,y, ['iG - Nuisance variables: ' num2str_short(xX.iG)], 'Color',cmap(48,:),'FontWeight','Bold','FontSize',10);
-          y = y - 0.05;
+        % show legend only once
+        if perm < 2
+          subplot(2,2,4); axis off
+        
+          % color-coded legend
+          y = 1.0;
+          text(-0.2,y, 'Columns of design matrix: ', 'Color',cmap(1, :),'FontWeight','Bold','FontSize',10); y = y - 0.10;
+          text(-0.2,y,['Exchangeability blocks: ' num2str_short(unique(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',10); y = y - 0.05;
+          if ~isempty(xX.iH)
+            text(-0.2,y, ['iH - Indicator variables: ' num2str_short(xX.iH)], 'Color',cmap(16,:),'FontWeight','Bold','FontSize',10);
+            y = y - 0.05; 
+          end
+          if ~isempty(xX.iC)
+            text(-0.2,y, ['iC - Covariates: ' num2str_short(xX.iC)], 'Color',cmap(24,:),'FontWeight','Bold','FontSize',10);
+            y = y - 0.05;
+          end
+          if ~isempty(xX.iB)
+            text(-0.2,y, ['iB - Block effects: ' num2str_short(xX.iB)], 'Color',cmap(32,:),'FontWeight','Bold','FontSize',10);
+            y = y - 0.05;
+          end
+          if ~isempty(xX.iG)
+            text(-0.2,y, ['iG - Nuisance variables: ' num2str_short(xX.iG)], 'Color',cmap(48,:),'FontWeight','Bold','FontSize',10);
+            y = y - 0.05;
+          end
         end
       end
     end
@@ -817,11 +836,19 @@ for con = 1:length(Ic0)
   
         % Freedman-Lane permutation of data
         if nuisance_method == 1
-          t = calc_GLM(Y*(Pset'*Rz+Hz),xXperm,xCon,ind_mask,VY(1).dim);
+          if vFWHM > 0
+            t = calc_GLM(Y*(Pset'*Rz+Hz),xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
+          else
+            t = calc_GLM(Y*(Pset'*Rz+Hz),xXperm,xCon,ind_mask,VY(1).dim);
+          end
         else
-          t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
+          if vFWHM > 0
+            t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
+          else
+            t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
+          end
         end
-        
+
         if convert_to_z
           % use faster z-transformation of SPM for T-statistics
           if strcmp(xCon.STAT,'T')
@@ -1350,7 +1377,7 @@ if sz_val_max >= 20
 end
 
 %---------------------------------------------------------------
-function [T, trRV] = calc_GLM(Y,xX,xCon,ind_mask,dim)
+function [T, trRV, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,dim,vFWHM,SmMask)
 % compute T- or F-statistic using GLM
 %
 % Y        - masked data as vector
@@ -1377,6 +1404,26 @@ ResSS = double(sum(res0.^2,2));      %-Residual SSQ
 trRV = n_data - rank(xX.X);
 ResMS = ResSS/trRV;
 
+if nargin < 6, vFWHM = 0; end
+
+% variance smoothing for volumes
+if vFWHM > 0
+  SmResMS   = zeros(dim);
+  TmpVol    = zeros(dim);
+  
+  % save time by using pre-calculated smoothed mask which is
+  % independent from permutations
+  if nargin < 7
+    SmMask = zeros(dim);
+    TmpVol(ind_mask) = ones(size(ind_mask));
+    spm_smooth(TmpVol,SmMask,vFWHM);
+  end
+  
+  TmpVol(ind_mask) = ResMS;
+  spm_smooth(TmpVol,SmResMS,vFWHM);
+  ResMS  = SmResMS(ind_mask)./SmMask(ind_mask);
+end
+
 T = zeros(dim);
 
 if strcmp(xCon.STAT,'T')
@@ -1398,6 +1445,7 @@ end
 %---------------------------------------------------------------
 
 function xX = correct_xX(xX)
+% sometimes xX.iB and xX.iH are not correct and cannot be used to reliably recognize the design
 
 % vector of covariates and nuisance variables
 iCG = [xX.iC xX.iG];

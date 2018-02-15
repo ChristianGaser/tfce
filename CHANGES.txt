@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
-r147 | gaser | 2018-02-15 22:05:37
+r148 | gaser | 2018-02-15 22:06:22
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +7,16 @@ M       cg_tfce_estimate.m
 
 Fixed: Sometimes the rank of xKXs in cg_tfce_estimate.m is not correct
 and spm_FcUtil('Hsqr',xCon,xKXs) is not working.
+------------------------------------------------------------------------
+r147 | gaser | 2018-02-15 22:05:41 +0100 (Do, 15 Feb 2018) | 7 lines
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Sometimes the rank of xKXs in cg_tfce_estimate.m is not correct
+and spm_FcUtil('Hsqr',xCon,xKXs) is not working.
+
 ------------------------------------------------------------------------
 r146 | gaser | 2018-02-15 21:30:39 +0100 (Do, 15 Feb 2018) | 7 lines
 

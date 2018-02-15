@@ -1454,7 +1454,7 @@ else
   catch
     % it's weird, but sometimes the rank of xKXs is too low
     % and spm_FcUtil('Hsqr',xCon,xKXs) is not working
-    xKXs.rk = xKXs.rk + 1
+    xKXs.rk = xKXs.rk + 1;
     h  = spm_FcUtil('Hsqr',xCon,xKXs);
   end
   

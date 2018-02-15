@@ -858,7 +858,6 @@ for con = 1:length(Ic0)
           if vFWHM > 0
             t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
           else
-          xCon
             t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
           end
         end

@@ -303,7 +303,6 @@ for con = 1:length(Ic0)
   c0 = sum(c0,2);
   
   [indi, indj] = find(c0~=0);
-  n_contrasts_lines = size(c0,2);
   ind_X = unique(indi)';
   
   % check for contrasts that are defined for columns with subject effects
@@ -347,9 +346,9 @@ for con = 1:length(Ic0)
       n_data_cond = [n_data_cond sum(xX.X(:,xX.iH(k)))];
     end
     for j=1:n_exch_blocks
-      c_exch_blocks = find(c0==exch_blocks(j));
-      for k=1:length(c_exch_blocks)
-        n_cond = n_cond + length(find(xX.iH==c_exch_blocks(k)));
+      col_exch_blocks = find(c0==exch_blocks(j));
+      for k=1:length(col_exch_blocks)
+        n_cond = n_cond + length(find(xX.iH==col_exch_blocks(k)));
       end
     end  
   end
@@ -385,7 +384,7 @@ for con = 1:length(Ic0)
   case 0 % correlation
     label = 1:n_data;
 
-    if n_exch_blocks >= 2
+    if n_exch_blocks >= 2 & ~all(exch_blocks) % # exch_blocks >1 & differential contrast
       fprintf('Interaction design between two or more regressors found\n')
             
       % remove all entries where contrast is not defined
@@ -732,7 +731,8 @@ for con = 1:length(Ic0)
     end
             
     % correct interaction designs
-    if n_exch_blocks >= 2 & n_cond==0
+    % # exch_blocks >1 & # cond == 0 & differential contrast
+    if n_exch_blocks >= 2 & n_cond==0 & ~all(exch_blocks)
       Xperm2 = Xperm;
       Xperm2(:,ind_X) = 0;
       for j=1:n_exch_blocks
@@ -797,7 +797,7 @@ for con = 1:length(Ic0)
           
     % display permuted design matrix
     try
-      if show_permuted_designmatrix & ~rem(perm,progress_step)
+      if show_permuted_designmatrix & ~rem(perm,10)
         figure(Fgraph);
         subplot(2,2,3);
         image(Xperm_debug); axis off
@@ -951,11 +951,13 @@ for con = 1:length(Ic0)
       
       % plot thresholds and histograms
       try
-        figure(Fgraph);
-        h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
-        plot_distribution(stfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);
-        if ~show_permuted_designmatrix
-          plot_distribution(st_max, t_max_th, 't-value', alpha, col, 2, t0_max, t0_min);
+        if ~rem(perm,10)
+          figure(Fgraph);
+          h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
+          plot_distribution(stfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);
+          if ~show_permuted_designmatrix
+            plot_distribution(st_max, t_max_th, 't-value', alpha, col, 2, t0_max, t0_min);
+          end
         end
       end
     
@@ -1448,14 +1450,7 @@ if strcmp(xCon.STAT,'T')
 else
   %-Compute ESS
   % Residual (in parameter space) forming matrix
-  try
-    h  = spm_FcUtil('Hsqr',xCon,xKXs);
-  catch
-    % it's weird, but sometimes the rank of xKXs is too low
-    % and spm_FcUtil('Hsqr',xCon,xKXs) is not working
-    xKXs.rk = xKXs.rk + 1;
-    h  = spm_FcUtil('Hsqr',xCon,xKXs);
-  end
+  h  = spm_FcUtil('Hsqr',xCon,xKXs);
   
   ess = sum((h*Beta').^2,1)';
   MVM = ess/xCon.eidf;

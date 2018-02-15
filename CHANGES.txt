@@ -1,11 +1,21 @@
 ------------------------------------------------------------------------
-r149 | gaser | 2018-02-15 22:09:29
+r150 | gaser | 2018-02-16 00:13:32
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Now non-differential F-contrasts really work in cg_tfce_estimate.m.
+
+------------------------------------------------------------------------
+r149 | gaser | 2018-02-15 22:09:31 +0100 (Do, 15 Feb 2018) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
 
 Changed: Removed debugging output in cg_tfce_estimate.m.
+
 ------------------------------------------------------------------------
 r148 | gaser | 2018-02-15 22:06:24 +0100 (Do, 15 Feb 2018) | 7 lines
 

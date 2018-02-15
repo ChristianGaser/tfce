@@ -11,7 +11,7 @@ function cg_tfce_estimate(job)
 % convert to z-statistic
 convert_to_z = 0;
 
-% variance smoothing (only for 3D images)
+% variance smoothing (experimental, only for 3D images)
 vFWHM = 0;
 
 % method to deal with nuisance variables
@@ -67,9 +67,9 @@ if ~isfield(SPM, 'xVol')
 end
     
 Ic0 = job.conspec.contrasts;
-try
-  xCon0 = SPM.xCon(Ic0(1));
-catch
+
+% check whether contrast are defined
+if ~isfield(SPM,'xCon')
   [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
         '  Select contrast(s)...',' ',1);
   SPM.xCon = xCon;
@@ -275,7 +275,15 @@ end
 for con = 1:length(Ic0)
     
   Ic = Ic0(con);
-  xCon = SPM.xCon(Ic);
+  
+  % check whether selected contrast is valid
+  if Ic > numel(SPM.xCon)
+    [con,xCon] = spm_conman(SPM,'T&F',1,...
+        '  Select contrast...',' ',1);
+  else
+    xCon = SPM.xCon(Ic);
+  end
+  
   
   n_perm = job.conspec.n_perm(1);
   if numel(job.conspec.n_perm) > 1
@@ -288,10 +296,13 @@ for con = 1:length(Ic0)
   end
   
   % get contrast and name
-  c = xCon.c;
+  c0 = xCon.c;
   
-  [indi, indj] = find(c~=0);
-  n_contrasts_lines = size(c,2);
+  % for F-contrasts we have to merge the columns
+  c0 = sum(c0,2);
+  
+  [indi, indj] = find(c0~=0);
+  n_contrasts_lines = size(c0,2);
   ind_X = unique(indi)';
   
   % check for contrasts that are defined for columns with subject effects
@@ -321,7 +332,7 @@ for con = 1:length(Ic0)
   end
 
   % find exchangeability blocks using contrasts without zero values
-  exch_blocks   = c(ind_X);
+  exch_blocks   = c0(ind_X);
   
   n_exch_blocks = length(ind_X);
   
@@ -335,7 +346,7 @@ for con = 1:length(Ic0)
       n_data_cond = [n_data_cond sum(xX.X(:,xX.iH(k)))];
     end
     for j=1:n_exch_blocks
-      c_exch_blocks = find(c==exch_blocks(j));
+      c_exch_blocks = find(c0==exch_blocks(j));
       for k=1:length(c_exch_blocks)
         n_cond = n_cond + length(find(xX.iH==c_exch_blocks(k)));
       end
@@ -350,7 +361,7 @@ for con = 1:length(Ic0)
       % repated Anova or F-test don't allow to use only half of the permutions
       if repeated_anova || strcmp(xCon.STAT,'F')
         use_half_permutations = 0;
-      elseif sum(n_data_cond(find(c==exch_blocks(1)))) == sum(n_data_cond(find(c==exch_blocks(2))))
+      elseif sum(n_data_cond(find(c0==exch_blocks(1)))) == sum(n_data_cond(find(c0==exch_blocks(2))))
         use_half_permutations = 1;
         fprintf('Equal sample sizes: half of permutations are used.\n');
       end
@@ -360,7 +371,7 @@ for con = 1:length(Ic0)
   ind_exch_blocks = cell(n_exch_blocks,1);
   for j=1:n_exch_blocks
     if strcmp(xCon.STAT,'T')
-      ind_exch_blocks{j} = find(c==exch_blocks(j));
+      ind_exch_blocks{j} = find(c0==exch_blocks(j));
     else
       ind_exch_blocks{j} = ind_X(j);
     end
@@ -449,7 +460,7 @@ for con = 1:length(Ic0)
       % if not check iC
       if length(ind_X) == 1 % for one contrast covariate column use all subjects
         ind_data_defined = 1:size(xX.X,1);
-      else % check wehere contrast is defined
+      else % check where contrast is defined
         ind_data_defined = find(any(xX.X(:,ind_X),2));
       end
     end
@@ -481,7 +492,7 @@ for con = 1:length(Ic0)
   if use_half_permutations
     fprintf('Equal sample size found: Use half permutations.\n');
   end
-  fprintf('Exchangeability blocks: ');
+  fprintf('Exchangeability block/variable: ');
   fprintf('%d ',unique(cell2mat(ind_exch_blocks)));
   fprintf('\n');
   fprintf('# of conditions: %d\n',n_cond);
@@ -785,7 +796,7 @@ for con = 1:length(Ic0)
           
     % display permuted design matrix
     try
-      if show_permuted_designmatrix
+      if show_permuted_designmatrix & ~rem(perm,progress_step)
         figure(Fgraph);
         subplot(2,2,3);
         image(Xperm_debug); axis off

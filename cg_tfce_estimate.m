@@ -276,15 +276,16 @@ for con = 1:length(Ic0)
     
   Ic = Ic0(con);
   
-  % check whether selected contrast is valid
-  if Ic > numel(SPM.xCon)
-    [con,xCon] = spm_conman(SPM,'T&F',1,...
-        '  Select contrast...',' ',1);
-  else
-    xCon = SPM.xCon(Ic);
+  Ic0 = job.conspec.contrasts;
+  try
+    xCon = SPM.xCon(Ic0(1));
+  catch
+    [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
+        '  Select contrast(s)...',' ',1);
+    xCon = xCon(Ic0);
+    SPM.xCon = xCon;
   end
-  
-  
+
   n_perm = job.conspec.n_perm(1);
   if numel(job.conspec.n_perm) > 1
     n_perm_break = job.conspec.n_perm(2);
@@ -857,6 +858,7 @@ for con = 1:length(Ic0)
           if vFWHM > 0
             t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
           else
+          xCon
             t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
           end
         end
@@ -1447,7 +1449,14 @@ if strcmp(xCon.STAT,'T')
 else
   %-Compute ESS
   % Residual (in parameter space) forming matrix
-  h  = spm_FcUtil('Hsqr',xCon,xKXs);
+  try
+    h  = spm_FcUtil('Hsqr',xCon,xKXs);
+  catch
+    % it's weird, but sometimes the rank of xKXs is too low
+    % and spm_FcUtil('Hsqr',xCon,xKXs) is not working
+    xKXs.rk = xKXs.rk + 1
+    h  = spm_FcUtil('Hsqr',xCon,xKXs);
+  end
   
   ess = sum((h*Beta').^2,1)';
   MVM = ess/xCon.eidf;

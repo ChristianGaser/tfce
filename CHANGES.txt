@@ -1,11 +1,21 @@
 ------------------------------------------------------------------------
-r146 | gaser | 2018-02-15 21:30:35
+r147 | gaser | 2018-02-15 22:05:37
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Sometimes the rank of xKXs in cg_tfce_estimate.m is not correct
+and spm_FcUtil('Hsqr',xCon,xKXs) is not working.
+------------------------------------------------------------------------
+r146 | gaser | 2018-02-15 21:30:39 +0100 (Do, 15 Feb 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
 
 Fixed: Non-differential F-contrast were not working in cg_tfce_estimate.m.
+
 
 ------------------------------------------------------------------------
 r145 | gaser | 2018-02-14 17:44:32 +0100 (Mi, 14 Feb 2018) | 6 lines

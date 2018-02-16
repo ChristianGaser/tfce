@@ -280,9 +280,9 @@ for con = 1:length(Ic0)
   try
     xCon = SPM.xCon(Ic0(1));
   catch
-    [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
+    [Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
         '  Select contrast(s)...',' ',1);
-    xCon = xCon(Ic0);
+    xCon = xCon(Ic);
     SPM.xCon = xCon;
   end
 
@@ -1308,7 +1308,6 @@ end
 colormap(gray)
 
 %---------------------------------------------------------------
-
 function plot_distribution(val_max,val_th,name,alpha,col,order,val0_max,val0_min)
 
 corr = 1;
@@ -1326,7 +1325,7 @@ if sz_val_max >= 20
   alpha  = alpha(1:n_alpha);
   val_th = val_th(:,1:n_alpha);
 
-  [hmax, xmax] = hist(val_max, 20);
+  [hmax, xmax] = hist(val_max, 100);
       
   subplot(2,2,(2*order)-1)
   
@@ -1459,7 +1458,6 @@ else
 end
 
 %---------------------------------------------------------------
-
 function xX = correct_xX(xX)
 % sometimes xX.iB and xX.iH are not correct and cannot be used to reliably recognize the design
 
@@ -1520,7 +1518,6 @@ if 0 % will be probably not always correct
 end
 
 %---------------------------------------------------------------
-
 function str = num2str_short(num)
 % get shorther strings for continuous numbers with length > 4
 
@@ -1643,6 +1640,7 @@ else
   end
 end
 
+%---------------------------------------------------------------
 % Copyright (C) 2012 Rik Wehbring
 % Copyright (C) 1995-2012 Kurt Hornik
 %
@@ -1750,6 +1748,7 @@ if (any (k))
 end
 
 
+%---------------------------------------------------------------
 function gcdf = palm_gcdf(G,df1,df2)
 % Convert a pivotal statistic computed with 'pivotal.m'
 % (or simplifications) to a parametric p-value.
@@ -1836,6 +1835,7 @@ elseif df1 < 0,
   
 end
 
+%---------------------------------------------------------------
 % Copyright (C) 2012 Rik Wehbring
 % Copyright (C) 1995-2012 Kurt Hornik
 % Copyright (C) 2010 Christos Dimitrakakis
@@ -1927,6 +1927,7 @@ pdf(k) = Inf;
 k = (x == 1) & (b < 1);
 pdf(k) = Inf;
 
+%---------------------------------------------------------------
 function [errorcode, varargout] = common_size (varargin)
 
 if (nargin < 2)
@@ -1959,6 +1960,7 @@ else
   end
 end
 
+%---------------------------------------------------------------
 % Copyright (C) 2012 Rik Wehbring
 % Copyright (C) 1995-2012 Kurt Hornik
 %
@@ -2024,11 +2026,14 @@ else
   cdf(k) = betainc (x(k), a(k), b(k));
 end
 
+%---------------------------------------------------------------
 function eq = size_equal(a,b)
 eq = isequal(size(a),size(b));
 
+%---------------------------------------------------------------
 function a = iscomplex(X)
 a = ~isreal(X);
 
+%---------------------------------------------------------------
 function varargout = lgamma(varargin)
 varargout{1:nargout} = gammaln(varargin{:});

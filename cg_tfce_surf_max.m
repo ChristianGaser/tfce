@@ -1,6 +1,6 @@
-function [N,Z,M,A,XYZ] = cat_surf_max(X,L,G)
+function [N,Z,M,A,XYZ] = cg_tfce_surf_max(X,L,G)
 % Sizes, local maxima and locations of excursion sets on a surface mesh
-% FORMAT [N,Z,M,A,XYZ] = cat_surf_max(X,L,G)
+% FORMAT [N,Z,M,A,XYZ] = cg_tfce_surf_max(X,L,G)
 % X        - a [nx1] array of stat values
 % L        - a [nx1] array of locations {in vertices}
 % G        - a patch structure
@@ -19,7 +19,6 @@ function [N,Z,M,A,XYZ] = cat_surf_max(X,L,G)
 % modified version of spm_mesh_max because for some rare data only one global 
 % maximum was returned
 % Guillaume Flandin
-% $Id$
 %
 % $Id$
 

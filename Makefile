@@ -13,7 +13,7 @@ STARGET_HTDOCS=${STARGET_HOST}:/Applications/xampp/htdocs/
 STARGET_FOLDER=/Applications/xampp/htdocs/tfce
 STARGET=${STARGET_HOST}:${STARGET_FOLDER}
 
-MATLAB_FILES=Contents.m cg_get_tfce_results.m cg_tfce_results.m cg_tfce_list.m cg_tfce_update.m cg_progress.m spm_TFCE.m tfce_mesh.m snpm_P_FDR.m tbx_cfg_tfce_estimate.m cg_tfce_estimate.m cat_surf_max.m
+MATLAB_FILES=Contents.m cg_get_tfce_results.m cg_tfce_results.m cg_tfce_list.m cg_tfce_update.m cg_progress.m spm_TFCE.m tfce_mesh.m snpm_P_FDR.m tbx_cfg_tfce_estimate.m cg_tfce_estimate.m cg_tfce_surf_max.m
 C_FILES=tfceMex_pthread.*
 MISC_FILES=TFCE.man
 

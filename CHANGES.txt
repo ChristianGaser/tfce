@@ -1,5 +1,19 @@
 ------------------------------------------------------------------------
-r152 | gaser | 2018-02-18 23:03:58
+r153 | gaser | 2018-02-18 23:15:52
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+D       cat_surf_max.m
+        > moved to cg_tfce_surf_max.m
+M       cg_tfce_list.m
+A  +    cg_tfce_surf_max.m
+        > moved from cat_surf_max.m
+
+Changed: Renamed cat_surf_max.m to cg_tfce_surf_max.m to not interfere
+with older versions of the same function in CAT12.
+------------------------------------------------------------------------
+r152 | gaser | 2018-02-18 23:04:05 +0100 (So, 18 Feb 2018) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -9,6 +23,7 @@ Fixed: In rare cases where local maxima are not correctly found the
 number of clusters differs from cluster indices in A. Then, we have 
 to add non-unique entries using function find_connected_component
 in cat_surf_max.m.
+
 ------------------------------------------------------------------------
 r151 | gaser | 2018-02-16 16:01:14 +0100 (Fr, 16 Feb 2018) | 6 lines
 

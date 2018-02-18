@@ -442,7 +442,7 @@ switch lower(varargin{1}), case 'list'                            %-List
         if ~spm_mesh_detect(xSPM.Vspm)
             [N,Z,XYZ,A]  = spm_max(Z,XYZ);
         else
-            [N,Z,XYZ,A]  = cat_surf_max(Z,varargin{2}.XYZ,xSPM.G);
+            [N,Z,XYZ,A]  = cg_tfce_surf_max(Z,varargin{2}.XYZ,xSPM.G);
         end
     else 
         [N,Z,XYZ,A]  = spm_max(Z,XYZ);

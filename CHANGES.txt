@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r153 | gaser | 2018-02-18 23:15:52
+r154 | gaser | 2018-03-14 16:13:33
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Corrected missing graphical output for designs with equal number of 
+subjects.
+------------------------------------------------------------------------
+r153 | gaser | 2018-02-18 23:15:57 +0100 (So, 18 Feb 2018) | 12 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -12,6 +21,7 @@ A  +    cg_tfce_surf_max.m
 
 Changed: Renamed cat_surf_max.m to cg_tfce_surf_max.m to not interfere
 with older versions of the same function in CAT12.
+
 ------------------------------------------------------------------------
 r152 | gaser | 2018-02-18 23:04:05 +0100 (So, 18 Feb 2018) | 9 lines
 

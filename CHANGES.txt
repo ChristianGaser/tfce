@@ -1,5 +1,13 @@
 ------------------------------------------------------------------------
-r154 | gaser | 2018-03-14 16:13:33
+r155 | gaser | 2018-04-09 15:55:31
+
+Changed paths:
+M       CHANGES.txt
+M       TFCE.txt
+
+Changed: Updated version information.
+------------------------------------------------------------------------
+r154 | gaser | 2018-03-14 16:13:38 +0100 (Mi, 14 Mär 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +15,7 @@ M       cg_tfce_estimate.m
 
 Fixed: Corrected missing graphical output for designs with equal number of 
 subjects.
+
 ------------------------------------------------------------------------
 r153 | gaser | 2018-02-18 23:15:57 +0100 (So, 18 Feb 2018) | 12 lines
 

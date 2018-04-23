@@ -797,7 +797,7 @@ for con = 1:length(Ic0)
           
     % display permuted design matrix
     try
-      if show_permuted_designmatrix & (~rem(perm,progress_step) || ~rem(perm+1,progress_step))
+      if show_permuted_designmatrix & ~rem(perm,25)
         figure(Fgraph);
         subplot(2,2,3);
         image(Xperm_debug); axis off
@@ -950,12 +950,14 @@ for con = 1:length(Ic0)
       end
       
       % plot thresholds and histograms
-      if ~rem(perm,progress_step) || ~rem(perm+1,progress_step)
-        figure(Fgraph);
-        h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
-        plot_distribution(stfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);
-        if ~show_permuted_designmatrix
-          plot_distribution(st_max, t_max_th, 't-value', alpha, col, 2, t0_max, t0_min);
+      try
+        if ~rem(perm,25)
+          figure(Fgraph);
+          h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
+          plot_distribution(stfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);
+          if ~show_permuted_designmatrix
+            plot_distribution(st_max, t_max_th, 't-value', alpha, col, 2, t0_max, t0_min);
+          end
         end
       end
     

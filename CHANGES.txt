@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r156 | gaser | 2018-04-23 10:20:09
+r157 | gaser | 2018-05-07 00:02:05
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Some very rare designs were not working where in an interaction
+design the covariate was not defined for all data.
+------------------------------------------------------------------------
+r156 | gaser | 2018-04-23 10:21:09 +0200 (Mo, 23 Apr 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +16,7 @@ M       cg_tfce_estimate.m
 
 Fixed: Set some parameters for plotting back to r153 because on some 
 computers processes stalled.
+
 ------------------------------------------------------------------------
 r155 | gaser | 2018-04-09 15:55:37 +0200 (Mo, 09 Apr 2018) | 6 lines
 

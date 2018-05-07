@@ -24,7 +24,7 @@ nuisance_method = job.nuisance_method;
 show_permuted_designmatrix = 1;
 
 % allow to test permutations without analyzing data
-test_mode = 1
+test_mode = 0;
 
 % define stepsize for tfce
 n_steps_tfce = 100;
@@ -468,7 +468,7 @@ for con = 1:length(Ic0)
     n_data_with_contrast = length(ind_label);
     
     % and restrict exchangeability block labels to those rows
-    exch_block_labels_new = exch_block_labels(ind_data_defined)
+    exch_block_labels_new = exch_block_labels(ind_data_defined);
 
     % Repated Anova: n_perm = n_cond1!*n_cond2!*...*n_condk!
     % for a full model where each condition is defined for all subjects the easier
@@ -799,7 +799,7 @@ for con = 1:length(Ic0)
           
     % display permuted design matrix
     try
-      if show_permuted_designmatrix & (~rem(perm,progress_step) || ~rem(perm+1,progress_step))
+      if show_permuted_designmatrix & ~rem(perm,50)
         figure(Fgraph);
         subplot(2,2,3);
         image(Xperm_debug); axis off
@@ -896,15 +896,6 @@ for con = 1:length(Ic0)
     
     % update label_matrix for checking of unique permutations
     if use_half_permutations
-    label_matrix
-    rand_order_sorted
-    label
-    ind_label
-    label(ind_label)
-    find(label(ind_label) == 2)
-    rand_order_sorted(find(label(ind_label) == 2))
-    find(label(ind_label) == 1)
-    rand_order_sorted(find(label(ind_label) == 1))
       label_matrix = [label_matrix; rand_order_sorted; [rand_order_sorted(find(label(ind_label) == 2)) rand_order_sorted(find(label(ind_label) == 1))]];
 
       if ~test_mode
@@ -961,12 +952,14 @@ for con = 1:length(Ic0)
       end
       
       % plot thresholds and histograms
-      if ~rem(perm,progress_step) || ~rem(perm+1,progress_step)
-        figure(Fgraph);
-        h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
-        plot_distribution(stfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);
-        if ~show_permuted_designmatrix
-          plot_distribution(st_max, t_max_th, 't-value', alpha, col, 2, t0_max, t0_min);
+      try
+        if ~rem(perm,50)
+          figure(Fgraph);
+          h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
+          plot_distribution(stfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);
+          if ~show_permuted_designmatrix
+            plot_distribution(st_max, t_max_th, 't-value', alpha, col, 2, t0_max, t0_min);
+          end
         end
       end
     

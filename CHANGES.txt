@@ -1,5 +1,13 @@
 ------------------------------------------------------------------------
-r157 | gaser | 2018-05-07 00:02:05
+r158 | gaser | 2018-05-07 10:11:35
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Forgot to remove debugging code in cg_tfce_estimate.m
+------------------------------------------------------------------------
+r157 | gaser | 2018-05-07 00:02:12 +0200 (Mo, 07 Mai 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +15,7 @@ M       cg_tfce_estimate.m
 
 Fixed: Some very rare designs were not working where in an interaction
 design the covariate was not defined for all data.
+
 ------------------------------------------------------------------------
 r156 | gaser | 2018-04-23 10:21:09 +0200 (Mo, 23 Apr 2018) | 7 lines
 

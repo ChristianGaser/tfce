@@ -488,6 +488,7 @@ for con = 1:length(Ic0)
   else  % one-sample t-test: n_perm = 2^n
     n_perm_full = 2^n_data_with_contrast;
     exch_block_labels_new = exch_block_labels;
+    ind_data_defined = ind_label;
   end
 
   fprintf('# full permutations: %d\n',n_perm_full);

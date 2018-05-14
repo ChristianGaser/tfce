@@ -715,7 +715,7 @@ for con = 1:length(Ic0)
         stopStatus = get(hStopButton,'value');
       end
     
-      % check Stop status
+    % check Stop status
     if (stopStatus == true)
         fprintf('Stopped after %d iterations.\n',perm);
         break; % stop the permutation loop
@@ -768,6 +768,12 @@ for con = 1:length(Ic0)
         val = 0.8 + 0.2*(val-mn)./(mx-mn);
         Xperm_debug(:,xX.iG) = val;
       end
+      if ~isempty(xX.iH) & n_cond==1 % one-sample t-test
+        val = Xperm_debug(:,xX.iH);
+        mn = repmat(min(val),length(val),1); mx = repmat(max(val),length(val),1);
+        val = 0.8 + 0.2*(val-mn)./(mx-mn);
+        Xperm_debug(:,xX.iH) = val;
+      end
       
       % use different colors for indicated columns
       Xperm_debug(:,xX.iH) = 16*Xperm_debug(:,xX.iH);
@@ -800,7 +806,7 @@ for con = 1:length(Ic0)
           
     % display permuted design matrix
     try
-      if show_permuted_designmatrix & ~rem(perm,50)
+      if show_permuted_designmatrix & ~rem(perm,progress_step)
         figure(Fgraph);
         subplot(2,2,3);
         image(Xperm_debug); axis off
@@ -814,7 +820,7 @@ for con = 1:length(Ic0)
         colormap(cmap)
       
         % show legend only once
-        if perm < 2
+        if perm <= progress_step
           subplot(2,2,4); axis off
         
           % color-coded legend
@@ -954,7 +960,7 @@ for con = 1:length(Ic0)
       
       % plot thresholds and histograms
       try
-        if ~rem(perm,50)
+        if ~rem(perm,progress_step)
           figure(Fgraph);
           h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
           plot_distribution(stfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);

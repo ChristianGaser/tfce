@@ -1,5 +1,13 @@
 ------------------------------------------------------------------------
-r159 | gaser | 2018-05-11 23:43:51
+r160 | gaser | 2018-05-14 11:01:38
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Fixed some smaller issues with on-sample t-test in cg_tfce_estimate.m
+------------------------------------------------------------------------
+r159 | gaser | 2018-05-11 23:43:54 +0200 (Fr, 11 Mai 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +15,7 @@ M       cg_tfce_estimate.m
 
 Fixed: Corrected bug in cg_tfce_estimate.m for one-sample t-test (thanks
 to Larry Lai for pointing to this bug).
+
 ------------------------------------------------------------------------
 r158 | gaser | 2018-05-07 10:11:41 +0200 (Mo, 07 Mai 2018) | 6 lines
 

@@ -770,7 +770,6 @@ for con = 1:length(Ic0)
       end
       Xperm_debug = Xperm_debug2;
     end
-tmp=Xperm(:,1:8)
     
     if show_permuted_designmatrix
       % scale covariates and nuisance variables to a range 0.8..1

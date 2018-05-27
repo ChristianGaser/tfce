@@ -1,5 +1,15 @@
 ------------------------------------------------------------------------
-r161 | gaser | 2018-05-27 17:54:13
+r162 | gaser | 2018-05-27 17:56:13
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+(1) Fixed: Some sparse contrasts in complex designs were not correctly
+    supported in cg_tfce_estimate.m.
+(2) Changed: Updated and renamed SPM-Designs-Permutation.rtf
+------------------------------------------------------------------------
+r161 | gaser | 2018-05-27 17:54:23 +0200 (So, 27 Mai 2018) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -10,6 +20,7 @@ M       cg_tfce_estimate.m
 (1) Fixed: Some sparse contrasts in complex designs were not correctly
     supported in cg_tfce_estimate.m.
 (2) Changed: Updated and renamed SPM-Designs-Permutation.rtf
+
 ------------------------------------------------------------------------
 r160 | gaser | 2018-05-14 11:01:44 +0200 (Mo, 14 Mai 2018) | 6 lines
 

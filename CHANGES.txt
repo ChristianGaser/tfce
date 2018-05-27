@@ -1,11 +1,24 @@
 ------------------------------------------------------------------------
-r160 | gaser | 2018-05-14 11:01:38
+r161 | gaser | 2018-05-27 17:54:13
+
+Changed paths:
+M       CHANGES.txt
+D       SPM-Designs-Permutation.doc
+A       SPM-Designs-Permutation.rtf
+M       cg_tfce_estimate.m
+
+(1) Fixed: Some sparse contrasts in complex designs were not correctly
+    supported in cg_tfce_estimate.m.
+(2) Changed: Updated and renamed SPM-Designs-Permutation.rtf
+------------------------------------------------------------------------
+r160 | gaser | 2018-05-14 11:01:44 +0200 (Mo, 14 Mai 2018) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
 
 Fixed: Fixed some smaller issues with on-sample t-test in cg_tfce_estimate.m
+
 ------------------------------------------------------------------------
 r159 | gaser | 2018-05-11 23:43:54 +0200 (Fr, 11 Mai 2018) | 7 lines
 

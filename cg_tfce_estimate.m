@@ -302,9 +302,16 @@ for con = 1:length(Ic0)
   % get contrast and name
   c0 = xCon.c;
   
-  % for F-contrasts we have to merge the columns
-  c0 = sum(c0,2);
-  
+  F_contrast_multiple_rows = 0;
+  % for F-contrasts if rank is 1 we can use the first row
+  if strcmp(xCon.STAT,'F') 
+    if rank(c0) == 1
+      c0 = c0(:,1);
+    else
+      F_contrast_multiple_rows = 1;
+    end
+  end
+
   [indi, indj] = find(c0~=0);
   ind_X = unique(indi)';
   
@@ -335,7 +342,7 @@ for con = 1:length(Ic0)
   end
 
   % find exchangeability blocks using contrasts without zero values
-  exch_blocks   = c0(ind_X);
+  exch_blocks   = c0(ind_X,:);
   
   n_exch_blocks = length(ind_X);
   
@@ -348,14 +355,20 @@ for con = 1:length(Ic0)
     for k=1:length(xX.iH)
       n_data_cond = [n_data_cond sum(xX.X(:,xX.iH(k)))];
     end
-    for j=1:n_exch_blocks
-      col_exch_blocks = find(c0==exch_blocks(j));
-      for k=1:length(col_exch_blocks)
-        n_cond = n_cond + length(find(xX.iH==col_exch_blocks(k)));
-      end
-    end  
+    
+    % for F-contrast with multiple rows n_cond is always n_exch_blocks
+    if F_contrast_multiple_rows
+      n_cond = n_exch_blocks;
+    else
+      for j=1:n_exch_blocks
+        col_exch_blocks = find(c0==exch_blocks(j));
+        for k=1:length(col_exch_blocks)
+          n_cond = n_cond + length(find(xX.iH==col_exch_blocks(k)));
+        end
+      end  
+    end
+    
   end
-
 
   use_half_permutations = 0;
   % check if sample size is equal for both conditions
@@ -387,7 +400,7 @@ for con = 1:length(Ic0)
   case 0 % correlation
     label = 1:n_data;
 
-    if n_exch_blocks >= 2 & ~all(exch_blocks) % # exch_blocks >1 & differential contrast
+    if n_exch_blocks >= 2 & ~all(exch_blocks(:)) % # exch_blocks >1 & differential contrast
       fprintf('Interaction design between two or more regressors found\n')
             
       % remove all entries where contrast is not defined
@@ -468,17 +481,17 @@ for con = 1:length(Ic0)
     n_data_with_contrast = length(ind_label);
     
     % and restrict exchangeability block labels to those rows
-    exch_block_labels_new = exch_block_labels(ind_data_defined);
+    exch_block_labels_data_defined = exch_block_labels(ind_data_defined);
 
     % Repated Anova: n_perm = n_cond1!*n_cond2!*...*n_condk!
     % for a full model where each condition is defined for all subjects the easier
     % estimation is: n_perm = (n_cond!)^n_subj
     % check that no regression analysis inside repeated anova is used
     if repeated_anova & n_cond~=0
-      n_subj = max(exch_block_labels_new);
+      n_subj = max(exch_block_labels_data_defined);
       n_perm_full = 1;
       for k=1:n_subj
-        n_cond_subj = length(find(exch_block_labels_new == k));
+        n_cond_subj = length(find(exch_block_labels_data_defined == k));
         n_perm_full = n_perm_full*factorial(n_cond_subj);
       end
     else
@@ -487,7 +500,7 @@ for con = 1:length(Ic0)
     
   else  % one-sample t-test: n_perm = 2^n
     n_perm_full = 2^n_data_with_contrast;
-    exch_block_labels_new = exch_block_labels;
+    exch_block_labels_data_defined = exch_block_labels;
     ind_data_defined = ind_label;
   end
 
@@ -511,20 +524,20 @@ for con = 1:length(Ic0)
   Hz = Z*pinv(Z);
   Rz = eye(size(X,1)) - Hz;
 
-  if ~test_mode
-    % if Hz is zero or Ic is empty then no confounds were found and we can skip the time-consuming
-    % Freedman-Lane permutation
-    if (all(~any(Hz)) | isempty(xX.iC)) | all(~any(diff(Hz)))
-      exist_nuisance = 0;
-    else
-      exist_nuisance = 1;
-    end
-    
-    if ~exist_nuisance & nuisance_method > 0
-      fprintf('No nuisance variables were found: Use Draper-Stoneman permutation.\n\n');
-      nuisance_method = 0;
-    end
+  % if Hz is zero or Ic is empty then no confounds were found and we can skip the time-consuming
+  % Freedman-Lane permutation
+  if (all(~any(Hz)) | isempty(xX.iC)) | all(~any(diff(Hz)))
+    exist_nuisance = 0;
+  else
+    exist_nuisance = 1;
+  end
+  
+  if ~exist_nuisance & nuisance_method > 0
+    fprintf('No nuisance variables were found: Use Draper-Stoneman permutation.\n\n');
+    nuisance_method = 0;
+  end
 
+  if ~test_mode
     % compute unpermuted t/F-map
     if vFWHM > 0
       [t0, df2, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim,vFWHM);
@@ -628,8 +641,8 @@ for con = 1:length(Ic0)
   % update interval for progress bar
   progress_step = max([1 round(n_perm/100)]);
 
-  ind_label_gt0 = find(label(ind_data_defined) > 0);
-  unique_labels = unique(label);
+  ind_label_gt0 = find(label > 0);
+  unique_labels = unique(label(ind_label_gt0));
   n_unique_labels = length(unique_labels);
   
   perm = 1;
@@ -659,8 +672,8 @@ for con = 1:length(Ic0)
         % permute inside exchangeability blocks only
         rand_order = zeros(1,n_data_with_contrast);
         rand_order_sorted = zeros(1,n_data_with_contrast);
-        for k = 1:max(exch_block_labels_new)
-          ind_block   = find(exch_block_labels_new == k);
+        for k = 1:max(exch_block_labels_data_defined)
+          ind_block   = find(exch_block_labels_data_defined == k);
           n_per_block = length(ind_block);
           rand_order(ind_block) = ind_label(ind_block(randperm(n_per_block)));
         end
@@ -670,11 +683,11 @@ for con = 1:length(Ic0)
           ind_block = find(label(ind_label_gt0) == unique_labels(k));
           rand_order_sorted(ind_block) = sort(rand_order(ind_block));
         end
-        
+
         % check whether this permutation was already used
         while any(ismember(label_matrix,rand_order_sorted,'rows'))
-          for k = 1:max(exch_block_labels_new)
-            ind_block   = find(exch_block_labels_new == k);
+          for k = 1:max(exch_block_labels_data_defined)
+            ind_block   = find(exch_block_labels_data_defined == k);
             n_per_block = length(ind_block);
             rand_order(ind_block) = ind_label(ind_block(randperm(n_per_block)));
           end
@@ -725,17 +738,22 @@ for con = 1:length(Ic0)
     % change design matrix according to permutation order
     % only permute columns, where contrast is defined
     Xperm = xX.X;
+    Xperm_debug = xX.X;
     
     switch nuisance_method 
-    case {0, 1} % Draper-Stoneman is permuting X
+    case 0 % Draper-Stoneman is permuting X
       Xperm(:,ind_X) = Pset*Xperm(:,ind_X);
+    case 1 % Freedman-Lane is permuting Y
+      Xperm = xX.X;
     case 2 % Smith method is additionally orthogonalizing X with respect to Z
       Xperm(:,ind_X) = Pset*Rz*Xperm(:,ind_X);
     end
             
+    Xperm_debug(:,ind_X) = Pset*Xperm_debug(:,ind_X);
+    
     % correct interaction designs
     % # exch_blocks >1 & # cond == 0 & differential contrast
-    if n_exch_blocks >= 2 & n_cond==0 & ~all(exch_blocks)
+    if n_exch_blocks >= 2 & n_cond==0 & ~all(exch_blocks(:))
       Xperm2 = Xperm;
       Xperm2(:,ind_X) = 0;
       for j=1:n_exch_blocks
@@ -743,16 +761,17 @@ for con = 1:length(Ic0)
         Xperm2(ind_Xj,ind_X(j)) = sum(Xperm(ind_Xj,ind_X),2);
       end
       Xperm = Xperm2;
-    end
 
-    Xperm_debug = Xperm;
+      Xperm_debug2 = Xperm_debug;
+      Xperm_debug2(:,ind_X) = 0;
+      for j=1:n_exch_blocks
+        ind_Xj = find(xX.X(:,ind_X(j)));
+        Xperm_debug2(ind_Xj,ind_X(j)) = sum(Xperm_debug(ind_Xj,ind_X),2);
+      end
+      Xperm_debug = Xperm_debug2;
+    end
+tmp=Xperm(:,1:8)
     
-    % Permutation for Freedan-Lane is only for Data Y and not for design matrix,
-    % Use permuted design matrix only for visualization
-    if nuisance_method==1
-      Xperm = xX.X;
-    end
-
     if show_permuted_designmatrix
       % scale covariates and nuisance variables to a range 0.8..1
       % to properly display these variables with indicated colors

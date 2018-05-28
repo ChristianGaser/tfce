@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r162 | gaser | 2018-05-27 17:56:13
+r163 | gaser | 2018-05-28 23:32:49
+
+Changed paths:
+M       CHANGES.txt
+ M      SPM-Designs-Permutation.rtf
+M       cg_tfce_estimate.m
+
+Fixed: Don't allow F-contrasts with multiple rows currently...
+------------------------------------------------------------------------
+r162 | gaser | 2018-05-27 17:56:16 +0200 (So, 27 Mai 2018) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -8,6 +17,7 @@ M       cg_tfce_estimate.m
 (1) Fixed: Some sparse contrasts in complex designs were not correctly
     supported in cg_tfce_estimate.m.
 (2) Changed: Updated and renamed SPM-Designs-Permutation.rtf
+
 ------------------------------------------------------------------------
 r161 | gaser | 2018-05-27 17:54:23 +0200 (So, 27 Mai 2018) | 10 lines
 

@@ -70,7 +70,9 @@ Ic0 = job.conspec.contrasts;
 
 % check whether contrast are defined
 if ~isfield(SPM,'xCon')
-  [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
+%  [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
+%        '  Select contrast(s)...',' ',1);
+  [Ic0,xCon] = spm_conman(SPM,'T',Inf,...
         '  Select contrast(s)...',' ',1);
   SPM.xCon = xCon;
 end
@@ -305,12 +307,12 @@ for con = 1:length(Ic0)
   F_contrast_multiple_rows = 0;
   % for F-contrasts if rank is 1 we can use the first row
   if strcmp(xCon.STAT,'F') 
+    fprintf('Error: F-contrasts are currently not supported because of some errors.\n');
+    return
     if rank(c0) == 1
       c0 = c0(:,1);
     else
       F_contrast_multiple_rows = 1;
-      fprintf('Error: F-contrasts with multiple rows are currently not supported.\n');
-      return
     end
   end
 

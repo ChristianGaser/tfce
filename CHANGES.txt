@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r163 | gaser | 2018-05-28 23:32:49
+r164 | gaser | 2018-06-05 14:10:27
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Changed: FDisabled F-tests in cg_tfce_estimate.m because of potential errors
+with some contrasts.
+------------------------------------------------------------------------
+r163 | gaser | 2018-05-28 23:32:57 +0200 (Mo, 28 Mai 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +16,7 @@ M       CHANGES.txt
 M       cg_tfce_estimate.m
 
 Fixed: Don't allow F-contrasts with multiple rows currently...
+
 ------------------------------------------------------------------------
 r162 | gaser | 2018-05-27 17:56:16 +0200 (So, 27 Mai 2018) | 8 lines
 

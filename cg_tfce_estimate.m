@@ -113,7 +113,7 @@ if repeated_anova
     end
   end
   
-  fprintf('Please note that permutation is only done within subjects for repeated Anova.\n',i);
+  fprintf('\nPlease note that permutation is only done within subjects for repeated Anova.\n',i);
 else
   exch_block_labels = ones(1,n_data);
 end
@@ -826,9 +826,20 @@ for con = 1:length(Ic0)
 
     end
           
+    show_plot = 0;
+    if use_half_permutations
+      if ~rem(perm,progress_step) || ~rem(perm+1,progress_step)
+        show_plot = 1;
+      end
+    else
+      if ~rem(perm,progress_step)
+        show_plot = 1;
+      end
+    end
+
     % display permuted design matrix
     try
-      if show_permuted_designmatrix & ~rem(perm,progress_step)
+      if show_permuted_designmatrix & show_plot
         figure(Fgraph);
         subplot(2,2,3);
         image(Xperm_debug); axis off
@@ -980,9 +991,9 @@ for con = 1:length(Ic0)
         tfce_max_th = [tfce_max_th; stfce_max(ind_max)];
       end
       
-      % plot thresholds and histograms
+      % plot thresholds and histograms      
       try
-        if ~rem(perm,progress_step)
+        if show_plot
           figure(Fgraph);
           h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
           plot_distribution(stfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);
@@ -1003,18 +1014,11 @@ for con = 1:length(Ic0)
     end % test_mode
 
     
-    if use_half_permutations
-      if ~rem(perm,progress_step) || ~rem(perm+1,progress_step)
-        if ~test_mode, cg_progress('Set',perm,Fgraph); end
-        drawnow
-      end
-    else
-      if ~rem(perm,progress_step)
-        if ~test_mode, cg_progress('Set',perm,Fgraph); end
-        drawnow
-      end
+    if show_plot
+      if ~test_mode, cg_progress('Set',perm,Fgraph); end
+      drawnow
     end
-  
+      
     if use_half_permutations  
       perm = perm + 2;
     else

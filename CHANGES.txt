@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r164 | gaser | 2018-06-05 14:10:27
+r165 | gaser | 2018-09-20 09:29:19
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: For comparisons between groups with equal number of subjects the plot
+was not displayed.
+------------------------------------------------------------------------
+r164 | gaser | 2018-06-05 14:10:32 +0200 (Di, 05 Jun 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +16,7 @@ M       cg_tfce_estimate.m
 
 Changed: FDisabled F-tests in cg_tfce_estimate.m because of potential errors
 with some contrasts.
+
 ------------------------------------------------------------------------
 r163 | gaser | 2018-05-28 23:32:57 +0200 (Mo, 28 Mai 2018) | 7 lines
 

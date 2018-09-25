@@ -645,7 +645,13 @@ for con = 1:length(Ic0)
   % update interval for progress bar
   progress_step = max([1 round(n_perm/100)]);
 
-  ind_label_gt0 = find(label > 0);
+  % Regression design found where contrast is defined for covariate?
+  if ~isempty(xX.iC) & all(ismember(ind_X,SPM.xX.iC))
+    ind_label_gt0 = find(label(ind_data_defined) > 0);
+  else
+    ind_label_gt0 = find(label > 0);
+  end
+  
   unique_labels = unique(label(ind_label_gt0));
   n_unique_labels = length(unique_labels);
   

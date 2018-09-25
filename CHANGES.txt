@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r165 | gaser | 2018-09-20 09:29:19
+r166 | gaser | 2018-09-25 16:17:08
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Regression design where contrast is defined for covariate is now 
+handled correctly?
+------------------------------------------------------------------------
+r165 | gaser | 2018-09-20 09:29:24 +0200 (Do, 20 Sep 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +16,7 @@ M       cg_tfce_estimate.m
 
 Fixed: For comparisons between groups with equal number of subjects the plot
 was not displayed.
+
 ------------------------------------------------------------------------
 r164 | gaser | 2018-06-05 14:10:32 +0200 (Di, 05 Jun 2018) | 7 lines
 

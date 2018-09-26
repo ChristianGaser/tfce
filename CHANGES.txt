@@ -1,5 +1,13 @@
 ------------------------------------------------------------------------
-r166 | gaser | 2018-09-25 16:17:08
+r167 | gaser | 2018-09-26 16:12:18
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Chaned: Added some more support for F-contrasts.
+------------------------------------------------------------------------
+r166 | gaser | 2018-09-25 16:17:14 +0200 (Di, 25 Sep 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +15,7 @@ M       cg_tfce_estimate.m
 
 Fixed: Regression design where contrast is defined for covariate is now 
 handled correctly?
+
 ------------------------------------------------------------------------
 r165 | gaser | 2018-09-20 09:29:24 +0200 (Do, 20 Sep 2018) | 7 lines
 

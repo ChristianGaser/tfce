@@ -70,9 +70,7 @@ Ic0 = job.conspec.contrasts;
 
 % check whether contrast are defined
 if ~isfield(SPM,'xCon')
-%  [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
-%        '  Select contrast(s)...',' ',1);
-  [Ic0,xCon] = spm_conman(SPM,'T',Inf,...
+  [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
         '  Select contrast(s)...',' ',1);
   SPM.xCon = xCon;
 end
@@ -303,21 +301,22 @@ for con = 1:length(Ic0)
   
   % get contrast and name
   c0 = xCon.c;
-  
+
   F_contrast_multiple_rows = 0;
   % for F-contrasts if rank is 1 we can use the first row
-  if strcmp(xCon.STAT,'F') 
-    fprintf('Error: F-contrasts are currently not supported because of some errors.\n');
-    return
+  if strcmp(xCon.STAT,'F')
     if rank(c0) == 1
       c0 = c0(:,1);
     else
+      fprintf('ERROR: F-contrast with multiple rows are not yet supported.\n');
+      return
       F_contrast_multiple_rows = 1;
     end
   end
 
   [indi, indj] = find(c0~=0);
   ind_X = unique(indi)';
+  xCon.ind_X = ind_X;
   
   % check for contrasts that are defined for columns with subject effects
   if ~isempty(xX.iB)
@@ -508,6 +507,13 @@ for con = 1:length(Ic0)
     ind_data_defined = ind_label;
   end
 
+  % sometimes for F-tests with multiple independent rows the design cannot be fully recognized
+  % and # of permutations is wrong
+  if n_perm_full == 1 & F_contrast_multiple_rows
+    fprintf('ERROR: This F-contrasts and type of design with multiple independent rows is not yet supported.\n');
+    return
+  end
+  
   fprintf('# full permutations: %d\n',n_perm_full);
   if use_half_permutations
     fprintf('Equal sample size found: Use half permutations.\n');
@@ -749,14 +755,20 @@ for con = 1:length(Ic0)
     % only permute columns, where contrast is defined
     Xperm = xX.X;
     Xperm_debug = xX.X;
-    
+    Wperm = xX.W;
+
     switch nuisance_method 
     case 0 % Draper-Stoneman is permuting X
       Xperm(:,ind_X) = Pset*Xperm(:,ind_X);
+      Wtmp = Pset*xX.W;
+      Wperm(ind_data_defined,ind_data_defined) = Wtmp(ind_data_defined,ind_data_defined);
     case 1 % Freedman-Lane is permuting Y
       Xperm = xX.X;
+      Wperm = xX.W;
     case 2 % Smith method is additionally orthogonalizing X with respect to Z
       Xperm(:,ind_X) = Pset*Rz*Xperm(:,ind_X);
+      Wtmp = Pset*Rz*xX.W;
+      Wperm(ind_data_defined,ind_data_defined) = Wtmp(ind_data_defined,ind_data_defined);
     end
             
     Xperm_debug(:,ind_X) = Pset*Xperm_debug(:,ind_X);
@@ -893,8 +905,9 @@ for con = 1:length(Ic0)
         tfce = tfce0;
       else
         xXperm   = xX;
-        xXperm.X = Xperm;
-  
+        xXperm.X = Xperm;        
+        xXperm.W = Wperm;
+        
         % Freedman-Lane permutation of data
         if nuisance_method == 1
           if vFWHM > 0
@@ -1490,7 +1503,19 @@ if strcmp(xCon.STAT,'T')
 else
   %-Compute ESS
   % Residual (in parameter space) forming matrix
-  h  = spm_FcUtil('Hsqr',xCon,xKXs);
+
+  try
+    h  = spm_FcUtil('Hsqr',xCon,xKXs);
+  catch
+    error('This type of F-contrast and design is not yet supported.\n');
+  end
+  
+  % h has to be restricted to rows and columns where contrast is defined
+  if isfield(xCon,'ind_X')
+    h2 = zeros(size(h));
+    h2(:,xCon.ind_X) = h(:,xCon.ind_X);
+    h = h2;
+  end
   
   ess = sum((h*Beta').^2,1)';
   MVM = ess/xCon.eidf;

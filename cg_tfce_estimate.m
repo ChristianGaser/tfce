@@ -8,6 +8,9 @@ function cg_tfce_estimate(job)
 % Christian Gaser
 % $Id$
 
+% experimental, does not result in any improvement
+filter_bilateral = 0;
+
 % convert to z-statistic
 convert_to_z = 0;
 
@@ -590,6 +593,11 @@ for con = 1:length(Ic0)
       end
       tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, dh, E, H)*dh;
     else
+      % use bilateral filter of t-map to increase SNR, see LISA paper (Lohmann et al. 2018)
+      if filter_bilateral
+        var_t0 = var(t0(find(t0~=0 & ~isnan(t0) & ~isinf(t0))));
+        t0 = double(cat_vol_bilateral(single(t0),2,2,2,2,var_t0));
+      end
       % only estimate neg. tfce values for non-positive t-values
       if min(t0(:)) < 0
         tfce0 = tfceMex_pthread(t0,dh,E,H,1,job.singlethreaded)*dh;
@@ -760,15 +768,19 @@ for con = 1:length(Ic0)
     switch nuisance_method 
     case 0 % Draper-Stoneman is permuting X
       Xperm(:,ind_X) = Pset*Xperm(:,ind_X);
-      Wtmp = Pset*xX.W;
-      Wperm(ind_data_defined,ind_data_defined) = Wtmp(ind_data_defined,ind_data_defined);
+      if n_cond ~= 1
+        Wtmp = Pset*xX.W;
+        Wperm(ind_data_defined,ind_data_defined) = Wtmp(ind_data_defined,ind_data_defined);
+      end
     case 1 % Freedman-Lane is permuting Y
       Xperm = xX.X;
       Wperm = xX.W;
     case 2 % Smith method is additionally orthogonalizing X with respect to Z
       Xperm(:,ind_X) = Pset*Rz*Xperm(:,ind_X);
-      Wtmp = Pset*Rz*xX.W;
-      Wperm(ind_data_defined,ind_data_defined) = Wtmp(ind_data_defined,ind_data_defined);
+      if n_cond ~= 1
+        Wtmp = Pset*Rz*xX.W;
+        Wperm(ind_data_defined,ind_data_defined) = Wtmp(ind_data_defined,ind_data_defined);
+      end
     end
             
     Xperm_debug(:,ind_X) = Pset*Xperm_debug(:,ind_X);
@@ -942,6 +954,9 @@ for con = 1:length(Ic0)
         if mesh_detected
           tfce = tfce_mesh(SPM.xVol.G.faces, t, dh, E, H)*dh;
         else
+          if filter_bilateral
+            t = double(cat_vol_bilateral(single(t),2,2,2,2,var_t0));
+          end
           % only estimate neg. tfce values for non-positive t-values
           if min(t(:)) < 0
             tfce = tfceMex_pthread(t,dh,E,H,1,job.singlethreaded)*dh;
@@ -1030,6 +1045,36 @@ for con = 1:length(Ic0)
           end
         end  
       end
+      
+      % after 500 permutations compare uncorrected p-values for t-test with parametric 
+      % t-test to check wheter something went wrong    
+			if perm == 501
+				% estimate p-values
+				nPt = tperm/perm;
+
+        & get parametric p-values
+				tname = sprintf('spm%s_%04d',xCon.STAT,Ic);
+				tname = fullfile(cwd,[tname file_ext]);
+				Z = spm_data_read(tname);
+				if strcmp(xCon.STAT,'T')
+					Pt = 1-spm_Tcdf(Z,df2);
+				else
+					Pt = 1-spm_Fcdf(Z,[df1, df2]);
+				end
+
+        % check correlation between parametric and non-parametric p-values
+				cc = corrcoef(nPt(mask_P),Pt(mask_P));
+
+				if cc(1,2) < 0.9
+          if nuisance_method > 0
+            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric test found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),1);
+          else
+            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric test found! Probably your design was not correctly recognized.\n'),'',spm('CmdLine'),1);
+          end
+  				return
+  			end
+			end
+
     end % test_mode
 
     

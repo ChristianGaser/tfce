@@ -1,11 +1,24 @@
 ------------------------------------------------------------------------
-r167 | gaser | 2018-09-26 16:12:18
+r168 | gaser | 2018-12-20 17:36:11
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+M       cg_tfce_estimate.m
+
+(1) Changed: Added check for a low correlation between parametric and 
+    non-parametric p-values.
+(2) Changed: Added experimental option for bilateral filtering (which almost
+    has no effect).
+------------------------------------------------------------------------
+r167 | gaser | 2018-09-26 16:12:23 +0200 (Mi, 26 Sep 2018) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
 
 Chaned: Added some more support for F-contrasts.
+
 ------------------------------------------------------------------------
 r166 | gaser | 2018-09-25 16:17:14 +0200 (Di, 25 Sep 2018) | 7 lines
 

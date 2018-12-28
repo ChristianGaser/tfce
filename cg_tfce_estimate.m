@@ -1048,32 +1048,34 @@ for con = 1:length(Ic0)
       
       % after 500 permutations compare uncorrected p-values for t-test with parametric 
       % t-test to check wheter something went wrong    
-			if perm == 501
-				% estimate p-values
-				nPt = tperm/perm;
+      if perm == 501
+        % estimate p-values
+        nPt = tperm/perm;
 
-        & get parametric p-values
-				tname = sprintf('spm%s_%04d',xCon.STAT,Ic);
-				tname = fullfile(cwd,[tname file_ext]);
-				Z = spm_data_read(tname);
-				if strcmp(xCon.STAT,'T')
-					Pt = 1-spm_Tcdf(Z,df2);
-				else
-					Pt = 1-spm_Fcdf(Z,[df1, df2]);
-				end
+        % get parametric p-values
+        tname = sprintf('spm%s_%04d',xCon.STAT,Ic);
+        tname = fullfile(cwd,[tname file_ext]);
+        Z = spm_data_read(tname);
+        if strcmp(xCon.STAT,'T')
+          Pt = 1-spm_Tcdf(Z,df2);
+        else
+          Pt = 1-spm_Fcdf(Z,[df1, df2]);
+        end
 
         % check correlation between parametric and non-parametric p-values
-				cc = corrcoef(nPt(mask_P),Pt(mask_P));
+        cc = corrcoef(nPt(mask_P),Pt(mask_P));
 
-				if cc(1,2) < 0.9
+        if cc(1,2) < 0.9
           if nuisance_method > 0
             spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric test found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),1);
+            fprintf('WARNING: Large discrepancy between parametric and non-parametric test found (cc=%g)! Please try a different method to deal with nuisance parameters.\n',cc(1,2));
           else
             spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric test found! Probably your design was not correctly recognized.\n'),'',spm('CmdLine'),1);
+            fprintf('WARNING: Large discrepancy between parametric and non-parametric test found (cc=%g)! Probably your design was not correctly recognized.\n',cc(1,2));
           end
-  				return
-  			end
-			end
+          return
+        end
+      end
 
     end % test_mode
 

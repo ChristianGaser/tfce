@@ -1,5 +1,15 @@
 ------------------------------------------------------------------------
-r168 | gaser | 2018-12-20 17:36:11
+r169 | gaser | 2018-12-28 15:57:58
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Corrected check for a low correlation between parametric and non-parametric 
+p-values.
+
+------------------------------------------------------------------------
+r168 | gaser | 2018-12-20 17:36:17 +0100 (Do, 20 Dez 2018) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -10,6 +20,7 @@ M       cg_tfce_estimate.m
     non-parametric p-values.
 (2) Changed: Added experimental option for bilateral filtering (which almost
     has no effect).
+
 ------------------------------------------------------------------------
 r167 | gaser | 2018-09-26 16:12:23 +0200 (Mi, 26 Sep 2018) | 6 lines
 

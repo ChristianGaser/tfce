@@ -8,11 +8,11 @@ function cg_tfce_estimate(job)
 % Christian Gaser
 % $Id$
 
-% experimental, does not result in any improvement
-filter_bilateral = 0;
-
 % convert to z-statistic
 convert_to_z = 0;
+
+% experimental, does not result in any improvement, only for 3D images
+filter_bilateral = 0;
 
 % variance smoothing (experimental, only for 3D images)
 vFWHM = 0;
@@ -27,6 +27,8 @@ nuisance_method = job.nuisance_method;
 show_permuted_designmatrix = 1;
 
 % allow to test permutations without analyzing data
+% test mode is automatically chosen if only a SPM.mat is available
+% without any data
 test_mode = 0;
 
 % define stepsize for tfce
@@ -156,6 +158,19 @@ else
   mesh_detected = 0;
 end
 
+% check whether 3D filters were selected for surfaces meshes
+if mesh_detected
+  if filter_bilateral
+    fprintf('Warning: Bilateral filter is not supported for meshes.\n')
+    filter_bilateral = 0;
+  end
+  
+  if vFWHM > 0
+    fprintf('Warning: Variance smoothing is not supported for meshes.\n')
+    vFWHM = 0;
+  end
+end
+
 if ~test_mode
   % get mask file
   if isempty(job.mask)
@@ -271,20 +286,13 @@ if ~test_mode
   
 end % if ~test_mode
 
-% variance smoothing not yet supported for meshes
-if mesh_detected & vFWHM > 0
-  fprintf('Warning: Variance smoothing for surfaces is not yet supported.\n');
-  vFWHM = 0;
-end
-
 % go through all contrasts
 for con = 1:length(Ic0)
     
   Ic = Ic0(con);
   
-  Ic0 = job.conspec.contrasts;
   try
-    xCon = SPM.xCon(Ic0(1));
+    xCon = SPM.xCon(Ic);
   catch
     [Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
         '  Select contrast(s)...',' ',1);
@@ -311,8 +319,7 @@ for con = 1:length(Ic0)
     if rank(c0) == 1
       c0 = c0(:,1);
     else
-      fprintf('ERROR: F-contrast with multiple rows are not yet supported.\n');
-      return
+%      fprintf('ERROR: F-contrast with multiple rows are not yet supported.\n');
       F_contrast_multiple_rows = 1;
     end
   end
@@ -327,24 +334,6 @@ for con = 1:length(Ic0)
       fprintf('ERROR: No contrasts on subjects/block effects allowed.\n');
       return
     end
-  end
-
-  switch nuisance_method 
-  case 0
-    str_permutation_method = 'Draper-Stoneman';
-  case 1
-    str_permutation_method = 'Freedman-Lane';
-  case 2
-    str_permutation_method = 'Smith';
-  end
-
-  % name of contrast
-  c_name0 = deblank(xCon.name);
-
-  if test_mode
-    c_name = '';
-  else
-    c_name = sprintf('%s (E=%1.1f H=%1.1f %s)',c_name0, E, H, str_permutation_method);
   end
 
   % find exchangeability blocks using contrasts without zero values
@@ -363,7 +352,7 @@ for con = 1:length(Ic0)
     end
     
     % for F-contrast with multiple rows n_cond is always n_exch_blocks
-    if F_contrast_multiple_rows
+    if F_contrast_multiple_rows & length(xX.iH) > 1
       n_cond = n_exch_blocks;
     else
       for j=1:n_exch_blocks
@@ -548,6 +537,29 @@ for con = 1:length(Ic0)
   if ~exist_nuisance & nuisance_method > 0
     fprintf('No nuisance variables were found: Use Draper-Stoneman permutation.\n\n');
     nuisance_method = 0;
+  end
+
+  if nuisance_method > 0 & repeated_anova
+    fprintf('Use Draper-Stoneman permutation for repeated measures Anova.\n\n');
+    nuisance_method = 0;
+  end
+
+  switch nuisance_method 
+  case 0
+    str_permutation_method = 'Draper-Stoneman';
+  case 1
+    str_permutation_method = 'Freedman-Lane';
+  case 2
+    str_permutation_method = 'Smith';
+  end
+
+  % name of contrast
+  c_name0 = deblank(xCon.name);
+
+  if test_mode
+    c_name = '';
+  else
+    c_name = sprintf('%s (E=%1.1f H=%1.1f %s) ',c_name0, E, H, str_permutation_method);
   end
 
   if ~test_mode
@@ -768,19 +780,18 @@ for con = 1:length(Ic0)
     switch nuisance_method 
     case 0 % Draper-Stoneman is permuting X
       Xperm(:,ind_X) = Pset*Xperm(:,ind_X);
-      if n_cond ~= 1
-        Wtmp = Pset*xX.W;
-        Wperm(ind_data_defined,ind_data_defined) = Wtmp(ind_data_defined,ind_data_defined);
-      end
+%      if n_cond ~= 1
+%        Wtmp = Pset*xX.W;
+%        Wperm(ind_data_defined,ind_data_defined) = Wtmp(ind_data_defined,ind_data_defined);
+%      end
     case 1 % Freedman-Lane is permuting Y
       Xperm = xX.X;
-      Wperm = xX.W;
     case 2 % Smith method is additionally orthogonalizing X with respect to Z
       Xperm(:,ind_X) = Pset*Rz*Xperm(:,ind_X);
-      if n_cond ~= 1
-        Wtmp = Pset*Rz*xX.W;
-        Wperm(ind_data_defined,ind_data_defined) = Wtmp(ind_data_defined,ind_data_defined);
-      end
+%      if n_cond ~= 1
+%        Wtmp = Pset*Rz*xX.W;
+%        Wperm(ind_data_defined,ind_data_defined) = Wtmp(ind_data_defined,ind_data_defined);
+%      end
     end
             
     Xperm_debug(:,ind_X) = Pset*Xperm_debug(:,ind_X);
@@ -1046,15 +1057,20 @@ for con = 1:length(Ic0)
         end  
       end
       
-      % after 500 permutations compare uncorrected p-values for t-test with parametric 
-      % t-test to check wheter something went wrong    
-      if perm == 501
+      % after 500 permutations compare uncorrected p-values with permutations with parametric 
+      % p-values to check wheter something went wrong    
+      if perm == 501 | perm >= n_perm-1
         % estimate p-values
         nPt = tperm/perm;
 
         % get parametric p-values
         tname = sprintf('spm%s_%04d',xCon.STAT,Ic);
         tname = fullfile(cwd,[tname file_ext]);
+        
+        if ~exist(tname,'file')
+          spm_contrasts(SPM,Ic);
+        end
+        
         Z = spm_data_read(tname);
         if strcmp(xCon.STAT,'T')
           Pt = 1-spm_Tcdf(Z,df2);
@@ -1065,7 +1081,7 @@ for con = 1:length(Ic0)
         % check correlation between parametric and non-parametric p-values
         cc = corrcoef(nPt(mask_P),Pt(mask_P));
 
-        if cc(1,2) < 0.9
+        if cc(1,2) < 0.85
           if nuisance_method > 0
             spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric test found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),1);
             fprintf('WARNING: Large discrepancy between parametric and non-parametric test found (cc=%g)! Please try a different method to deal with nuisance parameters.\n',cc(1,2));
@@ -1073,7 +1089,6 @@ for con = 1:length(Ic0)
             spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric test found! Probably your design was not correctly recognized.\n'),'',spm('CmdLine'),1);
             fprintf('WARNING: Large discrepancy between parametric and non-parametric test found (cc=%g)! Probably your design was not correctly recognized.\n',cc(1,2));
           end
-          return
         end
       end
 
@@ -1113,15 +1128,6 @@ for con = 1:length(Ic0)
     if n_perm < 1000, n_alpha = 2; end
     if n_perm <  100, n_alpha = 1; end
       
-    switch nuisance_method 
-    case 0
-      str_permutation_method = 'Draper-Stoneman';
-    case 1
-      str_permutation_method = 'Freedman-Lane';
-    case 2
-      str_permutation_method = 'Smith';
-    end
-  
     % prepare output files
     Vt = VY(1);
     Vt.dt(1)    = 16;
@@ -1549,24 +1555,10 @@ if strcmp(xCon.STAT,'T')
   T(ind_mask) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
 else
   %-Compute ESS
-  % Residual (in parameter space) forming matrix
-
-  try
-    h  = spm_FcUtil('Hsqr',xCon,xKXs);
-  catch
-    error('This type of F-contrast and design is not yet supported.\n');
-  end
-  
-  % h has to be restricted to rows and columns where contrast is defined
-  if isfield(xCon,'ind_X')
-    h2 = zeros(size(h));
-    h2(:,xCon.ind_X) = h(:,xCon.ind_X);
-    h = h2;
-  end
-  
-  ess = sum((h*Beta').^2,1)';
+  X = xX.X(:,xCon.ind_X);  
+  ess = sum((X*Beta(:,xCon.ind_X)').^2,1)';
   MVM = ess/xCon.eidf;
-
+  
   T(ind_mask) = MVM./ResMS;
 end
 

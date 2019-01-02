@@ -1,5 +1,17 @@
 ------------------------------------------------------------------------
-r169 | gaser | 2018-12-28 15:57:58
+r170 | gaser | 2019-01-02 23:58:18
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+(1) Fixed: Corrected bug if multiple contrasts were used in batch mode.
+(2) Changed: Whitening matrix is not permuted anymore because of unreliable
+    results.
+(3) Changed: Calculation of F-test is not using spm_FcUtils anymore because
+    of unreliable results.
+------------------------------------------------------------------------
+r169 | gaser | 2018-12-28 15:58:03 +0100 (Fr, 28 Dez 2018) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +19,7 @@ M       cg_tfce_estimate.m
 
 Fixed: Corrected check for a low correlation between parametric and non-parametric 
 p-values.
+
 
 ------------------------------------------------------------------------
 r168 | gaser | 2018-12-20 17:36:17 +0100 (Do, 20 Dez 2018) | 10 lines

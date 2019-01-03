@@ -1,5 +1,15 @@
 ------------------------------------------------------------------------
-r170 | gaser | 2019-01-02 23:58:18
+r171 | gaser | 2019-01-03 16:12:17
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+(1) Fixed: xCon was not correctly set for multiple contrasts.
+(2) Changed: Added output for checking correlation between between parametric 
+    and non-parametric T statistic.
+------------------------------------------------------------------------
+r170 | gaser | 2019-01-02 23:58:22 +0100 (Mi, 02 Jan 2019) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -10,6 +20,7 @@ M       cg_tfce_estimate.m
     results.
 (3) Changed: Calculation of F-test is not using spm_FcUtils anymore because
     of unreliable results.
+
 ------------------------------------------------------------------------
 r169 | gaser | 2018-12-28 15:58:03 +0100 (Fr, 28 Dez 2018) | 8 lines
 

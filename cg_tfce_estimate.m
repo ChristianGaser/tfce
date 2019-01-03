@@ -296,8 +296,8 @@ for con = 1:length(Ic0)
   catch
     [Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
         '  Select contrast(s)...',' ',1);
-    xCon = xCon(Ic);
     SPM.xCon = xCon;
+    xCon = xCon(Ic);
   end
 
   n_perm = job.conspec.n_perm(1);
@@ -682,6 +682,7 @@ for con = 1:length(Ic0)
   n_unique_labels = length(unique_labels);
   
   perm = 1;
+  check_validity = 0;
   while perm<=n_perm
 
     % randomize subject vector
@@ -1059,14 +1060,16 @@ for con = 1:length(Ic0)
       
       % after 500 permutations compare uncorrected p-values with permutations with parametric 
       % p-values to check wheter something went wrong    
-      if perm == 501 | perm >= n_perm-1
+      % use odd numbers to consider parameter use_half_permutations
+      
+      if ((perm == 501) | (perm >= n_perm-1)) & ~check_validity
         % estimate p-values
         nPt = tperm/perm;
 
         % get parametric p-values
         tname = sprintf('spm%s_%04d',xCon.STAT,Ic);
         tname = fullfile(cwd,[tname file_ext]);
-        
+
         if ~exist(tname,'file')
           spm_contrasts(SPM,Ic);
         end
@@ -1083,13 +1086,16 @@ for con = 1:length(Ic0)
 
         if cc(1,2) < 0.85
           if nuisance_method > 0
-            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric test found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),1);
-            fprintf('WARNING: Large discrepancy between parametric and non-parametric test found (cc=%g)! Please try a different method to deal with nuisance parameters.\n',cc(1,2));
+            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric T statistic found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),1);
+            fprintf('\nWARNING: Large discrepancy between parametric and non-parametric T statistic found (cc=%g)! Please try a different method to deal with nuisance parameters.\n',cc(1,2));
           else
-            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric test found! Probably your design was not correctly recognized.\n'),'',spm('CmdLine'),1);
-            fprintf('WARNING: Large discrepancy between parametric and non-parametric test found (cc=%g)! Probably your design was not correctly recognized.\n',cc(1,2));
+            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric T statistic found! Probably your design was not correctly recognized.\n'),'',spm('CmdLine'),1);
+            fprintf('\nWARNING: Large discrepancy between parametric and non-parametric T statistic found (cc=%g)! Probably your design was not correctly recognized.\n',cc(1,2));
           end
+        else
+          fprintf('\nCorrelation between between parametric and non-parametric T statistic is cc=%g.\n',cc(1,2));
         end
+        check_validity = 1;
       end
 
     end % test_mode

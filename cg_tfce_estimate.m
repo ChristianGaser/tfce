@@ -297,9 +297,13 @@ for con = 1:length(Ic0)
     [Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
         '  Select contrast(s)...',' ',1);
     SPM.xCon = xCon;
+    if isempty(xCon(Ic).eidf)
+          SPM = spm_contrasts(SPM,Ic);  
+          xCon(Ic) = SPM.xCon(Ic);
+    end
     xCon = xCon(Ic);
   end
-
+  
   n_perm = job.conspec.n_perm(1);
   if numel(job.conspec.n_perm) > 1
     n_perm_break = job.conspec.n_perm(2);
@@ -312,8 +316,8 @@ for con = 1:length(Ic0)
   
   % get contrast and name
   c0 = xCon.c;
-
   F_contrast_multiple_rows = 0;
+  
   % for F-contrasts if rank is 1 we can use the first row
   if strcmp(xCon.STAT,'F')
     if rank(c0) == 1
@@ -389,7 +393,7 @@ for con = 1:length(Ic0)
   end
 
   fprintf('\n');
-  
+
   % check design
   switch n_cond
   case 0 % correlation
@@ -437,7 +441,7 @@ for con = 1:length(Ic0)
 
   % get index for label values > 0
   ind_label  = find(label > 0);
-
+  
   n_data_with_contrast = length(ind_label);
   
   % estimate # of permutations
@@ -462,7 +466,7 @@ for con = 1:length(Ic0)
         n_perm_full = realmax;
       end
     end
-    
+
     % find where data are defined for that contrast
     if ~isempty(find(xX.iH == ind_X(1)))
       % first checking whether contrasts are defined for iH
@@ -502,7 +506,7 @@ for con = 1:length(Ic0)
   % sometimes for F-tests with multiple independent rows the design cannot be fully recognized
   % and # of permutations is wrong
   if n_perm_full == 1 & F_contrast_multiple_rows
-    fprintf('ERROR: This F-contrasts and type of design with multiple independent rows is not yet supported.\n');
+    fprintf('ERROR: This F-contrast and type of design with multiple independent rows is not yet supported.\n');
     return
   end
   
@@ -1063,6 +1067,7 @@ for con = 1:length(Ic0)
       % use odd numbers to consider parameter use_half_permutations
       
       if ((perm == 501) | (perm >= n_perm-1)) & ~check_validity
+
         % estimate p-values
         nPt = tperm/perm;
 

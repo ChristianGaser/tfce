@@ -1,5 +1,13 @@
 ------------------------------------------------------------------------
-r171 | gaser | 2019-01-03 16:12:17
+r172 | gaser | 2019-01-07 01:52:43
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Corrected bug for non-estimated contrasts.
+------------------------------------------------------------------------
+r171 | gaser | 2019-01-03 16:12:22 +0100 (Do, 03 Jan 2019) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -8,6 +16,7 @@ M       cg_tfce_estimate.m
 (1) Fixed: xCon was not correctly set for multiple contrasts.
 (2) Changed: Added output for checking correlation between between parametric 
     and non-parametric T statistic.
+
 ------------------------------------------------------------------------
 r170 | gaser | 2019-01-02 23:58:22 +0100 (Mi, 02 Jan 2019) | 10 lines
 

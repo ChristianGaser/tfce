@@ -332,10 +332,6 @@ for con = 1:length(Ic0)
   ind_X = unique(indi)';
   xCon.ind_X = ind_X;
   
-  if strcmp(xCon.STAT,'F') & isempty(xCon.eidf)
-    error('Please call this contrast first in SPM12 to provide all data.');  
-  end
-  
   % check for contrasts that are defined for columns with subject effects
   if ~isempty(xX.iB)
     if max(ind_X) > min(xX.iB)

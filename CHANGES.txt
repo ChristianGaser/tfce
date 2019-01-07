@@ -1,11 +1,20 @@
 ------------------------------------------------------------------------
-r172 | gaser | 2019-01-07 01:52:43
+r173 | gaser | 2019-01-07 12:58:04
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Fixed: Corrected detection of multiple regression with F-contrasts.
+------------------------------------------------------------------------
+r172 | gaser | 2019-01-07 01:52:47 +0100 (Mo, 07 Jan 2019) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
 
 Fixed: Corrected bug for non-estimated contrasts.
+
 ------------------------------------------------------------------------
 r171 | gaser | 2019-01-03 16:12:22 +0100 (Do, 03 Jan 2019) | 8 lines
 

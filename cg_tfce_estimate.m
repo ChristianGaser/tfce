@@ -332,6 +332,10 @@ for con = 1:length(Ic0)
   ind_X = unique(indi)';
   xCon.ind_X = ind_X;
   
+  if strcmp(xCon.STAT,'F') & isempty(xCon.eidf)
+    error('Please call this contrast first in SPM12 to provide all data.');  
+  end
+  
   % check for contrasts that are defined for columns with subject effects
   if ~isempty(xX.iB)
     if max(ind_X) > min(xX.iB)
@@ -358,6 +362,8 @@ for con = 1:length(Ic0)
     % for F-contrast with multiple rows n_cond is always n_exch_blocks
     if F_contrast_multiple_rows & length(xX.iH) > 1
       n_cond = n_exch_blocks;
+    elseif F_contrast_multiple_rows & length(xX.iH) == 1
+      n_cond = 0;
     else
       for j=1:n_exch_blocks
         col_exch_blocks = find(c0==exch_blocks(j));
@@ -1062,7 +1068,7 @@ for con = 1:length(Ic0)
         end  
       end
       
-      % after 500 permutations compare uncorrected p-values with permutations with parametric 
+      % after 500 permutations or at n_perm compare uncorrected p-values with permutations with parametric 
       % p-values to check wheter something went wrong    
       % use odd numbers to consider parameter use_half_permutations
       

@@ -1068,7 +1068,7 @@ for con = 1:length(Ic0)
       % p-values to check wheter something went wrong    
       % use odd numbers to consider parameter use_half_permutations
       
-      if ((perm == 501) | (perm >= n_perm-1)) & ~check_validity
+      if ((perm == 501) | (perm >= n_perm-1)) & ~check_validity & ~isempty(mask_P)
 
         % estimate p-values
         nPt = tperm/perm;

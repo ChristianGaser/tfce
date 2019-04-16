@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r175 | gaser | 2019-04-12 12:22:24
+r176 | gaser | 2019-04-16 14:31:52
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+M       spm_TFCE.m
+
+Changed: Added new version information.
+------------------------------------------------------------------------
+r175 | gaser | 2019-04-12 12:22:34 +1200 (Fr, 12 Apr 2019) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +16,7 @@ M       cg_tfce_estimate.m
 
 Fixed: Corrected bug that occurred if no effects could be found for that design
 (thanks to Larry Lai for pinting to that).
+
 ------------------------------------------------------------------------
 r174 | gaser | 2019-01-08 01:01:44 +1300 (Di, 08 Jan 2019) | 6 lines
 

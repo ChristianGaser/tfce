@@ -2,7 +2,9 @@
 #
 # $Id$
 
-VERSION=`svn info |grep Revision|sed -e 's/Revision: //g'`
+OLDVERSION="0.9"
+NEWVERSION="1.0"
+REVISION=`svn info |grep Revision|sed -e 's/Revision: //g'`
 DATE=`svn info |grep 'Last Changed Date: '|sed -e 's/Last Changed Date: //g'|cut -f1 -d' '`
 
 TARGET=/Users/gaser/spm/spm12/toolbox/TFCE
@@ -19,7 +21,7 @@ MISC_FILES=TFCE.man
 
 FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}
 
-ZIPFILE=tfce_r$(VERSION).zip
+ZIPFILE=tfce_r$(REVISION).zip
 
 install:
 	-@echo install
@@ -40,14 +42,15 @@ help:
 update:
 	-@svn update
 	-@echo '% TFCE Toolbox' > Contents.m
-	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> Contents.m
+	-@echo '% Version ' ${REVISION} ' (version '${NEWVERSION}')' ${DATE} >> Contents.m
 	-@cat Contents_info.txt >> Contents.m
 	-@echo '% __________________________________________________________________________' > TFCE.man
 	-@echo '% TFCE Toolbox for SPM8/SPM12' >> TFCE.man
-	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> TFCE.man
+	-@echo '% Version ' ${REVISION} ${NEWVERSION} ${DATE} >> TFCE.man
 	-@cat TFCE.txt >> TFCE.man
+	-@perl -p -i -e "s/${OLDVERSION}/${NEWVERSION}/g" spm_TFCE.m
 	-@echo '% TFCE Toolbox' > INSTALL.txt
-	-@echo '% Version ' ${VERSION} ' (TFCE) ' ${DATE} >> INSTALL.txt
+	-@echo '% Version ' ${REVISION} ${NEWVERSION} ${DATE} >> INSTALL.txt
 	-@cat INSTALL_info.txt >> INSTALL.txt
 
 zip: update

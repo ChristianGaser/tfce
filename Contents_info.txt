@@ -1,11 +1,11 @@
 % __________________________________________________________________________
-% Copyright (C) 2013 Christian Gaser christian.gaser@uni-jena.de
+% Copyright (C) 2019 Christian Gaser christian.gaser@uni-jena.de
 %
 % $Id$
 % ==========================================================================
 % Description
 % ==========================================================================
-% This toolbox is a an extensions to SPM5/SPM8 (Wellcome Department of Cognitive 
+% This toolbox is a an extension to SPM5/SPM8 (Wellcome Department of Cognitive 
 % Neurology) to provide non-parametric statistics based on threshold-free
 % cluster enhancement (TFCE). It is developed by Christian Gaser (University of 
 % Jena, Department of Psychiatry) and is available to the scientific 

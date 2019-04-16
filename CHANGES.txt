@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r176 | gaser | 2019-04-16 14:31:52
+r177 | gaser | 2019-04-16 14:34:58
+
+Changed paths:
+M       CHANGES.txt
+M       Contents_info.txt
+M       TFCE.txt
+
+Changed: Added new version information.
+------------------------------------------------------------------------
+r176 | gaser | 2019-04-16 14:32:02 +1200 (Di, 16 Apr 2019) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +16,7 @@ M       Makefile
 M       spm_TFCE.m
 
 Changed: Added new version information.
+
 ------------------------------------------------------------------------
 r175 | gaser | 2019-04-12 12:22:34 +1200 (Fr, 12 Apr 2019) | 7 lines
 

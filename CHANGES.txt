@@ -1,11 +1,20 @@
 ------------------------------------------------------------------------
-r178 | gaser | 2019-05-08 11:25:12
+r179 | gaser | 2019-05-08 17:40:28
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+Changed: Speeded up GLM calculation by up to 50%!
+------------------------------------------------------------------------
+r178 | gaser | 2019-05-08 11:25:14 +0200 (Mi, 08 Mai 2019) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
 
 Changed: Added tail approximation from Gamma distribution for corrected P-values.
+
 ------------------------------------------------------------------------
 r177 | gaser | 2019-04-16 04:35:06 +0200 (Di, 16 Apr 2019) | 7 lines
 

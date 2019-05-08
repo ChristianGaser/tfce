@@ -1568,15 +1568,27 @@ function [T, trRV, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,dim,vFWHM,SmMask)
 % trRV     - df
 
 c = xCon.c;
-n_data = size(xX.X,1);
 
 xKXs = spm_sp('Set',xX.W*xX.X);
 xKXs.X = full(xKXs.X);
 pKX = spm_sp('x-',xKXs);
 
+n_data = size(xX.X,1);
+n_beta = size(pKX,1);
+n_voxels = length(ind_mask);
+
+% pre-allocation is much faster
+Beta = zeros(n_voxels,n_beta,'single');
+res0 = zeros(n_voxels,n_data,'single');
+ResSS = zeros(n_voxels,1);
+
 Beta = Y*pKX';
-res0 = Beta*single(xKXs.X') - Y;     %-Residuals
-ResSS = double(sum(res0.^2,2));      %-Residual SSQ
+res0 = mtimes(Beta,single(xKXs.X'));
+res0 = res0 - Y;     %-Residuals
+clear Y
+res0 = res0.^2;
+ResSS = double(sum(res0,2));
+clear res0
 
 trRV = n_data - rank(xX.X);
 ResMS = ResSS/trRV;

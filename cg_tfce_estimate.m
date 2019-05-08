@@ -8,6 +8,10 @@ function cg_tfce_estimate(job)
 % Christian Gaser
 % $Id$
 
+% Use tail approximation from the Gamma distribution for corrected P-values 
+use_tail_approximation = 1;
+tail_approximation_wo_unpermuted_data = 0;
+
 % convert to z-statistic
 convert_to_z = 0;
 
@@ -323,7 +327,6 @@ for con = 1:length(Ic0)
     if rank(c0) == 1
       c0 = c0(:,1);
     else
-%      fprintf('ERROR: F-contrast with multiple rows are not yet supported.\n');
       F_contrast_multiple_rows = 1;
     end
   end
@@ -1089,18 +1092,22 @@ for con = 1:length(Ic0)
         end
 
         % check correlation between parametric and non-parametric p-values
-        cc = corrcoef(nPt(mask_P),Pt(mask_P));
+        if ~isempty(mask_P)
+          cc = corrcoef(nPt(mask_P),Pt(mask_P));
+        else
+          cc = corrcoef(nPt(mask_N),Pt(mask_N));
+        end
 
         if cc(1,2) < 0.85
           if nuisance_method > 0
-            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric T statistic found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),1);
-            fprintf('\nWARNING: Large discrepancy between parametric and non-parametric T statistic found (cc=%g)! Please try a different method to deal with nuisance parameters.\n',cc(1,2));
+            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric statistic found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),1);
+            fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g)! Please try a different method to deal with nuisance parameters.\n',cc(1,2));
           else
-            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric T statistic found! Probably your design was not correctly recognized.\n'),'',spm('CmdLine'),1);
-            fprintf('\nWARNING: Large discrepancy between parametric and non-parametric T statistic found (cc=%g)! Probably your design was not correctly recognized.\n',cc(1,2));
+            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric statistic found! Probably your design was not correctly recognized.\n'),'',spm('CmdLine'),1);
+            fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g)! Probably your design was not correctly recognized.\n',cc(1,2));
           end
         else
-          fprintf('\nCorrelation between between parametric and non-parametric T statistic is cc=%g.\n',cc(1,2));
+          fprintf('\nCorrelation between between parametric and non-parametric statistic is cc=%g.\n',cc(1,2));
         end
         check_validity = 1;
       end
@@ -1250,27 +1257,47 @@ for con = 1:length(Ic0)
   
     corrP = zeros(size(t));
   
-    if ~isempty(mask_P)
-      for t2 = tfce_max
-        %-FWE-corrected p is proportion of randomisation greater or
-        % equal to statistic.
-        %-Use a > b -tol rather than a >= b to avoid comparing
-        % two reals for equality.
-        corrP(mask_P) = corrP(mask_P) + (t2 > tfce0(mask_P)  - tol);
-      end
-    end
-    
-    if ~isempty(mask_N)
-      for t2 = tfce_min
-        %-FWE-corrected p is proportion of randomisation greater or
-        % equal to statistic.
-        %-Use a > b -tol rather than a >= b to avoid comparing
-        % two reals for equality.
-        corrP(mask_N) = corrP(mask_N) - (t2 < tfce0(mask_N) + tol);
-      end
-    end
-    
-    corrP = corrP/n_perm;  
+		if use_tail_approximation
+		  fprintf('Using tail approximation from the Gamma distribution for corrected P-values.\n');
+		  if tail_approximation_wo_unpermuted_data
+		    ind_tail = 2:n_perm;
+		  else
+		    ind_tail = 1:n_perm;
+		  end
+		  
+			if ~isempty(mask_P)
+        [mu,s2,gamm1] = palm_moments(tfce_max(ind_tail)');
+        corrP(mask_P) = palm_gamma(tfce0(mask_P),mu,s2,gamm1,false,1/n_perm);
+			end
+			
+			if ~isempty(mask_N)
+        [mu,s2,gamm1] = palm_moments(tfce_min(ind_tail)');
+        corrP(mask_N) = palm_gamma(tfce0(mask_N),mu,s2,gamm1,false,1/n_perm);
+			end
+			
+		else
+			if ~isempty(mask_P)
+				for t2 = tfce_max
+					%-FWE-corrected p is proportion of randomisation greater or
+					% equal to statistic.
+					%-Use a > b -tol rather than a >= b to avoid comparing
+					% two reals for equality.
+					corrP(mask_P) = corrP(mask_P) + (t2 > tfce0(mask_P)  - tol);
+				end
+			end
+			
+			if ~isempty(mask_N)
+				for t2 = tfce_min
+					%-FWE-corrected p is proportion of randomisation greater or
+					% equal to statistic.
+					%-Use a > b -tol rather than a >= b to avoid comparing
+					% two reals for equality.
+					corrP(mask_N) = corrP(mask_N) - (t2 < tfce0(mask_N) + tol);
+				end
+			end
+			
+			corrP = corrP/n_perm;  
+		end
     corrPlog10 = zeros(size(tfce0));
   
     if ~isempty(mask_P)
@@ -1301,26 +1328,41 @@ for con = 1:length(Ic0)
   
     corrP = zeros(size(t));
   
-    if ~isempty(mask_P)
-      for t2 = t_max
-        %-FWE-corrected p is proportion of randomisation greater or
-        % equal to statistic.
-        %-Use a > b -tol rather than a >= b to avoid comparing
-        % two reals for equality.
-        corrP(mask_P) = corrP(mask_P) + (t2 > t0(mask_P) - tol);
-      end
-    end
-    if ~isempty(mask_N)
-      for t2 = t_min
-        %-FWE-corrected p is proportion of randomisation greater or
-        % equal to statistic.
-        %-Use a > b -tol rather than a >= b to avoid comparing
-        % two reals for equality.
-        corrP(mask_N) = corrP(mask_N) - (t2 < t0(mask_N) + tol);
-      end
-    end
-    
-    corrP = corrP / n_perm;  
+		if use_tail_approximation
+			if ~isempty(mask_P)
+        [mu,s2,gamm1] = palm_moments(t_max(ind_tail)');
+        corrP(mask_P) = palm_gamma(t0(mask_P),mu,s2,gamm1,false,1/n_perm);
+			end
+			
+			if ~isempty(mask_N)
+        [mu,s2,gamm1] = palm_moments(t_min(ind_tail)');
+        corrP(mask_N) = palm_gamma(t0(mask_N),mu,s2,gamm1,false,1/n_perm);
+			end
+			
+		else
+			if ~isempty(mask_P)
+				for t2 = t_max
+					%-FWE-corrected p is proportion of randomisation greater or
+					% equal to statistic.
+					%-Use a > b -tol rather than a >= b to avoid comparing
+					% two reals for equality.
+					corrP(mask_P) = corrP(mask_P) + (t2 > t0(mask_P)  - tol);
+				end
+			end
+			
+			if ~isempty(mask_N)
+				for t2 = t_min
+					%-FWE-corrected p is proportion of randomisation greater or
+					% equal to statistic.
+					%-Use a > b -tol rather than a >= b to avoid comparing
+					% two reals for equality.
+					corrP(mask_N) = corrP(mask_N) - (t2 < t0(mask_N) + tol);
+				end
+			end
+			
+			corrP = corrP/n_perm;  
+		end
+
     corrPlog10 = zeros(size(tfce0));
   
     if ~isempty(mask_P)
@@ -1459,14 +1501,14 @@ if sz_val_max >= 20
   % plot maximum observed value for unpermuted model
   hl = line([val0_max val0_max], [0 max_h]);
   set(hl,'Color',[0.3333 1 0],'LineWidth',2);
-  text(0.95*lim_x(2),0.95*max_h,'Max. observed value ',...
+  text(0.95*val0_max,0.95*max_h,'Max. observed value ',...
     'Color',[0.3333 1 0],'HorizontalAlignment','Right','FontSize',8)
     
   % plot sign-flipped minimum observed value for unpermuted model
   if val0_min < 0
     hl = line([-val0_min -val0_min], [0 max_h]);
     set(hl,'Color',[0 0.6667 1],'LineWidth',2);
-    text(0.95*lim_x(2),0.85*max_h,'Max. observed value (inverse contrast) ',...
+    text(0.95*val0_max,0.85*max_h,'Max. observed value (inverse contrast) ',...
       'Color',[0 0.6667 1],'HorizontalAlignment','Right','FontSize',8)
   end
   
@@ -1648,6 +1690,330 @@ if length(num) > 4
   end
 else
   str = num2str(num);
+end
+
+%---------------------------------------------------------------
+function varargout = palm_moments(varargin)
+% For a statistic that can be expressed as trace(A*W), for
+% a sample size of n observations, this function returns the
+% expected first three moments of the permutation distribution,
+% without actually computing any permutation.
+%
+% [mu,sigsq,gamm1,gamm2] = palm_moments(G)
+% [mu,sigsq,gamm1]       = palm_moments(A,W,n)
+%
+% Inputs:
+% - G : A PxV array of observations of the G random variable.
+%       The moments are unbiased and run along the 1st dimension.
+%       Typical case is P = number of permutations and V = 
+%       number of tests, e.g., voxels.
+% - A : A square matrix for a multivariate proper statistic,
+%       or a vector of A values for various univariate tests.
+% - W : A square matrix for a multivariate proper statistic,
+%       or a vector of W values for various univariate tests.
+% - n : Sample size on which the statistic is based.
+%
+% Outputs:
+% - mu    : Sample mean.
+% - sigsq : Sample variance (unbiased).
+% - gamm1 : Sample skewness (unbiased).
+% - gamm2 : Sample kurtosis (unbiased).
+%
+% For a complete description, see:
+% * Winkler AM, Ridgway GR, Douaud G, Nichols TE, Smith SM.
+%   Faster permutation inference in brain imaging.
+%   Neuroimage. 2016 Jun 7;141:502-516.
+%   http://dx.doi.org/10.1016/j.neuroimage.2016.05.068
+% 
+% For the estimators using trace(AW), the references are:
+% * Kazi-Aoual F, Hitier S, Sabatier R, Lebreton J-D. Refined
+%   approximations to permutation tests for multivariate
+%   inference. Comput Stat Data Anal. 1995;20(94):643-656.
+% * Minas C, Montana G. Distance-based analysis of variance:
+%   Approximate inference. Stat Anal Data Min. 2014;4:497-511.
+%
+% _____________________________________
+% Anderson M. Winkler
+% FMRIB / University of Oxford
+% Mar/2015
+% http://brainder.org
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% PALM -- Permutation Analysis of Linear Models
+% Copyright (C) 2015 Anderson M. Winkler
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if nargin == 1,
+    
+    % For a set of values of the random variable G, return the
+    % first 4 moments.
+    
+    % Mean
+    G     = varargin{1};
+    n     = size(G,1);
+    mu    = sum(G,1)/n;
+    
+    % Variance
+    G0    = bsxfun(@minus,G,mu);
+    ssq   = sum(G0.^2,1);
+    sigsq = (ssq/(n-1));
+    
+    % Skewness
+    s2    = ssq/n; % biased variance
+    m3    = sum(G0.^3,1)/n;
+    gamm1 = m3./s2.^1.5;
+    gamm1 = gamm1 * sqrt((n-1)/n)*n/(n-2); % unbiased skewness
+
+    % Kurtosis (normal dist = 3)
+    if nargout == 4,
+        m4    = sum(G0.^4,1)/n;
+        gamm2 = (m4./s2.^2);
+        gamm2 = ((n+1)* gamm2 -3*(n-1))*(n-1)/((n-2)*(n-3))+3; % unbiased kurtosis
+    else
+        gamm2 = [];
+    end
+    
+elseif nargin == 3,
+    
+    % Compute the first three moments of the permutation distribution of
+    % the statistic G = trace(AW), for n subjects, using the method in
+    % Kazi-Aoual et al (1995). The variable names follow roughly the same
+    % as in the paper.
+    
+    % Take inputs
+    A = varargin{1};
+    W = varargin{2};
+    n = varargin{3};
+    
+    % If A and W are truly multivariate (i.e., square matrices), do as in
+    % the original paper. Otherwise, make simplifications as these are all
+    % scalars.
+    if size(A,1) == size(A,2),
+        
+        % Some auxiliary variables for ET2:
+        T    = trace(A);
+        T_2  = trace(A^2);
+        S_2  = sum(diag(A).^2);
+        Ts   = trace(W);
+        Ts_2 = trace(W^2);
+        Ss_2 = sum(diag(W).^2);
+        
+        % Some auxiliary variables for ET3:
+        T_3  = trace(A^3);
+        S_3  = sum(diag(A).^3);
+        U    = sum(A(:).^3);
+        R    = diag(A)'*diag(A^2);
+        B    = diag(A)'*A*diag(A);
+        Ts_3 = trace(W^3);
+        Ss_3 = sum(diag(W).^3);
+        Us   = sum(W(:).^3);
+        Rs   = diag(W)'*diag(W^2);
+        Bs   = diag(W)'*W*diag(W);
+        
+    else
+        
+        % Some auxiliary variables for ET2:
+        T    = A;
+        T_2  = A.^2;
+        S_2  = T_2;
+        Ts   = W;
+        Ts_2 = W.^2;
+        Ss_2 = Ts_2;
+        
+        % Some auxiliary variables for ET3:
+        T_3  = A.^3;
+        S_3  = T_3;
+        U    = T_3;
+        R    = T_3;
+        B    = T_3;
+        Ts_3 = W.^3;
+        Ss_3 = Ts_3;
+        Us   = Ts_3;
+        Rs   = Ts_3;
+        Bs   = Ts_3;
+    end
+    
+    % E(T):
+    mu = T.*Ts/(n-1);
+    
+    % V(T):
+    sigsq = 2*((n-1)*T_2-T.^2).*((n-1)*Ts_2-Ts.^2) / (n-1)^2/(n+1)/(n-2) ...
+        + (n*(n+1)*S_2-(n-1)*(T.^2+2*T_2)) .* (n*(n+1)*Ss_2-(n-1)*(Ts.^2+2*Ts_2)) ...
+        / (n+1)/n/(n-1)/(n-2)/(n-3);
+    
+    % E(T^3):
+    ET3 = ...
+        n^2*(n+1)*(n^2+15*n-4)*S_3.*Ss_3 ...
+        + 4*(n^4-8*n^3+19*n^2-4*n-16)*U.*Us ...
+        + 24*(n^2-n-4)*(U.*Bs+B.*Us) ...
+        + 6*(n^4-8*n^3+21*n^2-6*n-24)*B.*Bs ...
+        + 12*(n^4-n^3-8*n^2+36*n-48)*R.*Rs ...
+        + 12*(n^3-2*n^2+9*n-12)*(T.*S_2.*Rs + R.*Ts.*Ss_2) ...
+        + 3*(n^4-4*n^3-2*n^2+9*n-12)*T.*Ts.*S_2.*Ss_2 ...
+        + 24*( (n^3-3*n^2-2*n+8)*(R.*Us+U.*Rs) ...
+        + (n^3-2*n^2-3*n+12)*(R.*Bs+B.*Rs) ) ...
+        + 12*(n^2-n+4)*(T.*S_2.*Us+U.*Ts.*Ss_2) ...
+        + 6*(2*n^3-7*n^2-3*n+12)*(T.*S_2.*Bs+B.*Ts.*Ss_2) ...
+        - 2*n*(n-1)*(n^2-n+4)*( (2*U+3*B).*Ss_3+(2*Us+3*Bs).*S_3 ) ...
+        - 3*n*(n-1)^2*(n+4)*( (T.*S_2+4*R).*Ss_3+(Ts.*Ss_2+4*Rs).*S_3 ) ...
+        + 2*n*(n-1)*(n-2)*( (T.^3+6*T.*T_2+8*T_3).*Ss_3 ...
+        + (Ts.^3+6*Ts.*Ts_2+8*Ts_3).*S_3 ) ...
+        + T.^3.*((n^3-9*n^2+23*n-14)*Ts.^3+6*(n-4).*Ts.*Ts_2+8*Ts_3) ...
+        + 6*T.*T_2.*((n-4)*Ts.^3+(n^3-9*n^2+24*n-14)*Ts.*Ts_2+4*(n-3)*Ts_3) ...
+        + 8*T_3.*(Ts.^3+3*(n-3).*Ts.*Ts_2+(n^3-9*n^2+26*n-22)*Ts_3) ...
+        - 16*(T.^3.*Us+U.*Ts.^3)-6*(T.*T_2.*Us+U.*Ts.*Ts_2)*(2*n^2-10*n+16) ...
+        - 8*(T_3.*Us+U.*Ts_3)*(3*n^2-15*n+16)-(T.^3.*Bs+B.*Ts.^3) ...
+        * (6*n^2-30*n+24)-6*(T.*T_2.*Bs+B.*Ts.*Ts_2)*(4*n^2-20*n+24) ...
+        - 8*(T_3.*Bs + B.*Ts_3)*(3*n^2-15*n+24) ...
+        - (n-2)*( 24*(T.^3.*Rs+R.*Ts.^3)+6*(T.*T_2.*Rs+R.*Ts.*Ts_2)*(2*n^2-10*n+24) ...
+        + 8*(T_3.*Rs+R.*Ts_3)*(3*n^2-15*n+24)+(3*n^2-15*n+6) ...
+        .* (T.^3.*Ts.*Ss_2+T.*S_2.*Ts.^3) ...
+        + 6*(T.*T_2.*Ts.*Ss_2+T.*S_2.*Ts.*Ts_2)*(n^2-5*n+6) ...
+        + 48*(T_3.*Ts.*Ss_2+T.*S_2.*Ts_3) );
+    ET3 = ET3/n/(n-1)/(n-2)/(n-3)/(n-4)/(n-5);
+    
+    % The coefficient "3" below is missing from Kazi-Aoual et al (1995), but it
+    % is shown in the Supplementary Information of Minas and Montana (2014).
+    gamm1 = (ET3 - 3*mu.*sigsq - mu.^3)./sigsq.^1.5;
+    gamm2 = [];
+else
+    error('Incorrect number of arguments');
+end
+
+% Return results
+varargout{1} = mu;
+varargout{2} = sigsq;
+varargout{3} = gamm1;
+varargout{4} = gamm2;
+
+%---------------------------------------------------------------
+function pvals = palm_gamma(G,mu,sigsq,gamm1,rev,prepl)
+% Return the p-values for a Gamma distribution, parameterised by
+% its first three moments.
+%
+% pvals = palm_gamma(G,mu,s2,gamm1,rev)
+% 
+% Inputs:
+% - G     : Statistics for which p-values are to be computed.
+% - mu    : Distribution mean.
+% - sigsq : Distribution standard deviation.
+% - gamm1 : Distribution skewness.
+% - rev   : Use if lower values of the statistic are evidence in
+%           favour of the alternative.
+% - prepl : Replacement for what otherwise would be zero p-values
+%           in case of poor fits (e.g., statistic falls into the
+%           part of the distribution that has pdf=0. In these cases
+%           the p-value can be 1 or 1/(#perm) depending on which
+%           tail and the sign of the skewness.
+%
+% Outputs:
+% - pvals : p-values.
+% 
+% For a complete description, see:
+% * Winkler AM, Ridgway GR, Douaud G, Nichols TE, Smith SM.
+%   Faster permutation inference in brain imaging.
+%   Neuroimage. 2016 Jun 7;141:502-516.
+%   http://dx.doi.org/10.1016/j.neuroimage.2016.05.068
+% 
+% Other references:
+% * Mielke PW, Berry KJ, Brier GW. Application of Multi-Response
+%   Permutation Procedures for Examining Seasonal Changes in
+%   Monthly Mean Sea-Level Pressure Patterns. Mon Weather Rev.
+%   1981;109(1):120-126.
+% * Minas C, Montana G. Distance-based analysis of variance:
+%   Approximate inference. Stat Anal Data Min. 2014;7(6):450-470.
+% 
+% _____________________________________
+% Anderson M. Winkler
+% FMRIB / University of Oxford
+% May/2015
+% http://brainder.org
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% PALM -- Permutation Analysis of Linear Models
+% Copyright (C) 2015 Anderson M. Winkler
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+% Note that there are no argument checking for speed, but
+% sizes of all inputs need to be the same, or the moments need to
+% be all scalars.
+
+if gamm1 == 0,
+    
+    % If not skewed, use a normal approximation.
+    G     = (G - mu)./sigsq.^.5;
+    pvals = erfc(G/sqrt(2))/2;
+    
+else
+    
+    % Standardise G, so that all becomes a function of the skewness.
+    G    = (G - mu)./sigsq.^.5;
+    
+    % Gamma distribution parameters (Minas & Montana, 2014).
+    kpar = 4/gamm1.^2;
+    tpar = gamm1/2;
+    cpar = -2/gamm1;
+     
+    % Actual p-value. If there are negatives here, the probability can
+    % have an imaginary part, which is dealt with later.
+    if rev,
+        if gamm1 > 0,
+            tail = 'lower';
+        else
+            tail = 'upper';
+        end
+    else
+        if gamm1 > 0,
+            tail = 'upper';
+        else
+            tail = 'lower';
+        end
+    end
+    pvals = gammainc((G-cpar)./tpar,kpar,tail);
+    
+    % Deal with imaginary parts.
+    if ~ isreal(pvals),
+        iidx = imag(pvals) ~= 0;
+        if rev,
+            if gamm1 > 0,
+                pvals(iidx) = prepl;
+            else
+                pvals(iidx) = 1;
+            end
+        else
+            if gamm1 > 0,
+                pvals(iidx) = 1;
+            else
+                pvals(iidx) = prepl;
+            end
+        end
+    end
 end
 
 %---------------------------------------------------------------
@@ -1949,7 +2315,7 @@ elseif df1 < 0,
   
   % Chi^2, via lower Gamma incomplete for precision and speed
   %df2 = bsxfun(@times,ones(size(G)),df2);
-  gcdf = palm_gammainc(G/2,df2/2,'lower');
+  gcdf = gammainc(G/2,df2/2,'lower');
   
 end
 
@@ -2155,3 +2521,4 @@ a = ~isreal(X);
 %---------------------------------------------------------------
 function varargout = lgamma(varargin)
 varargout{1:nargout} = gammaln(varargin{:});
+

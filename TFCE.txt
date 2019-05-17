@@ -1,6 +1,6 @@
 %  http://dbm.neuro.uni-jena.de/tfce/
 % __________________________________________________________________________
-% Copyright (C) 2018 Christian Gaser christian.gaser@uni-jena.de
+% Copyright (C) 2019 Christian Gaser christian.gaser@uni-jena.de
 % 
 % ==========================================================================
 % Description
@@ -20,4 +20,4 @@
 % The toolbox can be applied to (almost) any existing statistical (parametric) 
 % SPM design for 3D volume or surface data.
 % __________________________________________________________________________
-%                                                Christian Gaser 2018/09/04
+%                                                Christian Gaser 2019/05/05

@@ -579,10 +579,11 @@ for con = 1:length(Ic0)
       [t0, df2] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim);
     end
     
-    mask_0 = (t0 == 0);
-    mask_1 = (t0 ~= 0);
-    mask_P = (t0 > 0);
-    mask_N = (t0 < 0);
+    mask_0   = (t0 == 0);
+    mask_1   = (t0 ~= 0);
+    mask_P   = (t0 > 0);
+    mask_N   = (t0 < 0);
+    mask_NaN = (mask == 0);
   
     df1 = size(xCon.c,2);
   
@@ -620,13 +621,13 @@ for con = 1:length(Ic0)
         t0 = double(cat_vol_bilateral(single(t0),2,2,2,2,var_t0));
       end
       % only estimate neg. tfce values for non-positive t-values
-      if min(t0(:)) < 0
+      if ~isempty(mask_N)
         tfce0 = tfceMex_pthread(t0,dh,E,H,1,job.singlethreaded)*dh;
       else
         tfce0 = tfceMex_pthread(t0,dh,E,H,0,job.singlethreaded)*dh;
       end
     end
-  
+
     % get largest tfce
     tfce0_max = max(tfce0(:));
     t0_max    = max(t0(:));
@@ -995,10 +996,10 @@ for con = 1:length(Ic0)
 
       if ~test_mode
         % maximum statistic
-        tfce_max = [tfce_max max(tfce(:)) -min(tfce(:))];
-        t_max    = [t_max max(t(:)) -min(t(:))];
-        tfce_min = [tfce_min min(tfce(:)) -max(tfce(:))];
-        t_min    = [t_min min(t(:)) -max(t(:))];
+        tfce_max = [tfce_max max(tfce(mask_P)) -min(tfce(mask_N))];
+        t_max    = [t_max    max(t(mask_P))    -min(t(mask_N))];
+        tfce_min = [tfce_min min(tfce(mask_N)) -max(tfce(mask_P))];
+        t_min    = [t_min    min(t(mask_N))    -max(t(mask_P))];
         tperm(mask_P)    = tperm(mask_P) + 2*(t(mask_P) >= t0(mask_P));
         tperm(mask_N)    = tperm(mask_N) - 2*(t(mask_N) <= t0(mask_N));
         tfceperm(mask_P) = tfceperm(mask_P) + 2*(tfce(mask_P) >= tfce0(mask_P));
@@ -1014,10 +1015,10 @@ for con = 1:length(Ic0)
 
       if ~test_mode
         % maximum statistic
-        tfce_max = [tfce_max max(tfce(:))];
-        t_max    = [t_max max(t(:))];
-        tfce_min = [tfce_min min(tfce(:))];
-        t_min    = [t_min min(t(:))];
+        tfce_max = [tfce_max max(tfce(mask_P))];
+        t_max    = [t_max    max(t(mask_P))];
+        tfce_min = [tfce_min min(tfce(mask_N))];
+        t_min    = [t_min    min(t(mask_N))];
         tperm(mask_P)    = tperm(mask_P) + (t(mask_P) >= t0(mask_P));
         tperm(mask_N)    = tperm(mask_N) - (t(mask_N) <= t0(mask_N));
         tfceperm(mask_P) = tfceperm(mask_P) + (tfce(mask_P) >= tfce0(mask_P));
@@ -1143,11 +1144,6 @@ for con = 1:length(Ic0)
     % corrected threshold based on permutation distribution
     %---------------------------------------------------------------
   
-    % allow thresholds depending on # of permutations
-    n_alpha = 3;
-    if n_perm < 1000, n_alpha = 2; end
-    if n_perm <  100, n_alpha = 1; end
-      
     % prepare output files
     Vt = VY(1);
     Vt.dt(1)    = 16;
@@ -1206,8 +1202,10 @@ for con = 1:length(Ic0)
       nPtfcelog10(mask_N) =  log10(nPtfce(mask_N));
     end
     
-    nPtfce(mask_0) = NaN;
-    nPtfcelog10(mask_0) = NaN;
+    nPtfce(mask_0)   = 1;
+    nPtfce(mask_NaN) = NaN;
+    nPtfcelog10(mask_0)   = 0;
+    nPtfcelog10(mask_NaN) = NaN;
   
     if spm12
       Vt = spm_data_hdr_write(Vt);
@@ -1236,8 +1234,10 @@ for con = 1:length(Ic0)
       nPtlog10(mask_N) =  log10(nPt(mask_N));
     end
     
-    nPt(mask_0) = NaN;
-    nPtlog10(mask_0) = NaN;
+    nPt(mask_0)   = 1;
+    nPt(mask_NaN) = NaN;
+    nPtlog10(mask_0)   = 0;
+    nPtlog10(mask_NaN) = NaN;
   
     if spm12
       Vt = spm_data_hdr_write(Vt);
@@ -1250,29 +1250,30 @@ for con = 1:length(Ic0)
     % save corrected p-values for TFCE
     %---------------------------------------------------------------
     fprintf('Save corrected p-values.\n');
-  
+
     name = sprintf('TFCE_log_pFWE_%04d',Ic);
     Vt.fname = fullfile(cwd,[name file_ext]);
     Vt.descrip = sprintf('TFCE %04d FWE %s',Ic, str_permutation_method);
   
-    corrP = zeros(size(t));
+    corrP = ones(size(t));
   
 		if use_tail_approximation
 		  fprintf('Using tail approximation from the Gamma distribution for corrected P-values.\n');
+		  
 		  if tail_approximation_wo_unpermuted_data
 		    ind_tail = 2:n_perm;
 		  else
 		    ind_tail = 1:n_perm;
 		  end
 		  
+      [mu,s2,gamm1] = palm_moments(tfce_max(ind_tail)');
+
 			if ~isempty(mask_P)
-        [mu,s2,gamm1] = palm_moments(tfce_max(ind_tail)');
         corrP(mask_P) = palm_gamma(tfce0(mask_P),mu,s2,gamm1,false,1/n_perm);
 			end
 			
 			if ~isempty(mask_N)
-        [mu,s2,gamm1] = palm_moments(tfce_min(ind_tail)');
-        corrP(mask_N) = palm_gamma(tfce0(mask_N),mu,s2,gamm1,false,1/n_perm);
+        corrP(mask_N) = -palm_gamma(-tfce0(mask_N),mu,s2,gamm1,false,1/n_perm);
 			end
 			
 		else
@@ -1309,8 +1310,10 @@ for con = 1:length(Ic0)
       corrPlog10(mask_N) =  log10(corrP(mask_N));
     end
     
-    corrP(mask_0) = NaN;
-    corrPlog10(mask_0) = NaN;
+    corrP(mask_0)   = 1;
+    corrP(mask_NaN) = NaN;
+    corrPlog10(mask_0)   = 0;
+    corrPlog10(mask_NaN) = NaN;
   
     if spm12
       Vt = spm_data_hdr_write(Vt);
@@ -1329,14 +1332,14 @@ for con = 1:length(Ic0)
     corrP = zeros(size(t));
   
 		if use_tail_approximation
+      [mu,s2,gamm1] = palm_moments(t_max(ind_tail)');
+      
 			if ~isempty(mask_P)
-        [mu,s2,gamm1] = palm_moments(t_max(ind_tail)');
         corrP(mask_P) = palm_gamma(t0(mask_P),mu,s2,gamm1,false,1/n_perm);
 			end
 			
 			if ~isempty(mask_N)
-        [mu,s2,gamm1] = palm_moments(t_min(ind_tail)');
-        corrP(mask_N) = palm_gamma(t0(mask_N),mu,s2,gamm1,false,1/n_perm);
+        corrP(mask_N) = -palm_gamma(-t0(mask_N),mu,s2,gamm1,false,1/n_perm);
 			end
 			
 		else
@@ -1374,8 +1377,10 @@ for con = 1:length(Ic0)
       corrPlog10(mask_N) =  log10(corrP(mask_N));
     end
   
-    corrP(mask_0) = NaN;
-    corrPlog10(mask_0) = NaN;
+    corrP(mask_0)   = 1;
+    corrP(mask_NaN) = NaN;
+    corrPlog10(mask_0)   = 0;
+    corrPlog10(mask_NaN) = NaN;
   
     if spm12
       Vt = spm_data_hdr_write(Vt);
@@ -1416,7 +1421,8 @@ for con = 1:length(Ic0)
       end
     end
       
-    corrPfdrlog10(mask_0) = NaN;
+    corrPfdrlog10(mask_0)   = 0;
+    corrPfdrlog10(mask_NaN) = NaN;
   
     if spm12
       Vt = spm_data_hdr_write(Vt);
@@ -1455,7 +1461,8 @@ for con = 1:length(Ic0)
       end
     end
   
-    corrPfdrlog10(mask_0) = NaN;
+    corrPfdrlog10(mask_0)   = 0;
+    corrPfdrlog10(mask_NaN) = NaN;
   
     if spm12
       Vt = spm_data_hdr_write(Vt);

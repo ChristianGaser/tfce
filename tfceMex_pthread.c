@@ -31,18 +31,20 @@ typedef struct{
     double *inData;   
     double *outData;
     double thresh;    
-    const mwSize *dims;    
+    const  mwSize *dims;    
     double E;
     double H;  
-    int calc_neg;  
-    int threaded;  
+    int    calc_neg;  
+    int    threaded;  
 } myargument;
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /*
   clustering based on BrainModelVolumeTFCE.cxx from caret
 */
 
-void* ThreadFunc( void* pArguments )
+void* ThreadFunc( void *pArguments )
 {
   double valToAdd;
   int i, j, k, ti, tj, tk, maxi, maxj, maxk, mini, minj, mink, growingInd, growingCur;
@@ -54,7 +56,6 @@ void* ThreadFunc( void* pArguments )
   double *inData, *outData;
   double thresh, E, H;    
   const mwSize *dims;    
-  pthread_mutex_t mutex;
    
   myargument arg;
   arg=*(myargument *) pArguments;
@@ -179,7 +180,7 @@ void* ThreadFunc( void* pArguments )
   
   if (arg.threaded) {
     pthread_mutex_unlock(&mutex);
-    pthread_exit(0);    
+    pthread_exit((void *)pthread_self());    
   }
   return NULL;
 }
@@ -187,12 +188,10 @@ void* ThreadFunc( void* pArguments )
 void tfce(double *inData, double *outData, double dh, const mwSize *dims, double E, double H, int calc_neg)
 {
   double fmax = 0.0, curThr, tmp_value;
-  int i, Nthreads;
+  int i, n_steps;
   long numVoxels = (long)dims[0] * (long)dims[1] * (long)dims[2];
-  pthread_mutex_t mutex;   
   myargument *ThreadArgs;  
-
-  pthread_t * ThreadList;
+  pthread_t *ThreadList;
 
   for (i = 0; i < numVoxels; ++i)
   {
@@ -202,18 +201,22 @@ void tfce(double *inData, double *outData, double dh, const mwSize *dims, double
   }
    
   /* get # of steps = # of threads */
-  Nthreads = (int)ceil(fmax/dh);
-  
+  n_steps = (int)ceil(fmax/dh);
+
   /* Reserve room for handles of threads in ThreadList*/
-  ThreadList = (pthread_t *) calloc(Nthreads,sizeof(pthread_t));
-  ThreadArgs = (myargument*) calloc( Nthreads,sizeof(myargument));
-  pthread_mutex_init(&mutex, NULL);
-  
-  for (i=0; i<Nthreads; i++)
+  ThreadList = (pthread_t *) calloc(n_steps,sizeof(pthread_t));
+  ThreadArgs = (myargument*) calloc( n_steps,sizeof(myargument));
+  if (pthread_mutex_init(&mutex, NULL) != 0)
+	{
+			printf("\n mutex init failed\n");
+			exit(1);
+	}
+
+  for (i=0; i<n_steps; i++)
   {         
-    curThr = (i+1)*dh;
+    curThr = (double)(i+1)*dh;
     
-	/* Make Thread Structure   */
+	  /* Make Thread Structure   */
     ThreadArgs[i].inData = inData;
     ThreadArgs[i].outData = outData;
     ThreadArgs[i].thresh = curThr;
@@ -223,20 +226,15 @@ void tfce(double *inData, double *outData, double dh, const mwSize *dims, double
     ThreadArgs[i].calc_neg = calc_neg;  
     ThreadArgs[i].threaded = 1;  
       
-  }
-
-  for (i=0; i<Nthreads; i++)
-  {
-    if(pthread_create(&ThreadList[i], NULL, ThreadFunc,&ThreadArgs[i]))
+    if(pthread_create(&(ThreadList[i]), NULL, ThreadFunc, &ThreadArgs[i]))
     {
        printf("Threads cannot be created\n");
        exit(1);
     }        
+    pthread_join(ThreadList[i],NULL);
+    
   }
   
-  for (i=0; i<Nthreads; i++)
-    pthread_join(ThreadList[i],NULL);
-
   pthread_mutex_destroy(&mutex);
 
   free(ThreadList);
@@ -271,7 +269,7 @@ void tfce_singlethreaded(double *inData, double *outData, double dh, const mwSiz
   
   for (i=0; i<n_steps; i++)
   {         
-    arg.thresh = (i+1)*dh;
+    arg.thresh = (double)(i+1)*dh;
     ThreadFunc(&arg);
   }
 }

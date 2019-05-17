@@ -1,11 +1,25 @@
 ------------------------------------------------------------------------
-r180 | gaser | 2019-05-09 11:55:07
+r181 | gaser | 2019-05-17 09:22:41
+
+Changed paths:
+M       CHANGES.txt
+M       TFCE.txt
+M       cg_tfce_estimate.m
+M       tfceMex_pthread.c
+M       tfceMex_pthread.mexmaci64
+
+(1) Fixed: Tail approximation for inverse contrast was not correct.
+(2) Fixed: tfceMex_pthread is now thread-safe and the same results are obtained
+    independent from number of threads or without multi-threading.
+------------------------------------------------------------------------
+r180 | gaser | 2019-05-09 11:55:13 +0200 (Do, 09 Mai 2019) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
 M       cg_tfce_estimate.m
 
 Changed: Some cosmetic changes to cg_tfce_estimate.m
+
 ------------------------------------------------------------------------
 r179 | gaser | 2019-05-08 17:40:34 +0200 (Mi, 08 Mai 2019) | 6 lines
 

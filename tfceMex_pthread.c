@@ -56,7 +56,7 @@ void* ThreadFunc( void *pArguments )
   double *inData, *outData;
   double thresh, E, H;    
   const mwSize *dims;    
-   
+
   myargument arg;
   arg=*(myargument *) pArguments;
 
@@ -69,9 +69,6 @@ void* ThreadFunc( void *pArguments )
   calc_neg = arg.calc_neg;
   
   numVoxels = (long)dims[0] * (long)dims[1] * (long)dims[2];
-
-  if (arg.threaded)
-    pthread_mutex_lock(&mutex);
 
   flagUsed = (char*) malloc(numVoxels*sizeof(char));
   growing  = (short*)malloc(numVoxels*3*sizeof(short));
@@ -123,8 +120,10 @@ void* ThreadFunc( void *pArguments )
 
       while (growingCur < growingInd)
       {
+        if (arg.threaded) pthread_mutex_lock(&mutex);
         outData[growing[growingCur + 2]*(dims[0]*dims[1])+(growing[growingCur + 1]*dims[0])+growing[growingCur]] += valToAdd;
         growingCur += 3;
+        if (arg.threaded) pthread_mutex_unlock(&mutex);
       }
     }    
 
@@ -169,8 +168,10 @@ void* ThreadFunc( void *pArguments )
 
       while (growingCur < growingInd)
       {
+        if (arg.threaded) pthread_mutex_lock(&mutex);
         outData[growing[growingCur + 2]*(dims[0]*dims[1])+(growing[growingCur + 1]*dims[0])+growing[growingCur]] -= valToAdd;
         growingCur += 3;
+        if (arg.threaded) pthread_mutex_unlock(&mutex);
       }
     }    
   }
@@ -178,10 +179,8 @@ void* ThreadFunc( void *pArguments )
   free(flagUsed);
   free(growing);
   
-  if (arg.threaded) {
-    pthread_mutex_unlock(&mutex);
-    pthread_exit((void *)pthread_self());    
-  }
+  if (arg.threaded) pthread_exit((void*) 0);
+
   return NULL;
 }
 
@@ -191,7 +190,7 @@ void tfce(double *inData, double *outData, double dh, const mwSize *dims, double
   int i, n_steps;
   long numVoxels = (long)dims[0] * (long)dims[1] * (long)dims[2];
   myargument *ThreadArgs;  
-  pthread_t *ThreadList;
+  pthread_t *ThreadList; 
 
   for (i = 0; i < numVoxels; ++i)
   {
@@ -225,16 +224,21 @@ void tfce(double *inData, double *outData, double dh, const mwSize *dims, double
     ThreadArgs[i].H = H;  
     ThreadArgs[i].calc_neg = calc_neg;  
     ThreadArgs[i].threaded = 1;  
+  }
       
+  for (i=0; i<n_steps; i++)
+  {         
     if(pthread_create(&(ThreadList[i]), NULL, ThreadFunc, &ThreadArgs[i]))
     {
        printf("Threads cannot be created\n");
        exit(1);
     }        
-    pthread_join(ThreadList[i],NULL);
-    
   }
+
+  for (i=0; i<n_steps; i++)
+    pthread_join(ThreadList[i],NULL);
   
+      
   pthread_mutex_destroy(&mutex);
 
   free(ThreadList);
@@ -248,7 +252,7 @@ void tfce_singlethreaded(double *inData, double *outData, double dh, const mwSiz
   int i, n_steps;
   long numVoxels = (long)dims[0] * (long)dims[1] * (long)dims[2];
   myargument arg;
-  
+
   for (i = 0; i < numVoxels; ++i)
   {
      tmp_value = fabs(inData[i]);

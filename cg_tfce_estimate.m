@@ -1094,12 +1094,13 @@ for con = 1:length(Ic0)
 
         % check correlation between parametric and non-parametric p-values
         if ~isempty(mask_P)
-          cc = corrcoef(nPt(mask_P),Pt(mask_P));
+          [cc, Pcc] = corrcoef(nPt(mask_P),Pt(mask_P));
         else
-          cc = corrcoef(nPt(mask_N),Pt(mask_N));
+          [cc, Pcc] = corrcoef(nPt(mask_N),Pt(mask_N));
         end
 
-        if cc(1,2) < 0.85
+        % use different criteria depending on use of SVC
+        if (((Pcc(1,2) > 1e-6 || cc(1,2) < 0.85) && isempty(job.mask)) || (Pcc(1,2) > 1e-2 && ~isempty(job.mask)))
           if nuisance_method > 0
             spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric statistic found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),1);
             fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g)! Please try a different method to deal with nuisance parameters.\n',cc(1,2));
@@ -1108,7 +1109,7 @@ for con = 1:length(Ic0)
             fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g)! Probably your design was not correctly recognized.\n',cc(1,2));
           end
         else
-          fprintf('\nCorrelation between between parametric and non-parametric statistic is cc=%g.\n',cc(1,2));
+          fprintf('\nCorrelation between between parametric and non-parametric statistic is cc=%g (P=%g).\n',cc(1,2),Pcc(1,2));
         end
         check_validity = 1;
       end

@@ -1,5 +1,13 @@
 ------------------------------------------------------------------------
-r183 | gaser | 2019-08-14 13:07:16
+r184 | gaser | 2019-09-19 23:48:04
+
+Changed paths:
+M       CHANGES.txt
+M       tbx_cfg_tfce_estimate.m
+
+Changed: Updated help text.
+------------------------------------------------------------------------
+r183 | gaser | 2019-08-14 13:07:22 +0200 (Mi, 14 Aug 2019) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +15,7 @@ M       cg_tfce_estimate.m
 
 Fixed: Changed criteria for checking discrepancy between parametric and 
 non-parametric statistic w.r.t. use of SVC.
+
 ------------------------------------------------------------------------
 r182 | gaser | 2019-08-09 17:02:06 +0200 (Fr, 09 Aug 2019) | 9 lines
 

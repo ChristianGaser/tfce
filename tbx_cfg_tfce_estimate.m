@@ -21,12 +21,12 @@ spmmat.ufilter = '^SPM\.mat$';
 spmmat.num     = [1 1];
 
 % ---------------------------------------------------------------------
-% mask Select mask image to restrict analysis
+% mask Select mask to restrict analysis
 % ---------------------------------------------------------------------
 mask         = cfg_files;
 mask.tag     = 'mask';
-mask.name    = 'Select additional mask image';
-mask.help    = {'Select an additional mask image to restrict analysis. As default the mask image in the analysis folder is used. Here you can select a mask image to additionally restrict the analysis to regions of interest (i.e. small volume correction).'};
+mask.name    = 'Select additional mask';
+mask.help    = {'Select an additional mask image or surface to restrict analysis. As default the mask in the analysis folder is used. Here you can select a mask  to additionally restrict the analysis to regions of interest (i.e. small volume/surface correction).'};
 if strcmp(spm('ver'),'SPM12')
   mask.filter  = {'image','mesh'};
 else

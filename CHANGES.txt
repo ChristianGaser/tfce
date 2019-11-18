@@ -1,11 +1,24 @@
 ------------------------------------------------------------------------
-r184 | gaser | 2019-09-19 23:48:04
+r185 | gaser | 2019-11-18 12:01:33
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+M       tfceMex_pthread.mexmaci64
+
+(1) Fixed: Check computation time between multi-threading cto identify 
+    potential issues with multi-threading on some systems (it is not clear where
+    these longer computation time by a factor of > 10 time come from).
+(2) Changed: Maximum statistic is now using a different mask.
+------------------------------------------------------------------------
+r184 | gaser | 2019-09-19 23:48:18 +0200 (Do, 19 Sep 2019) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
 M       tbx_cfg_tfce_estimate.m
 
 Changed: Updated help text.
+
 ------------------------------------------------------------------------
 r183 | gaser | 2019-08-14 13:07:22 +0200 (Mi, 14 Aug 2019) | 7 lines
 

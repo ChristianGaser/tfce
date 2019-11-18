@@ -12,6 +12,9 @@ function cg_tfce_estimate(job)
 use_tail_approximation = 1;
 tail_approximation_wo_unpermuted_data = 0;
 
+% single-threaded?
+singlethreaded = job.singlethreaded;
+
 % convert to z-statistic
 convert_to_z = 0;
 
@@ -620,12 +623,16 @@ for con = 1:length(Ic0)
         var_t0 = var(t0(find(t0~=0 & ~isnan(t0) & ~isinf(t0))));
         t0 = double(cat_vol_bilateral(single(t0),2,2,2,2,var_t0));
       end
+      
+      % measure computation time to test whether multi-threading causes issues
+      tstart = tic;
       % only estimate neg. tfce values for non-positive t-values
       if ~isempty(mask_N)
-        tfce0 = tfceMex_pthread(t0,dh,E,H,1,job.singlethreaded)*dh;
+        tfce0 = tfceMex_pthread(t0,dh,E,H,1,0)*dh;
       else
-        tfce0 = tfceMex_pthread(t0,dh,E,H,0,job.singlethreaded)*dh;
+        tfce0 = tfceMex_pthread(t0,dh,E,H,0,0)*dh;
       end
+      telapsed = toc(tstart);
     end
 
     % get largest tfce
@@ -979,12 +986,27 @@ for con = 1:length(Ic0)
           if filter_bilateral
             t = double(cat_vol_bilateral(single(t),2,2,2,2,var_t0));
           end
+          
+          % measure computation time for 1st permutation to test whether multi-threading causes issues
+          if perm==1 & ~singlethreaded, tstart = tic; end
+          
           % only estimate neg. tfce values for non-positive t-values
           if min(t(:)) < 0
-            tfce = tfceMex_pthread(t,dh,E,H,1,job.singlethreaded)*dh;
+            tfce = tfceMex_pthread(t,dh,E,H,1,singlethreaded)*dh;
           else
-            tfce = tfceMex_pthread(t,dh,E,H,0,job.singlethreaded)*dh;
+            tfce = tfceMex_pthread(t,dh,E,H,0,singlethreaded)*dh;
           end
+          
+          % if multi-threading takes 1.5x longer then force single-threading
+          % because for some unknown reason multi-threading is not working properly
+          if perm==1 & ~singlethreaded
+            telapsed2 = toc(tstart);
+            if (telapsed2 > 1.5*telapsed)
+              fprintf('Warning: Multi-threading disabled because of run-time issues.\n');
+              singlethreaded = 1;
+            end
+          end
+
         end
         
       end
@@ -996,10 +1018,10 @@ for con = 1:length(Ic0)
 
       if ~test_mode
         % maximum statistic
-        tfce_max = [tfce_max max(tfce(mask_P)) -min(tfce(mask_N))];
-        t_max    = [t_max    max(t(mask_P))    -min(t(mask_N))];
-        tfce_min = [tfce_min min(tfce(mask_N)) -max(tfce(mask_P))];
-        t_min    = [t_min    min(t(mask_N))    -max(t(mask_P))];
+        tfce_max = [tfce_max max(tfce(mask_1)) -min(tfce(mask_1))];
+        t_max    = [t_max    max(t(mask_1))    -min(t(mask_1))];
+        tfce_min = [tfce_min min(tfce(mask_1)) -max(tfce(mask_1))];
+        t_min    = [t_min    min(t(mask_1))    -max(t(mask_1))];
         tperm(mask_P)    = tperm(mask_P) + 2*(t(mask_P) >= t0(mask_P));
         tperm(mask_N)    = tperm(mask_N) - 2*(t(mask_N) <= t0(mask_N));
         tfceperm(mask_P) = tfceperm(mask_P) + 2*(tfce(mask_P) >= tfce0(mask_P));
@@ -1015,10 +1037,10 @@ for con = 1:length(Ic0)
 
       if ~test_mode
         % maximum statistic
-        tfce_max = [tfce_max max(tfce(mask_P))];
-        t_max    = [t_max    max(t(mask_P))];
-        tfce_min = [tfce_min min(tfce(mask_N))];
-        t_min    = [t_min    min(t(mask_N))];
+        tfce_max = [tfce_max max(tfce(mask_1))];
+        t_max    = [t_max    max(t(mask_1))];
+        tfce_min = [tfce_min min(tfce(mask_1))];
+        t_min    = [t_min    min(t(mask_1))];
         tperm(mask_P)    = tperm(mask_P) + (t(mask_P) >= t0(mask_P));
         tperm(mask_N)    = tperm(mask_N) - (t(mask_N) <= t0(mask_N));
         tfceperm(mask_P) = tfceperm(mask_P) + (tfce(mask_P) >= tfce0(mask_P));

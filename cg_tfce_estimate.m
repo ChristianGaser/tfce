@@ -407,7 +407,7 @@ for con = 1:length(Ic0)
   case 0 % correlation
     label = 1:n_data;
 
-    if n_exch_blocks >= 2 & ~all(exch_blocks(:)) % # exch_blocks >1 & differential contrast
+    if n_exch_blocks >= 2 & any(diff(exch_blocks(:))) % # exch_blocks >1 & differential contrast
       fprintf('Interaction design between two or more regressors found\n')
             
       % remove all entries where contrast is not defined
@@ -1280,48 +1280,49 @@ for con = 1:length(Ic0)
   
     corrP = ones(size(t));
   
-		if use_tail_approximation
-		  fprintf('Using tail approximation from the Gamma distribution for corrected P-values.\n');
-		  
-		  if tail_approximation_wo_unpermuted_data
-		    ind_tail = 2:n_perm;
-		  else
-		    ind_tail = 1:n_perm;
-		  end
-		  
-      [mu,s2,gamm1] = palm_moments(tfce_max(ind_tail)');
-
-			if ~isempty(mask_P)
+    if use_tail_approximation
+      fprintf('Using tail approximation from the Gamma distribution for corrected P-values.\n');
+      
+      if tail_approximation_wo_unpermuted_data
+        ind_tail = 2:n_perm;
+      else
+        ind_tail = 1:n_perm;
+      end
+      
+      if ~isempty(mask_P)
+        [mu,s2,gamm1] = palm_moments(tfce_max(ind_tail)');
         corrP(mask_P) = palm_gamma(tfce0(mask_P),mu,s2,gamm1,false,1/n_perm);
-			end
-			
-			if ~isempty(mask_N)
+      end
+      
+      if ~isempty(mask_N)
+        [mu,s2,gamm1] = palm_moments(-tfce_min(ind_tail)');
         corrP(mask_N) = -palm_gamma(-tfce0(mask_N),mu,s2,gamm1,false,1/n_perm);
-			end
-			
-		else
-			if ~isempty(mask_P)
-				for t2 = tfce_max
-					%-FWE-corrected p is proportion of randomisation greater or
-					% equal to statistic.
-					%-Use a > b -tol rather than a >= b to avoid comparing
-					% two reals for equality.
-					corrP(mask_P) = corrP(mask_P) + (t2 > tfce0(mask_P)  - tol);
-				end
-			end
-			
-			if ~isempty(mask_N)
-				for t2 = tfce_min
-					%-FWE-corrected p is proportion of randomisation greater or
-					% equal to statistic.
-					%-Use a > b -tol rather than a >= b to avoid comparing
-					% two reals for equality.
-					corrP(mask_N) = corrP(mask_N) - (t2 < tfce0(mask_N) + tol);
-				end
-			end
-			
-			corrP = corrP/n_perm;  
-		end
+      end
+      
+    else
+
+      if ~isempty(mask_P)
+        for t2 = tfce_max
+          %-FWE-corrected p is proportion of randomisation greater or
+          % equal to statistic.
+          %-Use a > b -tol rather than a >= b to avoid comparing
+          % two reals for equality.
+          corrP(mask_P) = corrP(mask_P) + (t2 > (tfce0(mask_P)  - tol));
+        end
+      end
+      
+      if ~isempty(mask_N)
+        for t2 = tfce_min
+          %-FWE-corrected p is proportion of randomisation greater or
+          % equal to statistic.
+          %-Use a > b -tol rather than a >= b to avoid comparing
+          % two reals for equality.
+          corrP(mask_N) = corrP(mask_N) - (t2 < (tfce0(mask_N) + tol));
+        end
+      end
+      
+      corrP = corrP/n_perm;  
+    end
     corrPlog10 = zeros(size(tfce0));
   
     if ~isempty(mask_P)
@@ -1354,40 +1355,41 @@ for con = 1:length(Ic0)
   
     corrP = zeros(size(t));
   
-		if use_tail_approximation
-      [mu,s2,gamm1] = palm_moments(t_max(ind_tail)');
+    if use_tail_approximation
       
-			if ~isempty(mask_P)
+      if ~isempty(mask_P)
+        [mu,s2,gamm1] = palm_moments(t_max(ind_tail)');
         corrP(mask_P) = palm_gamma(t0(mask_P),mu,s2,gamm1,false,1/n_perm);
-			end
-			
-			if ~isempty(mask_N)
+      end
+      
+      if ~isempty(mask_N)
+        [mu,s2,gamm1] = palm_moments(-t_min(ind_tail)');
         corrP(mask_N) = -palm_gamma(-t0(mask_N),mu,s2,gamm1,false,1/n_perm);
-			end
-			
-		else
-			if ~isempty(mask_P)
-				for t2 = t_max
-					%-FWE-corrected p is proportion of randomisation greater or
-					% equal to statistic.
-					%-Use a > b -tol rather than a >= b to avoid comparing
-					% two reals for equality.
-					corrP(mask_P) = corrP(mask_P) + (t2 > t0(mask_P)  - tol);
-				end
-			end
-			
-			if ~isempty(mask_N)
-				for t2 = t_min
-					%-FWE-corrected p is proportion of randomisation greater or
-					% equal to statistic.
-					%-Use a > b -tol rather than a >= b to avoid comparing
-					% two reals for equality.
-					corrP(mask_N) = corrP(mask_N) - (t2 < t0(mask_N) + tol);
-				end
-			end
-			
-			corrP = corrP/n_perm;  
-		end
+      end
+      
+    else
+      if ~isempty(mask_P)
+        for t2 = t_max
+          %-FWE-corrected p is proportion of randomisation greater or
+          % equal to statistic.
+          %-Use a > b -tol rather than a >= b to avoid comparing
+          % two reals for equality.
+          corrP(mask_P) = corrP(mask_P) + (t2 > t0(mask_P)  - tol);
+        end
+      end
+      
+      if ~isempty(mask_N)
+        for t2 = t_min
+          %-FWE-corrected p is proportion of randomisation greater or
+          % equal to statistic.
+          %-Use a > b -tol rather than a >= b to avoid comparing
+          % two reals for equality.
+          corrP(mask_N) = corrP(mask_N) - (t2 < t0(mask_N) + tol);
+        end
+      end
+      
+      corrP = corrP/n_perm;  
+    end
 
     corrPlog10 = zeros(size(tfce0));
   

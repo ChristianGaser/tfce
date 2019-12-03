@@ -1,5 +1,15 @@
 ------------------------------------------------------------------------
-r185 | gaser | 2019-11-18 12:01:33
+r186 | gaser | 2019-12-03 10:46:20
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+
+(1) Fixed: Tail approximation was not correct for estimating inverse contrasts.
+    Any other (defined) contrasts were not affected.
+(2) Fixed: Design check for interaction designs is now correctly printed.
+------------------------------------------------------------------------
+r185 | gaser | 2019-11-18 12:01:39 +0100 (Mo, 18 Nov 2019) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -10,6 +20,7 @@ M       tfceMex_pthread.mexmaci64
     potential issues with multi-threading on some systems (it is not clear where
     these longer computation time by a factor of > 10 time come from).
 (2) Changed: Maximum statistic is now using a different mask.
+
 ------------------------------------------------------------------------
 r184 | gaser | 2019-09-19 23:48:18 +0200 (Do, 19 Sep 2019) | 6 lines
 

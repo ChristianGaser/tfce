@@ -1,4 +1,4 @@
-function make
+function compile
 
 if ispc
   disp('Compilerflag aendern in /TC')
@@ -8,7 +8,7 @@ if strcmp(mexext,'mexmaci64') && verLessThan('matlab','9.2')
   warning('WARNING: Matlab version should be at least R2017a for compilation under Mac.');
 end
 
-mexflag=' -O -largeArrayDims CFLAGS=''$CFLAGS -pthread -Wall -ansi -pedantic -Wextra'' ';
+mexflag=' -O -largeArrayDims COPTIMFLAGS=''-O3 -fwrapv -DNDEBUG'' CFLAGS=''$CFLAGS -pthread -Wall -ansi -pedantic -Wextra'' ';
 
 eval(['mex ' mexflag ' -O tfceMex_pthread.c'])
 

@@ -1,5 +1,21 @@
 ------------------------------------------------------------------------
-r186 | gaser | 2019-12-03 10:46:20
+r187 | gaser | 2020-02-06 16:44:45
+
+Changed paths:
+M       CHANGES.txt
+M       cg_tfce_estimate.m
+M       compile.m
+M       tfceMex_pthread.mexa64
+M       tfceMex_pthread.mexmaci64
+M       tfceMex_pthread.mexw64
+
+(1) Fixed: F-test for some contrasts was not correct and ended up with 
+    discrepancy between parametric and non-parametric statistic.
+(2) Fixed: Corrected interactive selection of contrasts.
+(3) Fixed: Check for empty result masks was not correct.
+(4) Changed: Updated compiler flags and recompiled tfceMex_pthread.c
+------------------------------------------------------------------------
+r186 | gaser | 2019-12-03 10:46:25 +0100 (Di, 03 Dez 2019) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -8,6 +24,7 @@ M       cg_tfce_estimate.m
 (1) Fixed: Tail approximation was not correct for estimating inverse contrasts.
     Any other (defined) contrasts were not affected.
 (2) Fixed: Design check for interaction designs is now correctly printed.
+
 ------------------------------------------------------------------------
 r185 | gaser | 2019-11-18 12:01:39 +0100 (Mo, 18 Nov 2019) | 10 lines
 

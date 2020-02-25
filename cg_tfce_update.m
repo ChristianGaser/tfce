@@ -27,7 +27,7 @@ for i=1:length(A)
   end
 end
 
-url = 'http://dbm.neuro.uni-jena.de/tfce/';
+url = 'http://141.35.69.218/tfce/';
 
 % get new release numbers
 [s,sts] = urlread(url);

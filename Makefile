@@ -10,9 +10,9 @@ DATE=`svn info |grep 'Last Changed Date: '|sed -e 's/Last Changed Date: //g'|cut
 TARGET=/Users/gaser/spm/spm12/toolbox/TFCE
 TARGET2=/Volumes/UltraMax/spm12/toolbox/TFCE
 
-STARGET_HOST=dbm.neuro.uni-jena.de
-STARGET_HTDOCS=${STARGET_HOST}:/Applications/xampp/htdocs/
-STARGET_FOLDER=/Applications/xampp/htdocs/tfce
+STARGET_HOST=141.35.69.218
+STARGET_HTDOCS=${STARGET_HOST}:/volume1/web/
+STARGET_FOLDER=/volume1/web/tfce
 STARGET=${STARGET_HOST}:${STARGET_FOLDER}
 
 MATLAB_FILES=Contents.m cg_get_tfce_results.m cg_tfce_results.m cg_tfce_list.m cg_tfce_update.m cg_progress.m spm_TFCE.m tfce_mesh.m snpm_P_FDR.m tbx_cfg_tfce_estimate.m cg_tfce_estimate.m cg_tfce_surf_max.m
@@ -21,7 +21,7 @@ MISC_FILES=TFCE.man
 
 FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}
 
-ZIPFILE=tfce_r$(REVISION).zip
+ZIPFILE=tfce_r${REVISION}.zip
 
 install:
 	-@echo install
@@ -61,6 +61,6 @@ zip: update
 	-@zip ${ZIPFILE} -rm TFCE
 
 scp: zip
-	-@echo scp to http://dbm.neuro.uni-jena.de/tfce/${ZIPFILE}
+	-@echo scp to http://${STARGET_HOST}/tfce/${ZIPFILE}
 	-@scp -P 2222 CHANGES.txt ${ZIPFILE} ${STARGET}
-	-@bash -c "ssh ${STARGET_HOST} ln -Fs ${STARGET_FOLDER}/${ZIPFILE} ${STARGET_FOLDER}/tfce_latest.zip"
+	-@bash -c "ssh ${STARGET_HOST} ln -fs ${STARGET_FOLDER}/${ZIPFILE} ${STARGET_FOLDER}/tfce_latest.zip"

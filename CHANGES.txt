@@ -1,5 +1,17 @@
 ------------------------------------------------------------------------
-r187 | gaser | 2020-02-06 16:44:45
+r188 | gaser | 2020-02-25 11:44:08
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+M       cg_tfce_estimate.m
+M       cg_tfce_update.m
+
+(1) Fixed: Corrected interactive selection of contrasts.
+(2) Fixed: Check for empty result masks was not correct.
+(3) Changed: IP-address of server changed.
+------------------------------------------------------------------------
+r187 | gaser | 2020-02-06 16:44:51 +0100 (Do, 06 Feb 2020) | 14 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -14,6 +26,7 @@ M       tfceMex_pthread.mexw64
 (2) Fixed: Corrected interactive selection of contrasts.
 (3) Fixed: Check for empty result masks was not correct.
 (4) Changed: Updated compiler flags and recompiled tfceMex_pthread.c
+
 ------------------------------------------------------------------------
 r186 | gaser | 2019-12-03 10:46:25 +0100 (Di, 03 Dez 2019) | 8 lines
 

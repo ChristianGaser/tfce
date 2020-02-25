@@ -294,7 +294,7 @@ if ~test_mode
 end % if ~test_mode
 
 % interactively select contrast(s)
-if ~isfinite(Inf)
+if numel(Ic0)==1 & ~isfinite(Ic0)
   [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
       '  Select contrast(s)...',' ',1);
   SPM.xCon = xCon;
@@ -421,7 +421,7 @@ for con = 1:length(Ic0)
     label = zeros(1,n_data);
     for j=1:n_exch_blocks
       for k=1:length(ind_exch_blocks{j})
-        label(find(xX.X(:,ind_exch_blocks{j}(k))==1)) = j;
+        label(find(xX.X(:,ind_exch_blocks{j}(k))~=0)) = j;
       end
     end
   otherwise  % Anova with at least 2 groups
@@ -435,7 +435,7 @@ for con = 1:length(Ic0)
     label = zeros(1,n_data);
     for j=1:n_exch_blocks
       for k=1:length(ind_exch_blocks{j})
-        label(find(xX.X(:,ind_exch_blocks{j}(k))==1)) = j;
+        label(find(xX.X(:,ind_exch_blocks{j}(k))~=0)) = j;
       end
     end
   end
@@ -577,11 +577,11 @@ for con = 1:length(Ic0)
       [t0, df2] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim);
     end
     
-    ind_ind_mask_0   = find(t0 == 0);
-    ind_ind_mask_1   = find(t0 ~= 0);
-    ind_ind_mask_P   = find(t0 > 0);
-    ind_ind_mask_N   = find(t0 < 0);
-    ind_ind_mask_NaN = find(mask == 0);
+    ind_mask_0   = find(t0 == 0);
+    ind_mask_1   = find(t0 ~= 0);
+    ind_mask_P   = find(t0 > 0);
+    ind_mask_N   = find(t0 < 0);
+    ind_mask_NaN = find(mask == 0);
   
     df1 = size(xCon.c,2);
   
@@ -622,7 +622,7 @@ for con = 1:length(Ic0)
       % measure computation time to test whether multi-threading causes issues
       tstart = tic;
       % only estimate neg. tfce values for non-positive t-values
-      if sum(ind_ind_mask_N(:))
+      if ~isempty(ind_mask_N)
         tfce0 = tfceMex_pthread(t0,dh,E,H,1,0)*dh;
       else
         tfce0 = tfceMex_pthread(t0,dh,E,H,0,0)*dh;
@@ -962,9 +962,9 @@ for con = 1:length(Ic0)
         if convert_to_z
           % use faster z-transformation of SPM for T-statistics
           if strcmp(xCon.STAT,'T')
-            t(ind_ind_mask_1) = spm_t2z(t(ind_ind_mask_1),df2);
+            t(ind_mask_1) = spm_t2z(t(ind_mask_1),df2);
           else
-            t(ind_ind_mask_1) = palm_gtoz(t(ind_ind_mask_1),df1,df2);
+            t(ind_mask_1) = palm_gtoz(t(ind_mask_1),df1,df2);
           end
         end
       
@@ -1013,10 +1013,10 @@ for con = 1:length(Ic0)
 
       if ~test_mode
         % maximum statistic
-        tfce_max = [tfce_max max(tfce(ind_ind_mask_1)) -min(tfce(ind_ind_mask_1))];
-        t_max    = [t_max    max(t(ind_ind_mask_1))    -min(t(ind_ind_mask_1))];
-        tfce_min = [tfce_min min(tfce(ind_ind_mask_1)) -max(tfce(ind_ind_mask_1))];
-        t_min    = [t_min    min(t(ind_ind_mask_1))    -max(t(ind_ind_mask_1))];
+        tfce_max = [tfce_max max(tfce(ind_mask_1)) -min(tfce(ind_mask_1))];
+        t_max    = [t_max    max(t(ind_mask_1))    -min(t(ind_mask_1))];
+        tfce_min = [tfce_min min(tfce(ind_mask_1)) -max(tfce(ind_mask_1))];
+        t_min    = [t_min    min(t(ind_mask_1))    -max(t(ind_mask_1))];
         tperm(ind_mask_P)    = tperm(ind_mask_P) + 2*(t(ind_mask_P) >= t0(ind_mask_P));
         tperm(ind_mask_N)    = tperm(ind_mask_N) - 2*(t(ind_mask_N) <= t0(ind_mask_N));
         tfceperm(ind_mask_P) = tfceperm(ind_mask_P) + 2*(tfce(ind_mask_P) >= tfce0(ind_mask_P));

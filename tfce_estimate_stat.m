@@ -1,8 +1,8 @@
-function cg_tfce_estimate(job)
+function tfce_estimate(job)
 % main TFCE function for estimating TFCE statistics
 %
-% FORMAT cg_tfce_estimate(job)
-% job - job from tbx_cfg_tfce_estimate
+% FORMAT tfce_estimate(job)
+% job - job from tbx_cfg_tfce
 % 
 %_______________________________________________________________________
 % Christian Gaser
@@ -678,7 +678,7 @@ for con = 1:length(Ic0)
   end
     
   stopStatus = false;
-  if ~test_mode, cg_progress('Init',n_perm,'Calculating','Permutations'); end
+  if ~test_mode, tfce_progress('Init',n_perm,'Calculating','Permutations'); end
   
   % update interval for progress bar
   progress_step = max([1 round(n_perm/100)]);
@@ -1135,7 +1135,7 @@ for con = 1:length(Ic0)
 
     
     if show_plot
-      if ~test_mode, cg_progress('Set',perm,Fgraph); end
+      if ~test_mode, tfce_progress('Set',perm,Fgraph); end
       drawnow
     end
       
@@ -1147,7 +1147,7 @@ for con = 1:length(Ic0)
   
   end
   
-  if ~test_mode, cg_progress('Clear',Fgraph); end
+  if ~test_mode, tfce_progress('Clear',Fgraph); end
   
   try
     delete(hStopButton);

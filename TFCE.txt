@@ -5,7 +5,7 @@
 % ==========================================================================
 % Description
 % ==========================================================================
-% This toolbox is a an extension to SPM (Wellcome Department of Cognitive 
+% This toolbox is a an extension to SPM12 (Wellcome Department of Cognitive 
 % Neurology) to provide non-parametric statistics based on threshold-free
 % cluster enhancement (TFCE).
 % The idea of the TFCE approach is to combine focal effects with large voxel 
@@ -20,4 +20,4 @@
 % The toolbox can be applied to (almost) any existing statistical (parametric) 
 % SPM design for 3D volume or surface data.
 % __________________________________________________________________________
-%                                                Christian Gaser 2019/05/05
+%                                                Christian Gaser 2020/04/08

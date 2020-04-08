@@ -1,9 +1,9 @@
-function [SPM,xSPM] = cg_get_tfce_results(varargin)
-% Compute a specified and thresholded SPM/PPM following parameter estimation
-% FORMAT [SPM,xSPM] = cg_get_tfce_results;
+function [SPM,xSPM] = tfce_getSPM(varargin)
+% Compute a specified and thresholded SPM/PPM following estimation
+% FORMAT [SPM,xSPM] = tfce_getSPM;
 % Query SPM in interactive mode.
 %
-% FORMAT [SPM,xSPM] = cg_get_tfce_results(xSPM);
+% FORMAT [SPM,xSPM] = tfce_getSPM(xSPM);
 % Query SPM in batch mode. See below for a description of fields that may
 % be present in xSPM input. Values for missing fields will be queried
 % interactively.
@@ -52,14 +52,14 @@ function [SPM,xSPM] = cg_get_tfce_results(varargin)
 % .c     - Contrast weights (column vector contrasts)
 % .X0    - Reduced design matrix data (spans design space under Ho)
 %          Stored as coordinates in the orthogonal basis of xX.X from spm_sp
-%          (Matrix in SPM99b)  Extract using X0 = spm_FcUtil('X0',...
+%          Extract using X0 = spm_FcUtil('X0',...
 % .iX0   - Indicates how contrast was specified:
 %          If by columns for reduced design matrix then iX0 contains the
 %          column indices. Otherwise, it's a string containing the
 %          spm_FcUtil 'Set' action: Usually one of {'c','c+','X0'}
 % .X1o   - Remaining design space data (X1o is orthogonal to X0)
 %          Stored as coordinates in the orthogonal basis of xX.X from spm_sp
-%          (Matrix in SPM99b)  Extract using X1o = spm_FcUtil('X1o',...
+%          Extract using X1o = spm_FcUtil('X1o',...
 % .eidf  - Effective interest degrees of freedom (numerator df)
 %        - Or effect-size threshold for Posterior probability
 % .Vcon  - Name of contrast (for 'T's) or ESS (for 'F's) image
@@ -71,6 +71,7 @@ function [SPM,xSPM] = cg_get_tfce_results(varargin)
 % .swd      - SPM working directory - directory containing current SPM.mat
 % .title    - title for comparison (string)
 % .Ic       - indices of contrasts (in SPM.xCon)
+% .n        - conjunction number <= number of contrasts
 % .Im       - indices of masking contrasts (in xCon)
 % .pm       - p-value for masking (uncorrected)
 % .Ex       - flag for exclusive or inclusive masking
@@ -82,7 +83,7 @@ function [SPM,xSPM] = cg_get_tfce_results(varargin)
 % contrasts, SPM images (spmT_????.{img,hdr}) are written, along with
 % contrast (con_????.{img,hdr}) images for SPM{T}'s, or Extra
 % Sum-of-Squares images (ess_????.{img,hdr}) for SPM{F}'s.
-% 
+%
 % The contrast images are the weighted sum of the parameter images,
 % where the weights are the contrast weights, and are uniquely
 % estimable since contrasts are checked for estimability by the
@@ -91,20 +92,20 @@ function [SPM,xSPM] = cg_get_tfce_results(varargin)
 % used as input at a higher level when effecting a random effects
 % analysis. (Note that the ess_????.{img,hdr} and
 % SPM{T,F}_????.{img,hdr} images are not suitable input for a higher
-% level analysis.) See spm_RandFX.man for further details.
+% level analysis.)
 %
 %__________________________________________________________________________
 %
-% cg_get_tfce_results prompts for an SPM and applies thresholds {u & k}
+% tfce_getSPM prompts for an SPM and applies thresholds {u & k}
 % to a point list of voxel values (specified with their locations {XYZ})
-% This allows the SPM be displayed and characterized in terms of regionally 
+% This allows the SPM be displayed and characterized in terms of regionally
 % significant effects by subsequent routines.
-% 
+%
 % For general linear model Y = XB + E with data Y, design matrix X,
 % parameter vector B, and (independent) errors E, a contrast c'B of the
 % parameters (with contrast weights c) is estimated by c'b, where b are
 % the parameter estimates given by b=pinv(X)*Y.
-% 
+%
 % Either single contrasts can be examined or conjunctions of different
 % contrasts. Contrasts are estimable linear combinations of the
 % parameters, and are specified using the SPM contrast manager
@@ -112,7 +113,7 @@ function [SPM,xSPM] = cg_get_tfce_results(varargin)
 % that the contrast is zero (or zero vector in the case of
 % F-contrasts). See the help for the contrast manager [spm_conman.m]
 % for a further details on contrasts and contrast specification.
-% 
+%
 % A conjunction assesses the conjoint expression of multiple effects. The
 % conjunction SPM is the minimum of the component SPMs defined by the
 % multiple contrasts.  Inference on the minimum statistics can be
@@ -128,8 +129,8 @@ function [SPM,xSPM] = cg_get_tfce_results(varargin)
 % alternative that k>0, that one or more effects are real.   A third
 % Intermediate approach, is to use a null hypothesis of no more than u
 % effects are real.  Rejecting the intermediate null that k<=u implies an
-% alternative that k>u, that more than u of the effects are real.  
-% 
+% alternative that k>u, that more than u of the effects are real.
+%
 % The Global and Intermediate nulls use results for minimum fields which
 % require the SPMs to be identically distributed and independent. Thus,
 % all component SPMs must be either SPM{t}'s, or SPM{F}'s with the same
@@ -140,7 +141,7 @@ function [SPM,xSPM] = cg_get_tfce_results(varargin)
 % the data space implied by the null hypotheses defined by the contrasts
 % (c'pinv(X)). Furthermore, this assumes that the errors are
 % i.i.d. (i.e. the estimates are maximum likelihood or Gauss-Markov. This
-% is the default in spm_spm).  
+% is the default in spm_spm).
 %
 % To ensure approximate independence of the component SPMs in the case of
 % the global or intermediate null, non-orthogonal contrasts are serially
@@ -155,7 +156,7 @@ function [SPM,xSPM] = cg_get_tfce_results(varargin)
 % do not survive an uncorrected p value (based on height) in one or
 % more further contrasts.  No account is taken of this masking in the
 % statistical inference pertaining to the masked contrast.
-% 
+%
 % The SPM is subject to thresholding on the basis of height (u) and the
 % number of voxels comprising its clusters {k}. The height threshold is
 % specified as above in terms of an [un]corrected p value or
@@ -174,34 +175,35 @@ function [SPM,xSPM] = cg_get_tfce_results(varargin)
 % contrast exceeds a specified threshold.  This threshold is stored in
 % the xCon.eidf.  Subsequent plotting and tables will use the conditional
 % estimates and associated posterior or conditional probabilities.
-% 
+%
 % see spm_results_ui.m for further details of the SPM results section.
 % see also spm_contrasts.m
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
-% Andrew Holmes, Karl Friston & Jean-Baptiste Poline
+% Copyright (C) 1999-2017 Wellcome Trust Centre for Neuroimaging
 %
-% based on
+% modified version of
+% Andrew Holmes, Karl Friston & Jean-Baptiste Poline
+% $Id$
+%
 % $Id$
 
 
+%-GUI setup
+%--------------------------------------------------------------------------
+spm('Pointer','Arrow')
+
 %-Select SPM.mat & note SPM results directory
 %--------------------------------------------------------------------------
-if (nargin > 0) 
+if nargin
     xSPM = varargin{1};
 end
 try
-   swd = xSPM.swd;
-   sts = 1;
+    swd = xSPM.swd;
+    sts = 1;
 catch
     [spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
-    if strcmp(spm('ver'),'SPM12')
-        swd = spm_file(spmmatfile,'fpath');
-    else
-        swd = spm_str_manip(spmmatfile,'H');
-    end
-end;
+    swd = spm_file(spmmatfile,'fpath');
+end
 if ~sts, SPM = []; xSPM = []; return; end
 
 %-Preliminaries...
@@ -224,19 +226,12 @@ cd(SPM.swd);
 %-Check the model has been estimated
 %--------------------------------------------------------------------------
 try
-    XYZ  = SPM.xVol.XYZ;
+    SPM.xVol.S;
 catch
-    
-    %-Check the model has been estimated
-    %----------------------------------------------------------------------
-    str = { 'This model has not been estimated.';...
-            'Would you like to estimate it now?'};
-    if spm_input(str,1,'bd','yes|no',[1,0],1)
-         SPM = spm_spm(SPM);
-    else
-        SPM = []; xSPM = [];
-        return
-    end
+    spm('alert*',{'This model has not been estimated.','',...
+        fullfile(swd,'SPM.mat')}, mfilename, [], ~spm('CmdLine'));
+    SPM = []; xSPM = [];
+    return
 end
 
 xX   = SPM.xX;                      %-Design definition structure
@@ -248,29 +243,15 @@ VOX  = sqrt(diag(M'*M))';           %-voxel dimensions
 
 % check the data and other files have valid filenames
 %-----------------------------------------------------------------------
-%try, SPM.xY.VY     = spm_check_filename(SPM.xY.VY);     end
-try, SPM.xVol.VRpv = spm_check_filename(SPM.xVol.VRpv); end
-try, SPM.Vbeta     = spm_check_filename(SPM.Vbeta);     end
-try, SPM.VResMS    = spm_check_filename(SPM.VResMS);    end
-try, SPM.VM        = spm_check_filename(SPM.VM);        end
-
-%-Contrast definitions
-%==========================================================================
-
-%-Load contrast definitions (if available)
-%--------------------------------------------------------------------------
-try
-    xCon = SPM.xCon;
-catch
-    xCon = {};
-end
+%try, SPM.xVol.VRpv = spm_check_filename(SPM.xVol.VRpv); end
+%try, SPM.Vbeta     = spm_check_filename(SPM.Vbeta);     end
+%try, SPM.VResMS    = spm_check_filename(SPM.VResMS);    end
+%try, SPM.VM        = spm_check_filename(SPM.VM);        end
 
 %-Check whether mesh are detected if we use spm12
 %--------------------------------------------------------------------------
 
-if exist(fullfile(swd, 'mask.img'))
-    file_ext = '.img';
-elseif exist(fullfile(swd, 'mask.nii'))
+if exist(fullfile(swd, 'mask.nii'))
     file_ext = '.nii';
 elseif exist(fullfile(swd, 'mask.gii'))
     file_ext = '.gii';
@@ -278,28 +259,18 @@ else
     error('No mask file found.');
 end
 
-if strcmp(spm('ver'),'SPM12')
-    if spm_mesh_detect(SPM.xY.VY)
-        mesh_detected = 1;
-    else
-        mesh_detected = 0;
-    end
-else
-      mesh_detected = 0;
-end
-
-
 %==========================================================================
 % - C O N T R A S T S ,   S P M    C O M P U T A T I O N ,    M A S K I N G
 %==========================================================================
 
 %-Get contrasts
 %--------------------------------------------------------------------------
+try, xCon = SPM.xCon; catch, xCon = {}; end
+
 try
-    Ic = xSPM.Ic;
+    Ic        = xSPM.Ic;
 catch
-    [Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
-               '    Select contrasts...',' for conjunction',1);
+    [Ic,xCon] = spm_conman(SPM,'T&F',1,'    Select contrast...');
 end
 if isempty(xCon)
     % figure out whether new contrasts were defined, but not selected
@@ -320,9 +291,9 @@ nc        = length(Ic);  % Number of contrasts
 %-Allow user to extend the null hypothesis for conjunctions
 %
 % n: conjunction number
-% u: Null hyp is k<=u effects real; Alt hyp is k>u effects real 
+% u: Null hyp is k<=u effects real; Alt hyp is k>u effects real
 %    (NB Here u is from Friston et al 2004 paper, not statistic thresh).
-%                  u         n      
+%                  u         n
 % Conjunction Null nc-1      1     |    u = nc-n
 % Intermediate     1..nc-2   nc-u  |    #effects under null <= u
 % Global Null      0         nc    |    #effects under alt  > u,  >= u+1
@@ -335,7 +306,7 @@ end
 
 SPM.xCon = xCon;
 
-%-Get contrasts for masking
+%-No masking allowed
 %--------------------------------------------------------------------------
 Im = [];
 pm = [];
@@ -347,17 +318,30 @@ Ex = [];
 str  = xCon(Ic).name;
 try
     titlestr = xSPM.title;
-    if isempty(titlestr)
-        titlestr = str;
-    end
 catch
-    titlestr     = spm_input('title for comparison',1,'s',str);
+    %titlestr = spm_input('title for comparison','+1','s',str);
+    titlestr = '';
 end
+if isempty(titlestr), titlestr = str; end
+
+
+%-Bayesian or classical Inference?
+%==========================================================================
+if isfield(SPM,'PPM')
+    fprintf('No Bayesian statistic allowed.\n');
+		SPM = []; xSPM = [];
+		return
+end
+
 
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %==========================================================================
 SPM.xCon = xCon;
-SPM      = spm_contrasts(SPM, unique([Ic, Im, IcAdd]));
+if isnumeric(Im)
+    SPM  = spm_contrasts(SPM, unique([Ic, Im, IcAdd]));
+else
+    SPM  = spm_contrasts(SPM, unique([Ic, IcAdd]));
+end
 xCon     = SPM.xCon;
 STAT     = xCon(Ic(1)).STAT;
 VspmSv   = cat(1,xCon(Ic).Vspm);
@@ -378,15 +362,29 @@ end
 
 %-Degrees of Freedom and STAT string describing marginal distribution
 %--------------------------------------------------------------------------
-df          = [xCon(Ic(1)).eidf xX.erdf];
+df     = [xCon(Ic(1)).eidf xX.erdf];
 
-stattype = spm_input('Type of statistic','+1','b',sprintf('TFCE|%s',STAT),[],1);
-if strcmp(STAT,'T')
-  invResult = spm_input('Contrast','+1','b','Original|Inverse',[0,1],1);
-else
-  invResult = 0;
+try
+		statType = xSPM.statType;
+catch
+    statType = spm_input('Type of statistic','+1','b',sprintf('TFCE|%s',STAT),[],1);
 end
-thresDesc = spm_input('p value adjustment to control','+1','b','FWE|FDR|none',[],1);
+
+if strcmp(STAT,'T')
+		try
+				invResult = xSPM.invResult;
+		catch
+				invResult = spm_input('Contrast','+1','b','Original|Inverse',[0,1],1);
+		end
+else
+		invResult = 0;
+end
+
+try
+		thresDesc = xSPM.thresDesc;
+catch
+    thresDesc = spm_input('p value adjustment to control','+1','b','FWE|FDR|none',[],1);
+end
 
 if invResult
   titlestr = ['Nonparametric test: (inverse contrast) ' titlestr];
@@ -401,7 +399,7 @@ switch thresDesc
         statcorr = 'P';
 end
 
-STAT = stattype;
+STAT = statType;
 
 switch STAT
     case 'TFCE'
@@ -421,36 +419,22 @@ catch
   n_perm = 0;
 end
 
-z_name  = fullfile(swd, sprintf('%s_%04d%s',stattype,Ic,file_ext));
-Pz_name = fullfile(swd, sprintf('%s_log_p_%04d%s',stattype,Ic,file_ext));
-Pu_name = fullfile(swd, sprintf('%s_log_pFWE_%04d%s',stattype,Ic,file_ext));
-Qu_name = fullfile(swd, sprintf('%s_log_pFDR_%04d%s',stattype,Ic,file_ext));
+z_name  = fullfile(swd, sprintf('%s_%04d%s',statType,Ic,file_ext));
+Pz_name = fullfile(swd, sprintf('%s_log_p_%04d%s',statType,Ic,file_ext));
+Pu_name = fullfile(swd, sprintf('%s_log_pFWE_%04d%s',statType,Ic,file_ext));
+Qu_name = fullfile(swd, sprintf('%s_log_pFDR_%04d%s',statType,Ic,file_ext));
 
-if mesh_detected
-    VQu = spm_data_hdr_read(Qu_name);
-    VPu = spm_data_hdr_read(Pu_name);
-    VPz = spm_data_hdr_read(Pz_name);
-    Vz  = spm_data_hdr_read(z_name);
-else
-    VQu = spm_vol(Qu_name);
-    VPu = spm_vol(Pu_name);
-    VPz = spm_vol(Pz_name);
-    Vz  = spm_vol(z_name);
-end
+VQu = spm_data_hdr_read(Qu_name);
+VPu = spm_data_hdr_read(Pu_name);
+VPz = spm_data_hdr_read(Pz_name);
+Vz  = spm_data_hdr_read(z_name);
 
 %-Compute SPM
 %--------------------------------------------------------------------------
-if strcmp(spm('ver'),'SPM12')
-    Z   = spm_data_read(Vz,'xyz',XYZ);
-    Qu  = spm_data_read(VQu,'xyz',XYZ);
-    Pz  = spm_data_read(VPz,'xyz',XYZ);
-    Pu  = spm_data_read(VPu,'xyz',XYZ);
-else
-    Z   = spm_get_data(Vz,XYZ);
-    Qu  = spm_get_data(VQu,XYZ);
-    Pz  = spm_get_data(VPz,XYZ);
-    Pu  = spm_get_data(VPu,XYZ);
-end
+Z   = spm_data_read(Vz,'xyz',XYZ);
+Qu  = spm_data_read(VQu,'xyz',XYZ);
+Pz  = spm_data_read(VPz,'xyz',XYZ);
+Pu  = spm_data_read(VPu,'xyz',XYZ);
 
 if invResult
   Z  = -Z;
@@ -473,6 +457,7 @@ switch thresDesc
         Zp = Pz;
 end
 
+
 %==========================================================================
 % - H E I G H T   &   E X T E N T   T H R E S H O L D S
 %==========================================================================
@@ -484,7 +469,7 @@ k   = 0;           % extent threshold {voxels}
 %--------------------------------------------------------------------------
 topoFDR = false;
     
-if  mesh_detected
+if  spm_mesh_detect(xCon(Ic(1)).Vspm)
     % underlying mesh not found
     if ~exist(SPM.xVol.G)
         [pth, nam, ext] = spm_fileparts(SPM.xVol.G);
@@ -507,37 +492,54 @@ if STAT ~= 'P'
     switch thresDesc
         
         case 'FWE' % Family-wise false positive rate
-        %------------------------------------------------------------------
-        u = spm_input('p value (FWE)','+0','r',0.05,1,[0,1]);
-        thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
-        u = 1 - u;
-
-
-        case 'FDR' % False discovery rate
-        %------------------------------------------------------------------
-        u = spm_input('p value (FDR)','+0','r',0.05,1,[0,1]);
-        thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
-        u = 1 - u;
-        
-        case 'none'  % No adjustment
-        %------------------------------------------------------------------
-        u = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1,[0,1]);
-        thresDesc = ['p<' num2str(u) ' (unc.)'];
-        u = 1 - u;
-        
-        otherwise
-        %------------------------------------------------------------------
-        fprintf('\n');                                                  %-#
-        error(sprintf('Unknown control method "%s".',thresDesc));
-
-    end % switch thresDesc
+            %--------------------------------------------------------------
+            try
+                u = xSPM.u;
+            catch
+                u = spm_input('p value (FWE)','+0','r',0.05,1,[0,1]);
+            end
+            thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
+            u = 1 - u;
             
+            
+        case 'FDR' % False discovery rate
+            %--------------------------------------------------------------
+            try
+                u = xSPM.u;
+            catch
+                u = spm_input('p value (FDR)','+0','r',0.05,1,[0,1]);
+            end
+            thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
+            u = 1 - u;
+            
+        case 'none'  % No adjustment: p for conjunctions is p of the conjunction SPM
+            %--------------------------------------------------------------
+            try
+                u = xSPM.u;
+            catch
+                u = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
+            end
+            if u <= 1
+                thresDesc = ['p<' num2str(u) ' (unc.)'];
+                u = 1 - u;
+            else
+                thresDesc = [STAT '=' num2str(u) ];
+            end
+            
+            
+        otherwise
+            %--------------------------------------------------------------
+            fprintf('\n');                                              %-#
+            error('Unknown control method "%s".',thresDesc);
+            
+    end % switch thresDesc    
+    
 end % (if STAT)
 
 %-Calculate height threshold filtering
 %--------------------------------------------------------------------------
+if spm_mesh_detect(xCon(Ic(1)).Vspm), str = 'vertices'; else str = 'voxels'; end
 Q      = find(Zp > u);
-if mesh_detected, str = 'vertices'; else str = 'voxels'; end
 
 %-Apply height threshold
 %--------------------------------------------------------------------------
@@ -546,7 +548,6 @@ Qu     = Qu(:,Q);
 Pz     = Pz(:,Q);
 Pu     = Pu(:,Q);
 XYZ    = XYZ(:,Q);
-
 if isempty(Q)
     fprintf('\n');                                                      %-#
     sw = warning('off','backtrace');
@@ -554,40 +555,37 @@ if isempty(Q)
     warning(sw);
 end
 
-%-Extent threshold (disallowed for conjunctions)
-%--------------------------------------------------------------------------
-if ~isempty(XYZ) && nc == 1
 
-    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...extent threshold')  %-#
+%-Extent threshold
+%--------------------------------------------------------------------------
+if ~isempty(XYZ)
+    
+    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...extent threshold'); %-#
     
     %-Get extent threshold [default = 0]
     %----------------------------------------------------------------------
-    if STAT == 'T'
-        try
-            k = xSPM.k;
-        catch
-            k = spm_input(['& extent threshold {' str '}'],'+1','r',0,1,[0,Inf]);
-        end
-    else
-        k = 0;
+    try
+        k = xSPM.k;
+    catch
+        k = spm_input(['& extent threshold {' str '}'],'+1','r',0,1,[0,Inf]);
     end
     
     %-Calculate extent threshold filtering
     %----------------------------------------------------------------------
-    if  mesh_detected
+    if  ~spm_mesh_detect(xCon(Ic(1)).Vspm)
+        A = spm_clusters(XYZ);
+    else
         T = false(SPM.xVol.DIM');
         T(XYZ(1,:)) = true;
         A = spm_mesh_clusters(G,T)';
         A = A(XYZ(1,:));
-    else
-        A = spm_clusters(XYZ);
     end
     Q     = [];
     for i = 1:max(A)
         j = find(A == i);
         if length(j) >= k, Q = [Q j]; end
     end
-
+    
     % ...eliminate voxels
     %----------------------------------------------------------------------
     Z     = Z(:,Q);
@@ -601,55 +599,60 @@ if ~isempty(XYZ) && nc == 1
         warning('SPM:NoVoxels','No %s survive extent threshold at k=%0.2g',str,k);
         warning(sw);
     end
-
+    
 else
-
-    k = 0;
-
+    try
+        k = xSPM.k;
+    catch
+        k = 0;
+    end
+    
 end % (if ~isempty(XYZ))
 
 %==========================================================================
 % - E N D
 %==========================================================================
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
 spm('Pointer','Arrow')
 
 %-Assemble output structures of unfiltered data
 %==========================================================================
 xSPM   = struct( ...
-        'swd',      swd,...
-        'title',    titlestr,...
-        'Z',        Z,...
-        'Qu',       Qu,...
-        'Pu',       Pu,...
-        'Pz',       Pz,...
-        'VQu',      VQu,...
-        'VPu',      VPu,...
-        'VPz',      VPz,...
-        'n',        n,...
-        'STAT',     STAT,...
-        'df',       df,...
-        'STATstr',  STATstr,...
-        'Ic',       Ic,...
-        'Im',       Im,...
-        'pm',       pm,...
-        'Ex',       Ex,...
-        'u',        u,...
-        'k',        k,...
-        'XYZ',      XYZ,...
-        'XYZmm',    SPM.xVol.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))],...
-        'S',        SPM.xVol.S,...
-        'R',        SPM.xVol.R,...
-        'FWHM',     SPM.xVol.FWHM,...
-        'M',        SPM.xVol.M,...
-        'iM',       SPM.xVol.iM,...
-        'DIM',      SPM.xVol.DIM,...
-        'VOX',      VOX,...
-        'Vspm',     VspmSv,...
-        'n_perm',   n_perm,...
-        'invResult',invResult,...
-        'thresDesc',thresDesc);
+            'swd',      swd,...
+            'title',    titlestr,...
+            'Z',        Z,...
+						'Qu',       Qu,...
+						'Pu',       Pu,...
+						'Pz',       Pz,...
+						'VQu',      VQu,...
+						'VPu',      VPu,...
+						'VPz',      VPz,...
+            'n',        n,...
+            'STAT',     STAT,...
+            'df',       df,...
+            'STATstr',  STATstr,...
+            'Ic',       Ic,...
+            'Im',       {Im},...
+            'pm',       pm,...
+            'Ex',       Ex,...
+            'u',        u,...
+            'k',        k,...
+            'XYZ',      XYZ,...
+            'XYZmm',    SPM.xVol.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))],...
+            'S',        SPM.xVol.S,...
+            'R',        SPM.xVol.R,...
+            'FWHM',     SPM.xVol.FWHM,...
+            'M',        SPM.xVol.M,...
+            'iM',       SPM.xVol.iM,...
+            'DIM',      SPM.xVol.DIM,...
+            'VOX',      VOX,...
+            'Vspm',     VspmSv,...
+            'n_perm',   n_perm,...
+						'invResult',invResult,...
+						'statType', statType,...
+            'thresDesc',thresDesc);
 
-% RESELS per voxel (density) if it exists
+%-RESELS per voxel (density) if it exists
 %--------------------------------------------------------------------------
 try, xSPM.VRpv = SPM.xVol.VRpv; end
 try
@@ -660,8 +663,17 @@ end
 
 %-Topology for surface-based inference
 %--------------------------------------------------------------------------
-if mesh_detected
+if spm_mesh_detect(xCon(Ic(1)).Vspm)
     xSPM.G     = G;
     xSPM.XYZmm = xSPM.G.vertices(xSPM.XYZ(1,:),:)';
 end
 
+%-p-values for topological and voxel-wise FDR
+%--------------------------------------------------------------------------
+try, xSPM.Ps   = Ps;             end  % voxel   FDR
+try, xSPM.Pp   = Pp;             end  % peak    FDR
+try, xSPM.Pc   = Pc;             end  % cluster FDR
+
+%-0.05 critical thresholds for FWEp, FDRp, FWEc, FDRc
+%--------------------------------------------------------------------------
+try, xSPM.uc   = [uu up ue uc];  end

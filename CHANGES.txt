@@ -1,5 +1,94 @@
 ------------------------------------------------------------------------
-r188 | gaser | 2020-02-25 11:44:08
+r189 | gaser | 2020-04-08 02:18:59
+
+Changed paths:
+M       CHANGES.txt
+M       Contents_info.txt
+M       INSTALL_info.txt
+M       Makefile
+M       TFCE.txt
+D       cg_get_tfce_results.m
+        > moved to tfce_getSPM.m
+D       cg_progress.m
+        > moved to tfce_progress.m
+D       cg_tfce_estimate.m
+        > moved to tfce_estimate_stat.m
+D       cg_tfce_list.m
+        > moved to tfce_list.m
+D       cg_tfce_results.m
+        > moved to tfce_results_ui.m
+D       cg_tfce_surf_max.m
+        > moved to tfce_surf_max.m
+D       cg_tfce_update.m
+        > moved to tfce_update.m
+M       compile.m
+A  +    old/tfceMex.c
+        > moved from tfceMex.c
+A  +    old/tfceMex.m
+        > moved from tfceMex.m
+A  +    old/tfceMex.mexa64
+        > moved from tfceMex.mexa64
+A  +    old/tfceMex.mexglx
+        > moved from tfceMex.mexglx
+A  +    old/tfceMex.mexmaci
+        > moved from tfceMex.mexmaci
+A  +    old/tfceMex.mexmaci64
+        > moved from tfceMex.mexmaci64
+A  +    old/tfceMex.mexw32
+        > moved from tfceMex.mexw32
+A  +    old/tfceMex.mexw64
+        > moved from tfceMex.mexw64
+A       spm
+A       spm/spm_getSPM.m
+A       spm/spm_list.m
+A       spm/spm_results_ui.m
+M       spm_TFCE.m
+A  +    tbx_cfg_tfce.m
+        > moved from tbx_cfg_tfce_estimate.m
+D       tbx_cfg_tfce_estimate.m
+        > moved to tbx_cfg_tfce.m
+D       tfceMex.c
+        > moved to old/tfceMex.c
+D       tfceMex.m
+        > moved to old/tfceMex.m
+D       tfceMex.mexa64
+        > moved to old/tfceMex.mexa64
+D       tfceMex.mexglx
+        > moved to old/tfceMex.mexglx
+D       tfceMex.mexmaci
+        > moved to old/tfceMex.mexmaci
+D       tfceMex.mexmaci64
+        > moved to old/tfceMex.mexmaci64
+D       tfceMex.mexw32
+        > moved to old/tfceMex.mexw32
+D       tfceMex.mexw64
+        > moved to old/tfceMex.mexw64
+D       tfceMex_noopenmp.mexa64
+D       tfceMex_noopenmp.mexglx
+D       tfceMex_noopenmp.mexmaci
+D       tfceMex_noopenmp.mexmaci64
+D       tfceMex_noopenmp.mexw32
+D       tfceMex_noopenmp.mexw64
+A  +    tfce_estimate_stat.m
+        > moved from cg_tfce_estimate.m
+A  +    tfce_getSPM.m
+        > moved from cg_get_tfce_results.m
+A  +    tfce_list.m
+        > moved from cg_tfce_list.m
+A  +    tfce_progress.m
+        > moved from cg_progress.m
+A  +    tfce_results_ui.m
+        > moved from cg_tfce_results.m
+A  +    tfce_surf_max.m
+        > moved from cg_tfce_surf_max.m
+A  +    tfce_update.m
+        > moved from cg_tfce_update.m
+
+(1) Changed: Renamed all functions to start with "tfce".
+(2) Changed: Updated many functions w.r.t. to new functionality in SPM12
+    result functions.
+------------------------------------------------------------------------
+r188 | gaser | 2020-02-25 11:44:14 +0100 (Di, 25 Feb 2020) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -10,6 +99,7 @@ M       cg_tfce_update.m
 (1) Fixed: Corrected interactive selection of contrasts.
 (2) Fixed: Check for empty result masks was not correct.
 (3) Changed: IP-address of server changed.
+
 ------------------------------------------------------------------------
 r187 | gaser | 2020-02-06 16:44:51 +0100 (Do, 06 Feb 2020) | 14 lines
 

@@ -1,7 +1,7 @@
-function cg_tfce_update(update)
+function tfce_update(update)
 % check for new updates
 %
-% FORMAT cg_tfce_update(update)
+% FORMAT tfce_update(update)
 % update - allow installation of update
 % 
 % This function will connect itself to the SBM server, compare the

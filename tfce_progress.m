@@ -1,12 +1,12 @@
-function cg_progress(action,varargin)
+function tfce_progress(action,varargin)
 % Display progress and remaining time
-% FORMAT cg_progress('Init',n_iterations,process_name,iteration_name)
+% FORMAT tfce_progress('Init',n_iterations,process_name,iteration_name)
 % Initialises progress tool
 %
-% FORMAT cg_progress('Set',value)
+% FORMAT tfce_progress('Set',value)
 % Sets iteration.
 %
-% FORMAT cg_progress('Clear')
+% FORMAT tfce_progress('Clear')
 % Clears the progress output and prints processing time.
 %_______________________________________________________________________
 % Christian Gaser

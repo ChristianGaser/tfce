@@ -1,6 +1,6 @@
-function varargout = cg_tfce_results(varargin)
-% User interface for TFCE results: Display and analysis of regional effects
-% FORMAT [hReg,xSPM,SPM] = cg_tfce_results('Setup',[xSPM])
+function varargout = spm_results_ui(varargin)
+% User interface for SPM/PPM results: Display and analysis of regional effects
+% FORMAT [hReg,xSPM,SPM] = spm_results_ui('Setup',[xSPM])
 %
 % hReg   - handle of MIP XYZ registry object
 %          (see spm_XYZreg.m for details)
@@ -8,11 +8,235 @@ function varargout = cg_tfce_results(varargin)
 %          (see spm_getSPM.m for contents)
 % SPM    - SPM structure containing generic parameters
 %          (see spm_spm.m for contents)
-%_______________________________________________________________________
-% Christian Gaser
-% $Id$
-
-% based on spm_results_ui.m
+%
+% NB: Results section GUI CallBacks use these data structures by name,
+%     which therefore *must* be assigned to the correctly named variables.
+%__________________________________________________________________________
+%
+% The SPM results section is for the interactive exploration and
+% characterisation of the results of a statistical analysis.
+%
+% The user is prompted to select a SPM{T} or SPM{F}, that is thresholded at
+% user specified levels. The specification of the contrasts to use and the
+% height and size thresholds are described in spm_getSPM.m. The resulting
+% SPM is then displayed in the Graphics window as a maximum intensity
+% projection, alongside the design matrix and contrasts employed.
+%
+% The cursors in the MIP can be moved (dragged) to select a particular
+% voxel. The three mouse buttons give different drag and drop behaviour:
+% Button 1 - point & drop; Button 2 - "dynamic" drag & drop with
+% co-ordinate & SPM value updating; Button 3 - "magnetic" drag & drop,
+% where the cursor jumps to the nearest suprathreshold voxel in the MIP,
+% and shows the value there.
+% See spm_mip_ui.m, the MIP GUI handling function for further details.
+%
+% The design matrix and contrast pictures are "surfable": Click and drag
+% over the images to report associated data. Clicking with different
+% buttons produces different results. Double-clicking extracts the
+% underlying data into the base workspace.
+% See spm_DesRep.m for further details.
+%
+% The current voxel specifies the voxel, suprathreshold cluster, or
+% orthogonal planes (planes passing through that voxel) for subsequent
+% localised utilities.
+%
+% A control panel in the Interactive window enables interactive exploration
+% of the results.
+%
+% p-values buttons:
+%   (i) volume   - Tabulates p-values and statistics for entire volume.
+%                                            - see spm_list.m
+%  (ii) cluster  - Tabulates p-values and statistics for nearest cluster.
+%                - Note that the cursor will jump to the nearest
+%                  suprathreshold voxel, if it is not already at a
+%                  location with suprathreshold statistic.
+%                                            - see spm_list.m
+% (iii)  S.V.C   - Small Volume Correction:
+%                  Tabulates p-values corrected for a small specified
+%                  volume of interest. (Tabulation by spm_list.m)
+%                                            - see spm_VOI.m
+%
+% Data extraction buttons:
+% Eigenvariate/CVA
+%                - Extracts the principal eigenvariate for small volumes 
+%                  of interest; or CVA of data within a specified volume
+%                - Data can be adjusted or not for eigenvariate summaries
+%                - If temporal filtering was specified (fMRI), then it is
+%                  the filtered data that is returned.
+%                - Choose a VOI of radius 0 to extract the (filtered &)
+%                  adjusted data for a single voxel. Note that this vector
+%                  will be scaled to have a 2-norm of 1. (See spm_regions.m
+%                  for further details.)
+%                - The plot button also returns fitted and adjusted
+%                  (after any filtering) data for the voxel being plotted.)
+%                - Note that the cursor will jump to the nearest voxel for
+%                  which raw data was saved.
+%                                            - see spm_regions.m
+%
+% Visualisation buttons:
+%   (i) plot     - Graphs of adjusted and fitted activity against
+%                  various ordinates.
+%                - Note that the cursor will jump to the nearest
+%                  suprathreshold voxel, if it is not already at a
+%                  location with suprathreshold statistic.
+%                - Additionally, returns fitted and adjusted data to the
+%                  MATLAB base workspace.
+%                                               - see spm_graph.m
+%  (ii) overlays - Popup menu: Overlays of filtered SPM on a structural image
+%     -   slices - Slices of the thresholded statistic image overlaid
+%                  on a secondary image chosen by the user. Three
+%                  transverse slices are shown, being those at the
+%                  level of the cursor in the z-axis and the two
+%                  adjacent to it.           - see spm_transverse.m
+%     - sections - Orthogonal sections of the thresholded statistic
+%                  image overlaid on a secondary image chosen by the user.
+%                  The sections are through the cursor position.
+%                                            - see spm_sections.m
+%     -   render - Render blobs on previously extracted cortical surface
+%                                            - see spm_render.m
+% (iii) save     - Write out thresholded SPM as image
+%                                            - see spm_write_filtered.m
+%
+% The current cursor location can be set by editing the co-ordinate widgets
+% at the bottom of the Interactive window. (Note that many of the results
+% section facilities are "linked" and can update co-ordinates. E.g.
+% clicking on the co-ordinates in a p-value listing jumps to that location.)
+%
+% Graphics appear in the bottom half of the Graphics window, additional
+% controls and questions appearing in the Interactive window.
+%
+%                           ----------------
+%
+% The MIP uses a template outline in MNI space. Consequently for the
+% results section to display properly the input images to the statistics
+% section should be in MNI space.
+%
+% Similarly, secondary images should be aligned with the input images used
+% for the statistical analysis.
+%
+%                           ----------------
+%
+% In addition to setting up the results section, spm_results_ui.m sets
+% up the results section GUI and services the CallBacks. FORMAT
+% specifications for embedded CallBack functions are given in the main
+% body of the code.
+%__________________________________________________________________________
+% Copyright (C) 1996-2018 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston & Andrew Holmes
+% $Id: spm_results_ui.m 7388 2018-08-06 12:04:26Z guillaume $
+ 
+ 
+%==========================================================================
+% - FORMAT specifications for embedded CallBack functions
+%==========================================================================
+%( This is a multi function function, the first argument is an action  )
+%( string, specifying the particular action function to take.          )
+%
+% spm_results_ui sets up and handles the SPM results graphical user
+% interface, initialising an XYZ registry (see spm_XYZreg.m) to co-ordinate
+% locations between various location controls.
+%
+%__________________________________________________________________________
+%
+% FORMAT [hreg,xSPM,SPM] = spm_results_ui('Setup')
+% Query SPM and setup GUI. 
+%
+% FORMAT [hreg,xSPM,SPM] = spm_results_ui('Setup',xSPM)
+% Query SPM and setup GUI using a xSPM input structure. This allows to run
+% results setup without user interaction. See spm_getSPM for details of
+% allowed fields.
+%
+% FORMAT hReg = spm_results_ui('SetupGUI',M,DIM,xSPM,Finter)
+% Setup results GUI in Interactive window
+% M       - 4x4 transformation matrix relating voxel to "real" co-ordinates
+% DIM     - 3 vector of image X, Y & Z dimensions
+% xSPM    - structure containing xSPM. Required fields are:
+% .Z      - minimum of n Statistics {filtered on u and k}
+% .XYZmm  - location of voxels {mm}
+% Finter  - handle (or 'Tag') of Interactive window (default 'Interactive')
+% hReg    - handle of XYZ registry object
+%
+% FORMAT spm_results_ui('DrawButts',hReg,DIM,Finter,WS,FS)
+% Draw GUI buttons
+% hReg    - handle of XYZ registry object
+% DIM     - 3 vector of image X, Y & Z dimensions
+% Finter  - handle of Interactive window
+% WS      - WinScale  [Default spm('WinScale') ]
+% FS      - FontSizes [Default spm('FontSizes')]
+%
+% FORMAT hFxyz = spm_results_ui('DrawXYZgui',M,DIM,xSPM,xyz,hReg)
+% Setup editable XYZ control widgets at foot of Interactive window
+% M      - 4x4 transformation matrix relating voxel to "real" co-ordinates
+% DIM    - 3 vector of image X, Y & Z dimensions
+% xSPM   - structure containing SPM; Required fields are:
+% .Z     - minimum of n Statistics {filtered on u and k}
+% .XYZmm - location of voxels {mm}
+% xyz    - Initial xyz location {mm}
+% hReg   - handle of XYZ registry object
+% hFxyz  - handle of XYZ control - the frame containing the edit widgets
+%
+% FORMAT spm_results_ui('EdWidCB')
+% Callback for editable XYZ control widgets
+%
+% FORMAT spm_results_ui('UpdateSPMval',hFxyz)
+% FORMAT spm_results_ui('UpdateSPMval',UD)
+% Updates SPM value string in Results GUI (using data from UserData of hFxyz)
+% hFxyz - handle of frame enclosing widgets - the Tag object for this control
+% UD    - XYZ data structure (UserData of hFxyz).
+%
+% FORMAT xyz = spm_results_ui('GetCoords',hFxyz)
+% Get current co-ordinates from editable XYZ control
+% hFxyz - handle of frame enclosing widgets - the Tag object for this control
+% xyz   - current co-ordinates {mm}
+% NB: When using the results section, should use XYZregistry to get/set location
+%
+% FORMAT [xyz,d] = spm_results_ui('SetCoords',xyz,hFxyz,hC)
+% Set co-ordinates to XYZ widget
+% xyz   - (Input) desired co-ordinates {mm}
+% hFxyz - handle of XYZ control - the frame containing the edit widgets
+% hC    - handle of calling object, if used as a callback. [Default 0]
+% xyz   - (Output) Desired co-ordinates are rounded to nearest voxel if hC
+%         is not specified, or is zero. Otherwise, caller is assumed to
+%         have checked verity of desired xyz co-ordinates. Output xyz returns
+%         co-ordinates actually set {mm}.
+% d     - Euclidean distance between desired and set co-ordinates.
+% NB: When using the results section, should use XYZregistry to get/set location
+%
+% FORMAT hFxyz = spm_results_ui('FindXYZframe',h)
+% Find/check XYZ edit widgets frame handle, 'Tag'ged 'hFxyz'
+% h     - handle of frame enclosing widgets, or containing figure [default gcf]
+%         If ischar(h), then uses spm_figure('FindWin',h) to locate named figures
+% hFxyz - handle of confirmed XYZ editable widgets control
+%         Errors if hFxyz is not an XYZ widget control, or a figure containing
+%         a unique such control
+%
+% FORMAT spm_results_ui('PlotUi',hAx)
+% GUI for adjusting plot attributes - Sets up controls just above results GUI
+% hAx - handle of axes to work with
+%
+% FORMAT spm_results_ui('PlotUiCB')
+% CallBack handler for Plot attribute GUI
+%
+% FORMAT Fgraph = spm_results_ui('Clear',F,mode)
+% Clears results subpane of Graphics window, deleting all but semi-permanent
+% results section stuff
+% F      - handle of Graphics window [Default spm_figure('FindWin','Graphics')]
+% mode   - 1 [default] - clear results subpane
+%        - 0           - clear results subpane and hide results stuff
+%        - 2           - clear, but respect 'NextPlot' 'add' axes
+%                        (which is set by `hold on`)
+% Fgraph - handle of Graphics window
+%
+% FORMAT hMP = spm_results_ui('LaunchMP',M,DIM,hReg,hBmp)
+% Prototype callback handler for integrating MultiPlanar toolbox
+%
+% FORMAT spm_results_ui('Delete',h)
+% deletes HandleGraphics objects, but only if they're valid, thus avoiding
+% warning statements from MATLAB.
+%__________________________________________________________________________
+ 
+SVNid = '$Rev: 7388 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -22,19 +246,19 @@ if nargin == 0, Action='Setup'; else Action=varargin{1}; end
 %==========================================================================
 switch lower(Action), case 'setup'                         %-Set up results
 %==========================================================================
-        
+ 
     %-Initialise
     %----------------------------------------------------------------------
-    spm('FnBanner',mfilename);
-    [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TFCE: Results');
+    spm('FnBanner',mfilename,SVNid);
+    [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Stats: Results');
     spm_clf('Satellite');
-  
+ 
     %-Get thresholded xSPM data and parameters of design
     %======================================================================
     if nargin > 1
-        [SPM,xSPM] = cg_get_tfce_results(varargin{2});
+        [SPM,xSPM] = spm_getSPM(varargin{2});
     else
-        [SPM,xSPM] = cg_get_tfce_results;
+        [SPM,xSPM] = spm_getSPM;
     end
  
     if isempty(xSPM) 
@@ -42,27 +266,15 @@ switch lower(Action), case 'setup'                         %-Set up results
         return;
     end
  
-    %-Check whether mesh are detected if we use spm12
-    %--------------------------------------------------------------------------
-    if strcmp(spm('ver'),'SPM12')
-        if spm_mesh_detect(SPM.xY.VY)
-            mesh_detected = 1;
-        else
-            mesh_detected = 0;
-        end
-    else
-          mesh_detected = 0;
-    end
-
     %-Ensure pwd = swd so that relative filenames are valid
     %----------------------------------------------------------------------
     cd(SPM.swd)
     
     %-Get space information
     %======================================================================
-    M         = SPM.xVol.M;
-    DIM       = SPM.xVol.DIM;
-
+    M   = SPM.xVol.M;
+    DIM = SPM.xVol.DIM;
+    
     %-Space units
     %----------------------------------------------------------------------
     try
@@ -108,7 +320,7 @@ switch lower(Action), case 'setup'                         %-Set up results
                 error('Unknown data type.');
         end
     end
-    if mesh_detected
+    if spm_mesh_detect(xSPM.Vspm)
         DIM(3) = Inf; % force 3D coordinates
     elseif DIM(3) == 1
         units{3} = '';
@@ -127,23 +339,27 @@ switch lower(Action), case 'setup'                         %-Set up results
     %----------------------------------------------------------------------
     spm_clf(Finter);
     spm('FigName',['SPM{',xSPM.STAT,'}: Results'],Finter,CmdLine);
-    hReg      = cg_tfce_results('SetupGUI',M,DIM,xSPM,Finter);
+    hReg      = spm_results_ui('SetupGUI',M,DIM,xSPM,Finter);
  
     %-Setup design interrogation menu
     %----------------------------------------------------------------------
     hDesRepUI = spm_DesRep('DesRepUI',SPM);
  
+    %-Setup contrast menu
+    %----------------------------------------------------------------------
+    hConUI    = spm_results_ui('SetupConMenu',xSPM,SPM,Finter);
+    
     %-Atlas menu
     %----------------------------------------------------------------------
-    if isequal(units,{'mm' 'mm' 'mm'}) & strcmp(spm('ver'),'SPM12')
-        hAtlasUI = cg_tfce_results('SetupAtlasMenu',Finter);
+    if isequal(units,{'mm' 'mm' 'mm'})
+        hAtlasUI = spm_results_ui('SetupAtlasMenu',Finter);
     end
-
+    
     %-Setup Maximum intensity projection (MIP) & register
     %----------------------------------------------------------------------
     FS     = spm('FontSizes');
     hMIPax = axes('Parent',Fgraph,'Position',[0.05 0.60 0.55 0.36],'Visible','off');
-    if mesh_detected
+    if spm_mesh_detect(xSPM.Vspm)
         hMax = spm_mesh_render('Disp',SPM.xVol.G,'Parent',hMIPax);
         tmp = zeros(1,prod(xSPM.DIM));
         tmp(xSPM.XYZ(1,:)) = xSPM.Z;
@@ -205,12 +421,16 @@ switch lower(Action), case 'setup'                         %-Set up results
     text(get(h,'Extent')*[0;0;1;0],24,spm_file(SPM.swd,'short30'),'Parent',hResAx)
     try
         thresDesc = xSPM.thresDesc;
-        text(0,12,sprintf('Threshold %s',thresDesc),'Parent',hResAx)
+        if strcmp(xSPM.STAT,'P')
+            text(0,12,sprintf('Height threshold %s',thresDesc),'Parent',hResAx)
+        else
+            text(0,12,sprintf('Height threshold %c = %0.6f  {%s}',xSPM.STAT,xSPM.u,thresDesc),'Parent',hResAx)
+        end
     catch
         text(0,12,sprintf('Height threshold %c = %0.6f',xSPM.STAT,xSPM.u),'Parent',hResAx)
     end
-    if mesh_detected, str = 'vertices'; else str = 'voxels'; end
-    if xSPM.STAT == 'T', text(0,00,sprintf('Extent threshold k = %0.0f %s',xSPM.k,str), 'Parent',hResAx); end
+    if spm_mesh_detect(xSPM.Vspm), str = 'vertices'; else str = 'voxels'; end
+    text(0,00,sprintf('Extent threshold k = %0.0f %s',xSPM.k,str), 'Parent',hResAx)
  
  
     %-Plot design matrix
@@ -234,11 +454,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         dy     = 0.15/max(nCon,2);
         hConAx = axes('Parent',Fgraph, 'Position',[0.65 (0.80 + dy*.1) 0.25 dy*(nCon-.1)],...
             'Tag','ConGrphAx','Visible','off');
-        if xSPM.invResult
-          str    = 'inverse contrast';
-        else
-          str    = 'contrast';
-        end
+        str    = 'contrast';
         if nCon > 1, str = [str 's']; end
         title(hConAx,str)
         htxt   = get(hConAx,'title');
@@ -252,7 +468,6 @@ switch lower(Action), case 'setup'                         %-Set up results
             %-Single vector contrast for SPM{t} - bar
             %--------------------------------------------------------------
             yy = [zeros(1,nPar);repmat(xCon(xSPM.Ic(ii)).c',2,1);zeros(1,nPar)];
-            if xSPM.invResult, yy = -yy; end
             h  = patch(xx,yy,[1,1,1]*.5,'Parent',hCon);
             set(hCon,'Tag','ConGrphAx',...
                 'Box','off','TickDir','out',...
@@ -293,17 +508,17 @@ switch lower(Action), case 'setup'                         %-Set up results
     Hv = get(H,'Visible');
     set(hResAx,'Tag','PermRes','UserData',struct('H',H,'Hv',{Hv}))
  
- 
     %-Finished results setup
     %----------------------------------------------------------------------
     varargout = {hReg,xSPM,SPM};
     spm('Pointer','Arrow')
-
+ 
+ 
     %======================================================================
     case 'setupgui'                            %-Set up results section GUI
     %======================================================================
-        % hReg = cg_tfce_results('SetupGUI',M,DIM,xSPM,Finter)
-        if nargin < 5, Finter='Interactive'; else, Finter = varargin{5}; end
+        % hReg = spm_results_ui('SetupGUI',M,DIM,xSPM,Finter)
+        if nargin < 5, Finter='Interactive'; else Finter = varargin{5}; end
         if nargin < 4, error('Insufficient arguments'), end
         M      = varargin{2};
         DIM    = varargin{3};
@@ -321,41 +536,39 @@ switch lower(Action), case 'setup'                         %-Set up results
                 'BorderType','Etchedin', ...
                 'Position',[005 005 390 180].*WS,...
                 'BackgroundColor',[179 179 179]/255);
-
+ 
         %-Initialise registry in hReg frame object
         %------------------------------------------------------------------
         [hReg,xyz] = spm_XYZreg('InitReg',hReg,M,DIM,[0;0;0]);
  
         %-Setup editable XYZ widgets & cross register with registry
         %------------------------------------------------------------------
-        hFxyz      = cg_tfce_results('DrawXYZgui',M,DIM,varargin{4},xyz,hReg);
-        spm_XYZreg('XReg',hReg,hFxyz,'cg_tfce_results');
+        hFxyz      = spm_results_ui('DrawXYZgui',M,DIM,varargin{4},xyz,hReg);
+        spm_XYZreg('XReg',hReg,hFxyz,'spm_results_ui');
  
         %-Set up buttons for results functions
         %------------------------------------------------------------------
-        cg_tfce_results('DrawButts',hReg,DIM,Finter,WS,FS);
- 
+        spm_results_ui('DrawButts',hReg,DIM,Finter,WS,FS);
+
         if spm_check_version('matlab','7.11') ~= 0
             drawnow; % required to force "ratio locking"
             set(findobj(hPan),'Units','Normalized','FontUnits','Normalized');
         end
-
+        
         varargout  = {hReg};
- 
- 
  
     %======================================================================
     case 'drawbutts'   %-Draw results section buttons in Interactive window
     %======================================================================
-        % cg_tfce_results('DrawButts',hReg,DIM,Finter,WS,FS)
+        % spm_results_ui('DrawButts',hReg,DIM,Finter,WS,FS)
         %
-        if nargin<3, error('Insufficient arguments'), end
+        if nargin < 3, error('Insufficient arguments'), end
         hReg = varargin{2};
         DIM  = varargin{3};
-        if nargin<4,  Finter = spm_figure('FindWin','Interactive');
-        else, Finter = varargin{4}; end
-        if nargin < 5, WS = spm('WinScale');    else,   WS = varargin{5}; end
-        if nargin < 6, FS = spm('FontSizes');   else,   FS = varargin{6}; end
+        if nargin < 4, Finter = spm_figure('FindWin','Interactive');
+        else Finter = varargin{4}; end
+        if nargin < 5, WS = spm('WinScale');  else  WS = varargin{5}; end
+        if nargin < 6, FS = spm('FontSizes'); else  FS = varargin{6}; end
  
         %-p-values
         %------------------------------------------------------------------
@@ -372,7 +585,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             'FontSize',FS(10),...
             'ToolTipString',...
             'Tabulate summary of local maxima, p-values & statistics',...
-            'Callback','TabDat = cg_tfce_list(''List'',xSPM,hReg);',...
+            'Callback','TabDat = spm_list(''List'',xSPM,hReg);',...
             'Interruptible','on','Enable','on',...
             'Position',[005 055 100 020].*WS);
         uicontrol('Parent',hPan,'Style','PushButton','String','current cluster',...
@@ -380,9 +593,18 @@ switch lower(Action), case 'setup'                         %-Set up results
             'FontSize',FS(10),...
             'ToolTipString',...
             'Tabulate p-values & statistics for local maxima of nearest cluster',...
-            'Callback','TabDat = cg_tfce_list(''ListCluster'',xSPM,hReg);',...
+            'Callback','TabDat = spm_list(''ListCluster'',xSPM,hReg);',...
             'Interruptible','on','Enable','on',...
             'Position',[005 030 100 020].*WS);
+        uicontrol('Parent',hPan,'Style','PushButton','String','small volume',...
+            'Units','Pixels',...
+            'FontSize',FS(10),...
+            'ToolTipString',['Small Volume Correction - corrected p-values ',...
+            'for a small search region'],...
+            'Callback','TabDat = spm_VOI(SPM,xSPM,hReg);',...
+            'Interruptible','on','Enable','on',...
+            'Position',[005 005 100 020].*WS);
+ 
  
         %-SPM area - used for Volume of Interest analyses
         %------------------------------------------------------------------
@@ -401,7 +623,56 @@ switch lower(Action), case 'setup'                         %-Set up results
             'Callback','[Y,xY] = spm_regions(xSPM,SPM,hReg)',...
             'Interruptible','on','Enable','on',...
             'FontSize',FS(10));
-          
+        uicontrol('Parent',hPan,'Style','PushButton','String','CVA',...
+            'Position',[076 055 069 020].*WS,...
+            'ToolTipString',...
+            'Canonical variates analysis for the current contrast and VOI',...
+            'Callback','CVA = spm_cva_ui('''',xSPM,SPM)',...
+            'Interruptible','on','Enable','on',...
+            'FontSize',FS(10));
+        uicontrol('Parent',hPan,'Style','PushButton','String','multivariate Bayes',...
+            'Position',[005 030 140 020].*WS,...
+            'ToolTipString',...
+            'Multivariate Bayes',...
+            'Callback','[MVB] = spm_mvb_ui(xSPM,SPM)',...
+            'Interruptible','on','Enable','on',...
+            'FontSize',FS(10));
+        uicontrol('Parent',hPan,'Style','PushButton','String','BMS',...
+            'Position',[005 005 069 020].*WS,...
+            'ToolTipString',...
+            'Compare or review a multivariate Bayesian model',...
+            'Callback','[F,P]  = spm_mvb_bmc',...
+            'Interruptible','on','Enable','on',...
+            'FontSize',FS(8),'ForegroundColor',[1 1 1]/3);
+        uicontrol('Parent',hPan,'Style','PushButton','String','p-value',...
+            'Position',[076 005 069 020].*WS,...
+            'ToolTipString',...
+            'Randomisation testing of a multivariate Bayesian model',...
+            'Callback','spm_mvb_p',...
+            'Interruptible','on','Enable','on',...
+            'FontSize',FS(8),'ForegroundColor',[1 1 1]/3);
+ 
+        %-Hemodynamic modelling
+        %------------------------------------------------------------------
+        if strcmp(spm('CheckModality'),'FMRI')
+            uicontrol('Parent',hReg,'Style','PushButton','String','Hemodynamics',...
+                'FontSize',FS(10),...
+                'ToolTipString','Hemodynamic modelling of regional response',...
+                'Callback','[Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg);',...
+                'Interruptible','on','Enable','on',...
+                'Position',[125 050 140 020].*WS,...
+                'ForegroundColor',[1 1 1]/3);
+        end
+ 
+        %-Not currently used
+        %------------------------------------------------------------------
+        %uicontrol('Parent',hReg,'Style','PushButton','String','',...
+        %     'FontSize',FS(10),...
+        %     'ToolTipString','',...
+        %     'Callback','',...
+        %     'Interruptible','on','Enable','on',...
+        %     'Position',[010 050 100 020].*WS);
+
         %-Visualisation
         %------------------------------------------------------------------
         hPan = uipanel('Parent',hReg,'Title','Display','Units','Pixels',...
@@ -470,7 +741,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         uicontrol('Parent',hReg,'Style','PushButton','String','clear',...
             'ToolTipString','Clear results subpane',...
             'FontSize',FS(9),'ForegroundColor','b',...
-            'Callback',['cg_tfce_results(''Clear''); ',...
+            'Callback',['spm_results_ui(''Clear''); ',...
               'spm_input(''!DeleteInputObj''),',...
               'spm_clf(''Satellite'')'],...
             'Interruptible','on','Enable','on',...
@@ -480,17 +751,79 @@ switch lower(Action), case 'setup'                         %-Set up results
         uicontrol('Parent',hReg,'Style','PushButton','String','exit',...
             'ToolTipString','Exit the results section',...
             'FontSize',FS(9),'ForegroundColor','r',...
-            'Callback','cg_tfce_results(''close'')',...
+            'Callback','spm_results_ui(''close'')',...
             'Interruptible','on','Enable','on',...
             'Position',[332 050 048 020].*WS);
-
+ 
+ 
+    %======================================================================
+    case 'setupconmenu'                               %-Setup Contrast Menu
+    %======================================================================
+    % spm_results_ui('SetupConMenu',xSPM,SPM,Finter)
+    if nargin < 4, Finter = 'Interactive'; else Finter = varargin{4}; end
+    if nargin < 3, error('Insufficient arguments'), end
+    xSPM = varargin{2};
+    SPM  = varargin{3};
+    Finter = spm_figure('GetWin',Finter);
+    hC   = uimenu(Finter,'Label','Contrasts', 'Tag','ContrastsUI');
+    hC1  = uimenu(hC,'Label','New Contrast...',...
+        'UserData',struct('Ic',0),...
+        'Callback',{@mychgcon,xSPM});
+    hC1 = uimenu(hC,'Label','Change Contrast');
+    for i=1:numel(SPM.xCon)
+        hC2 = uimenu(hC1,'Label',[SPM.xCon(i).STAT, ': ', SPM.xCon(i).name], ...
+            'UserData',struct('Ic',i),...
+            'Callback',{@mychgcon,xSPM});
+        if any(xSPM.Ic == i)
+            set(hC2,'ForegroundColor',[0 0 1],'Checked','on');
+        end
+    end
+    hC1 = uimenu(hC,'Label','Previous Contrast',...
+        'Accelerator','P',...
+        'UserData',struct('Ic',xSPM.Ic-1),...
+        'Callback',{@mychgcon,xSPM});
+    if xSPM.Ic-1<1, set(hC1,'Enable','off'); end
+    hC1 = uimenu(hC,'Label','Next Contrast',...
+        'Accelerator','N',...
+        'UserData',struct('Ic',xSPM.Ic+1),...
+        'Callback',{@mychgcon,xSPM});
+    if xSPM.Ic+1>numel(SPM.xCon), set(hC1,'Enable','off'); end
+    hC1 = uimenu(hC,'Label','Significance level','Separator','on');
+    xSPMtmp = xSPM; xSPMtmp.thresDesc = '';
+    uimenu(hC1,'Label','Change...','UserData',struct('Ic',xSPM.Ic),...
+        'Callback',{@mychgcon,xSPMtmp}); 
+    
+    if strcmp(xSPM.STAT,'P')
+        xSPMtmp = xSPM; xSPMtmp.thresDesc = 'LogBF';
+        uimenu(hC1,'Label','Set LogBF','UserData',struct('Ic',xSPM.Ic),...
+            'Callback',{@mychgcon,xSPMtmp});
+    else
+        xSPMtmp = xSPM; xSPMtmp.thresDesc = 'p<0.05 (FWE)';
+        uimenu(hC1,'Label','Set to 0.05 (FWE)','UserData',struct('Ic',xSPM.Ic),...
+            'Callback',{@mychgcon,xSPMtmp});
+        xSPMtmp = xSPM; xSPMtmp.thresDesc = 'p<0.001 (unc.)';
+        uimenu(hC1,'Label','Set to 0.001 (unc.)','UserData',struct('Ic',xSPM.Ic),...
+            'Callback',{@mychgcon,xSPMtmp});
+    end
+    
+    uimenu(hC1,'Label',[xSPM.thresDesc ', k=' num2str(xSPM.k)],...
+        'Enable','off','Separator','on');
+    
+    hC1 = uimenu(hC,'Label','Multiple display...',...
+        'Separator','on',...
+        'Callback',{@mycheckres,xSPM});
+        
+    varargout = {hC};
+    
+        
     %======================================================================
     case 'setupatlasmenu'                                %-Setup Atlas Menu
     %======================================================================
-        % cg_tfce_results('SetupAtlasMenu',Finter)
+        % spm_results_ui('SetupAtlasMenu',Finter)
     
         Finter = varargin{2};
         
+        %hC  = uicontextmenu;
         hC   = uimenu(Finter,'Label','Atlas', 'Tag','AtlasUI');
         
         hC1  = uimenu(hC,'Label','Label using');
@@ -498,17 +831,21 @@ switch lower(Action), case 'setup'                         %-Set up results
         list = spm_atlas('List','installed');
         for i=1:numel(list)
             uimenu(hC1,'Label',list(i).name,...
-                'Callback',sprintf('cg_tfce_list(''label'',''%s'');',list(i).name));
+                'Callback',sprintf('spm_list(''label'',''%s'');',list(i).name));
         end
         if isempty(list), set(hC1,'Enable','off'); end
-                
+        
+        %hC2  = uimenu(hC,'Label','Download Atlas...',...
+        %    'Separator','on',...
+        %    'Callback','spm_atlas(''install'');');
+        
         varargout = {hC};
     
- 
+    
     %======================================================================
     case 'drawxyzgui'                                   %-Draw XYZ GUI area
     %======================================================================
-        % hFxyz = cg_tfce_results('DrawXYZgui',M,DIM,xSPM,xyz,Finter)
+        % hFxyz = spm_results_ui('DrawXYZgui',M,DIM,xSPM,xyz,hReg)
         if nargin<6,  hReg=spm_XYZreg('FindReg','Interactive');
         else hReg=varargin{6}; end
         if nargin < 5, xyz=[0;0;0]; else xyz=varargin{5}; end
@@ -517,7 +854,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         M       = varargin{2};
         xyz     = spm_XYZreg('RoundCoords',xyz,M,DIM);
  
-        %-Locate windows etc...
+        %-Font details
         %------------------------------------------------------------------
         WS      = spm('WinScale');
         FS      = spm('FontSizes');
@@ -525,7 +862,7 @@ switch lower(Action), case 'setup'                         %-Set up results
  
         %-Create XYZ control objects
         %------------------------------------------------------------------
-       hFxyz = uipanel('Parent',hReg,'Title','co-ordinates','Units','Pixels',...
+        hFxyz = uipanel('Parent',hReg,'Title','co-ordinates','Units','Pixels',...
             'Position',[005 005 265 040].*WS,...
             'BorderType','Beveledout',...
             'ShadowColor',[0.5 0.5 0.5],...
@@ -544,7 +881,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             'FontSize',FS(10),'BackGroundColor',[.8,.8,1],...
             'HorizontalAlignment','Right',...
             'Tag','hX',...
-            'Callback','cg_tfce_results(''EdWidCB'')');
+            'Callback','spm_results_ui(''EdWidCB'')');
  
         uicontrol('Parent',hReg,'Style','Text','String','y =',...
             'Position',[100 010 024 018].*WS,...
@@ -556,7 +893,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             'FontSize',FS(10),'BackGroundColor',[.8,.8,1],...
             'HorizontalAlignment','Right',...
             'Tag','hY',...
-            'Callback','cg_tfce_results(''EdWidCB'')');
+            'Callback','spm_results_ui(''EdWidCB'')');
  
         if DIM(3) ~= 1
         uicontrol('Parent',hReg,'Style','Text','String','z =',...
@@ -569,7 +906,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             'FontSize',FS(10),'BackGroundColor',[.8,.8,1],...
             'HorizontalAlignment','Right',...
             'Tag','hZ',...
-            'Callback','cg_tfce_results(''EdWidCB'')');
+            'Callback','spm_results_ui(''EdWidCB'')');
         else
         hZ = [];
         end
@@ -588,7 +925,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             'Position',[005 001 100 020].*WS,...
             'FontSize',FS(10),...
             'HorizontalAlignment','Center');
-
+ 
  
         %-Store data
         %------------------------------------------------------------------
@@ -611,7 +948,7 @@ switch lower(Action), case 'setup'                         %-Set up results
     %======================================================================
     case 'edwidcb'                          %-Callback for editable widgets
     %======================================================================
-        % cg_tfce_results('EdWidCB')
+        % spm_results_ui('EdWidCB')
  
         hC    = gcbo;
         d     = find(strcmp(get(hC,'Tag'),{'hX','hY','hZ'}));
@@ -633,47 +970,47 @@ switch lower(Action), case 'setup'                         %-Set up results
             UD.xyz = nxyz; set(hFxyz,'UserData',UD)
             if ~isempty(UD.hReg), spm_XYZreg('SetCoords',nxyz,UD.hReg,hFxyz); end
             set(hC,'String',sprintf('%.3f',nxyz(d)))
-            cg_tfce_results('UpdateSPMval',UD)
+            spm_results_ui('UpdateSPMval',UD)
         end
  
+        
     %======================================================================
     case 'updatespmval'                           %-Update SPM value in GUI
     %======================================================================
-        % cg_tfce_results('UpdateSPMval',hFxyz)
-        % cg_tfce_results('UpdateSPMval',UD)
+        % spm_results_ui('UpdateSPMval',hFxyz)
+        % spm_results_ui('UpdateSPMval',UD)
         if nargin<2, error('insufficient arguments'), end
-        if isstruct(varargin{2}), UD=varargin{2}; else, UD = get(varargin{2},'UserData'); end
+        if isstruct(varargin{2}), UD=varargin{2}; else UD = get(varargin{2},'UserData'); end
         i  = spm_XYZreg('FindXYZ',UD.xyz,UD.XYZ);
-        if isempty(i), str = ''; else, str = sprintf('%6.2f',UD.Z(i)); end
+        if isempty(i), str = ''; else str = sprintf('%6.2f',UD.Z(i)); end
         set(UD.hSPM,'String',str);
  
  
     %======================================================================
     case 'getcoords'             % Get current co-ordinates from XYZ widget
     %======================================================================
-        % xyz = cg_tfce_results('GetCoords',hFxyz)
-        if nargin<2, hFxyz='Interactive'; else, hFxyz=varargin{2}; end
-        hFxyz     = cg_tfce_results('FindXYZframe',hFxyz);
+        % xyz = spm_results_ui('GetCoords',hFxyz)
+        if nargin<2, hFxyz='Interactive'; else hFxyz=varargin{2}; end
+        hFxyz     = spm_results_ui('FindXYZframe',hFxyz);
         varargout = {getfield(get(hFxyz,'UserData'),'xyz')};
- 
  
  
     %======================================================================
     case 'setcoords'                       % Set co-ordinates to XYZ widget
     %======================================================================
-        % [xyz,d] = cg_tfce_results('SetCoords',xyz,hFxyz,hC)
-        if nargin<4, hC=0; else, hC=varargin{4}; end
-        if nargin<3, hFxyz=cg_tfce_results('FindXYZframe'); else, hFxyz=varargin{3}; end
-        if nargin<2, error('Set co-ords to what!'), else, xyz=varargin{2}; end
+        % [xyz,d] = spm_results_ui('SetCoords',xyz,hFxyz,hC)
+        if nargin<4, hC=NaN; else hC=varargin{4}; end
+        if nargin<3, hFxyz=spm_results_ui('FindXYZframe'); else hFxyz=varargin{3}; end
+        if nargin<2, error('Set co-ords to what!'); else xyz=varargin{2}; end
  
         %-If this is an internal call, then don't do anything
-        if hFxyz==hC, return, end
+        if isequal(hFxyz,hC), return, end
  
         UD = get(hFxyz,'UserData');
  
         %-Check validity of coords only when called without a caller handle
         %------------------------------------------------------------------
-        if hC <= 0
+        if ~ishandle(hC)
             [xyz,d] = spm_XYZreg('RoundCoords',xyz,UD.M,UD.DIM);
             if d>0 && nargout<2, warning(sprintf(...
                 '%s: Co-ords rounded to nearest voxel centre: Discrepancy %.2f',...
@@ -689,11 +1026,11 @@ switch lower(Action), case 'setup'                         %-Set up results
         set(UD.hX,'String',sprintf('%.2f',xyz(1)))
         set(UD.hY,'String',sprintf('%.2f',xyz(2)))
         set(UD.hZ,'String',sprintf('%.2f',xyz(3)))
-        cg_tfce_results('UpdateSPMval',UD)
+        spm_results_ui('UpdateSPMval',UD);
  
         %-Tell the registry, if we've not been called by the registry...
         %------------------------------------------------------------------
-        if (~isempty(UD.hReg) && UD.hReg~=hC)
+        if (~isempty(UD.hReg) && ~isequal(UD.hReg,hC))
             spm_XYZreg('SetCoords',xyz,UD.hReg,hFxyz);
         end
  
@@ -701,28 +1038,26 @@ switch lower(Action), case 'setup'                         %-Set up results
         %------------------------------------------------------------------
         varargout = {xyz,d};
  
- 
- 
+
     %======================================================================
     case 'findxyzframe'                                  % Find hFxyz frame
     %======================================================================
-        % hFxyz = cg_tfce_results('FindXYZframe',h)
+        % hFxyz = spm_results_ui('FindXYZframe',h)
         % Sorts out hFxyz handles
-        if nargin<2, h='Interactive'; else, h=varargin{2}; end
+        if nargin<2, h='Interactive'; else h=varargin{2}; end
         if ischar(h), h=spm_figure('FindWin',h); end
         if ~ishandle(h), error('invalid handle'), end
         if ~strcmp(get(h,'Tag'),'hFxyz'), h=findobj(h,'Tag','hFxyz'); end
         if isempty(h), error('XYZ frame not found'), end
         if length(h)>1, error('Multiple XYZ frames found'), end
         varargout = {h};
- 
- 
- 
+
+
     %======================================================================
     case 'plotui'                               %-GUI for plot manipulation
     %======================================================================
-        % cg_tfce_results('PlotUi',hAx)
-        if nargin<2, hAx=gca; else, hAx=varargin{2}; end
+        % spm_results_ui('PlotUi',hAx)
+        if nargin<2, hAx=gca; else hAx=varargin{2}; end
  
         WS = spm('WinScale');
         FS = spm('FontSizes');
@@ -741,7 +1076,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             end
         end
  
-         %-Frames & text
+        %-Frames & text
         %------------------------------------------------------------------
         hGraphUIbg = uipanel('Parent',Finter,'Title','','Tag','hGraphUIbg',...
             'BackgroundColor',spm('Colour'),...
@@ -803,14 +1138,14 @@ switch lower(Action), case 'setup'                         %-Set up results
         h4 = uicontrol('Parent',hGraphUIButtsF,'Style','popupmenu',...
             'ToolTipString','edit axis text annotations',...
             'FontSize',FS(10),...
-            'String','text|Title|Xlabel|Ylabel',...
+            'String',{'text','Title','Xlabel','Ylabel'},...
             'Callback','spm_results_ui(''PlotUiCB'')',...
             'Interruptible','on','Enable','on',...
             'Position',[230 005 070 020].*WS);
         h5 = uicontrol('Parent',hGraphUIButtsF,'Style','popupmenu',...
             'ToolTipString','change various axes attributes',...
             'FontSize',FS(10),...
-            'String','attrib|LineWidth|XLim|YLim|handle',...
+            'String',{'attrib','LineWidth','XLim','YLim','handle'},...
             'Callback','spm_results_ui(''PlotUiCB'')',...
             'Interruptible','off','Enable','on',...
             'Position',[305 005 070 020].*WS);
@@ -826,13 +1161,11 @@ switch lower(Action), case 'setup'                         %-Set up results
         set(hAx,'UserData',hGraphUIbg,...
             'DeleteFcn','spm_results_ui(''Delete'',get(gcbo,''UserData''))')
 
- 
- 
- 
+
     %======================================================================
     case 'plotuicb'
     %======================================================================
-        % cg_tfce_results('PlotUiCB')
+        % spm_results_ui('PlotUiCB')
         hPM = gcbo;
         v   = get(hPM,'Value');
         if v==1, return, end
@@ -869,13 +1202,13 @@ switch lower(Action), case 'setup'                         %-Set up results
  
  
     %======================================================================
-    case {'clear'}                                  %-Clear results subpane
+    case 'clear'                                    %-Clear results subpane
     %======================================================================
-        % Fgraph = cg_tfce_results('Clear',F,mode)
+        % Fgraph = spm_results_ui('Clear',F,mode)
         % mode 1 [default] usual, mode 0 - clear & hide Res stuff, 2 - RNP
-        
-        if nargin<3, mode=1; else, mode=varargin{3}; end
-        if nargin<2, F='Graphics'; else, F=varargin{2}; end
+ 
+        if nargin<3, mode=1; else mode=varargin{3}; end
+        if nargin<2, F='Graphics'; else F=varargin{2}; end
         F = spm_figure('FindWin',F);
  
         %-Clear input objects from 'Interactive' window
@@ -910,6 +1243,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         end
  
         delete(H)
+        %set(F,'resize','on');set(F,'resize','off')
  
         if mode==0  %-Hide the permanent results section stuff
             set(HR,'Visible','off')
@@ -917,7 +1251,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             set(HR,{'Visible'},HRv)
         end
  
- 
+        
     %======================================================================
     case 'close'                                            %-Close Results
     %======================================================================
@@ -926,12 +1260,12 @@ switch lower(Action), case 'setup'                         %-Set up results
         close(spm_figure('FindWin','Satellite'));
         evalin('base','clear');
     
-
+    
     %======================================================================
     case 'launchmp'                            %-Launch multiplanar toolbox
     %======================================================================
-        % hMP = cg_tfce_results('LaunchMP',M,DIM,hReg,hBmp)
-        if nargin<5, hBmp = gcbo; else, hBmp = varargin{5}; end
+        % hMP = spm_results_ui('LaunchMP',M,DIM,hReg,hBmp)
+        if nargin<5, hBmp = gcbo; else hBmp = varargin{5}; end
         hReg = varargin{4};
         DIM  = varargin{3};
         M    = varargin{2};
@@ -950,15 +1284,15 @@ switch lower(Action), case 'setup'                         %-Set up results
  
         %-Setup automatic deletion of MultiPlanar on deletion of results controls
         set(hBmp,'Enable','on','UserData',hMP)
-        set(hBmp,'DeleteFcn','cg_tfce_results(''delete'',get(gcbo,''UserData''))')
+        set(hBmp,'DeleteFcn','spm_results_ui(''delete'',get(gcbo,''UserData''))')
  
         varargout = {hMP};
  
-  
+ 
     %======================================================================
     case 'delete'                           %-Delete HandleGraphics objects
     %======================================================================
-        % cg_tfce_results('Delete',h)
+        % spm_results_ui('Delete',h)
         h = varargin{2};
         delete(h(ishandle(h)));
  
@@ -968,7 +1302,6 @@ switch lower(Action), case 'setup'                         %-Set up results
     %======================================================================
         error('Unknown action string')
  
-    %======================================================================
 end
 
 %==========================================================================
@@ -1003,8 +1336,8 @@ if ~isempty(xSPM.thresDesc)
 end
 hReg = spm_XYZreg('FindReg',spm_figure('GetWin','Interactive'));
 xyz  = spm_XYZreg('GetCoords',hReg);
-[hReg,xSPM,SPM] = cg_tfce_results('setup',xSPM2);
-TabDat = cg_tfce_list('List',xSPM,hReg);
+[hReg,xSPM,SPM] = spm_results_ui('setup',xSPM2);
+TabDat = spm_list('List',xSPM,hReg);
 spm_XYZreg('SetCoords',xyz,hReg);
 assignin('base','hReg',hReg);
 assignin('base','xSPM',xSPM);
@@ -1116,4 +1449,3 @@ so.slices = spm_input('Slices to display (mm)', '+1', 'e', ...
 so.figure = spm_figure('GetWin', 'SliceOverlay');
 so = paint(so);
 assignin('base','so',so);
-

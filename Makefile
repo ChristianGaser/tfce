@@ -15,7 +15,7 @@ STARGET_HTDOCS=${STARGET_HOST}:/volume1/web/
 STARGET_FOLDER=/volume1/web/tfce
 STARGET=${STARGET_HOST}:${STARGET_FOLDER}
 
-MATLAB_FILES=Contents.m cg_get_tfce_results.m cg_tfce_results.m cg_tfce_list.m cg_tfce_update.m cg_progress.m spm_TFCE.m tfce_mesh.m snpm_P_FDR.m tbx_cfg_tfce_estimate.m cg_tfce_estimate.m cg_tfce_surf_max.m
+MATLAB_FILES=Contents.m tfce_*.m spm_TFCE.m snpm_P_FDR.m tbx_cfg_tfce.m
 C_FILES=tfceMex_pthread.* 
 MISC_FILES=TFCE.man
 
@@ -45,7 +45,7 @@ update:
 	-@echo '% Version ' ${REVISION} ' (version '${NEWVERSION}')' ${DATE} >> Contents.m
 	-@cat Contents_info.txt >> Contents.m
 	-@echo '% __________________________________________________________________________' > TFCE.man
-	-@echo '% TFCE Toolbox for SPM8/SPM12' >> TFCE.man
+	-@echo '% TFCE Toolbox for SPM12' >> TFCE.man
 	-@echo '% Version ' ${REVISION} ${NEWVERSION} ${DATE} >> TFCE.man
 	-@cat TFCE.txt >> TFCE.man
 	-@perl -p -i -e "s/${OLDVERSION}/${NEWVERSION}/g" spm_TFCE.m

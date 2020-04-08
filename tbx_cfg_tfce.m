@@ -1,4 +1,4 @@
-function tfce_estimate = tbx_cfg_tfce_estimate
+function tfce_estimate = tbx_cfg_tfce
 % SPM Configuration file for TFCE estimate
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
@@ -152,4 +152,4 @@ tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
 tfce_estimate.val      = {spmmat mask conspec nuisance_method tbss E_weight singlethreaded};
 tfce_estimate.help     = {''};
-tfce_estimate.prog     = @cg_tfce_estimate;
+tfce_estimate.prog     = @tfce_estimate_stat;

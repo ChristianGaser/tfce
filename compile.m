@@ -10,7 +10,7 @@ end
 
 mexflag=' -O -largeArrayDims COPTIMFLAGS=''-O3 -fwrapv -DNDEBUG'' CFLAGS=''$CFLAGS -pthread -Wall -ansi -pedantic -Wextra'' ';
 
-eval(['mex ' mexflag ' -O tfceMex_pthread.c'])
+eval(['mex ' mexflag ' tfceMex_pthread.c'])
 
 try
     tfceMex_pthread(rand(10,10,10),0.01,0.5,2);

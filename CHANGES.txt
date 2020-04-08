@@ -1,5 +1,21 @@
 ------------------------------------------------------------------------
-r190 | gaser | 2020-04-08 02:26:27
+r191 | gaser | 2020-04-09 00:33:19
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+M       spm_TFCE.m
+M       tbx_cfg_tfce.m
+M       tfce_list.m
+M       tfce_results_ui.m
+
+(1) Changed: Updated Makefile.
+(2) Changed: Updated tfce_results_ui.m to implement modifications from 
+    cat_stat_spm_results_ui.m for surface visualization of results.
+(3) Changed: Implemented function for displaying only current cluster.
+(4) Changed: Updated help text.
+------------------------------------------------------------------------
+r190 | gaser | 2020-04-08 02:26:29 +0200 (Mi, 08 Apr 2020) | 11 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -11,6 +27,7 @@ A       spm/spm_results_ui.m
 
 (1) Fixed: Resolved conflict with spm folder.
 (2) Fixed: Corrected port of ssh command in makefile.
+
 ------------------------------------------------------------------------
 r189 | gaser | 2020-04-08 02:19:15 +0200 (Mi, 08 Apr 2020) | 87 lines
 

@@ -17,7 +17,7 @@ STARGET=${STARGET_HOST}:${STARGET_FOLDER}
 
 MATLAB_FILES=Contents.m tfce_*.m spm_TFCE.m snpm_P_FDR.m tbx_cfg_tfce.m
 C_FILES=tfceMex_pthread.* 
-MISC_FILES=TFCE.man
+MISC_FILES=TFCE.man html
 
 FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}
 
@@ -37,9 +37,12 @@ install2:
 
 help:
 	-@echo Available commands:
-	-@echo install zip scp update
+	-@echo install zip scp doc update
 
-update:
+doc:
+	-@cat html/tfce.txt | sed -e 's/VERSION/'${NEWVERSION}'/g' -e 's/RELNUMBER/r'${REVISION}'/g' -e 's/DATE/'${DATE}'/g' > html/tfce.html
+
+update: doc
 	-@svn update
 	-@echo '% TFCE Toolbox' > Contents.m
 	-@echo '% Version ' ${REVISION} ' (version '${NEWVERSION}')' ${DATE} >> Contents.m
@@ -64,3 +67,4 @@ scp: zip
 	-@echo scp to http://${STARGET_HOST}/tfce/${ZIPFILE}
 	-@scp -P 2222 CHANGES.txt ${ZIPFILE} ${STARGET}
 	-@bash -c "ssh -p 2222 ${STARGET_HOST} ln -fs ${STARGET_FOLDER}/${ZIPFILE} ${STARGET_FOLDER}/tfce_latest.zip"
+	

@@ -15,7 +15,7 @@ addpath(fileparts(which(mfilename)));
 spmmat         = cfg_files;
 spmmat.tag     = 'spmmat';
 spmmat.name    = 'Select SPM.mat';
-spmmat.help    = {'Select the SPM.mat file that contains the design specification.'};
+spmmat.help    = {'Select the SPM.mat file that contains the design specification from a previous (parametric) estimation, where all required contrasts are already specified.'};
 spmmat.filter  = 'mat';
 spmmat.ufilter = '^SPM\.mat$';
 spmmat.num     = [1 1];
@@ -26,7 +26,7 @@ spmmat.num     = [1 1];
 mask         = cfg_files;
 mask.tag     = 'mask';
 mask.name    = 'Select additional mask';
-mask.help    = {'Select an additional mask image or surface to restrict analysis. As default the mask in the analysis folder is used. Here you can select a mask  to additionally restrict the analysis to regions of interest (i.e. small volume/surface correction).'};
+mask.help    = {'Select an additional mask image or surface to restrict your analysis. As default the mask in the analysis folder is used. Here you can select a mask to additionally restrict the analysis to regions of interest (i.e. small volume/surface correction).'};
 if strcmp(spm('ver'),'SPM12')
   mask.filter  = {'image','mesh'};
 else
@@ -41,7 +41,7 @@ mask.num     = [0 1];
 % ---------------------------------------------------------------------
 titlestr         = cfg_entry;
 titlestr.tag     = 'titlestr';
-titlestr.name    = 'Results Title';
+titlestr.name    = 'Results title';
 titlestr.help    = {'Heading on results page - determined automatically if left empty'};
 titlestr.val     = {''};
 titlestr.strtype = 's';
@@ -71,9 +71,11 @@ contrasts.num     = [1 Inf];
 n_perm         = cfg_entry;
 n_perm.tag     = 'n_perm';
 n_perm.name    = 'Number of permutations';
-n_perm.help    = {'With 1000 permutations the smallest possible p-value is 0.001 (n=1/p). A useful strategy is to start with 1000 permutations and continue to 5000-10000 only if p is small enough to be interesting and/or for the final analysis.'
-                     ''
-                     'If number of maximal possible permutations is smaller, then this number is used resulting in an exact permutation test.'
+n_perm.help    = {'In order to obtain reliable estimates you need about 5000-10000 permutations.'
+                  ''
+                  'There is also an option to interrrupt the permutation process and to save the results at this step to take a first look on your results.'
+                  ''
+                  'If the number of maximal possible permutations is smaller, then this number is used resulting in an exact permutation test.'
 }';
 n_perm.strtype = 'e';
 n_perm.val     = {5000};
@@ -89,7 +91,7 @@ tbss.labels = {'yes','no'};
 tbss.values = {1 0};
 tbss.val  = {0};
 tbss.help = {[...
-'Use 2D optimization (e.g. for TBSS data) with internal TFCE parameters H=2, E=1.']};
+'Use 2D optimization (e.g. for TBSS DTI data) with internal TFCE parameters H=2, E=1.']};
 
 % ---------------------------------------------------------------------
 % method to deal with nuisance variables
@@ -100,8 +102,11 @@ nuisance_method.name    = 'Permutation method to deal with nuisance variables';
 nuisance_method.labels = {'Draper-Stoneman','Smith','Freedman-Lane (experimental)'};
 nuisance_method.values  = {0 2 1};
 nuisance_method.val     = {2};
-nuisance_method.help    = {'A number of methods are available to obtain parameter estimates and construct a reference distribution in the presence of nuisance variables. Smith permutation method can be optionally used if any nuisance variables exist and is selected by default. If no nuisance variables were found in the model then Draper-Stoneman method is automatically used. '
+nuisance_method.help    = {'A number of methods are available to obtain parameter estimates and construct a reference distribution in the presence of nuisance variables. Smith permutation method is used if any nuisance variables exist and is selected by default. If no nuisance variables were found in the model then Draper-Stoneman method is automatically used. '
+''
 'Freedman-Lane is another permutation method to deal with nuisance parameters. However, behaviour of that method was found to be strange under some circumstances and you have to apply this method very carefully. '
+''
+'It is only necessary to change the permutation method if a large discrepancy between parametric and non-parametric statistic was found, which is indicated at the Matlab command line. '
 }';
 
 % ---------------------------------------------------------------------

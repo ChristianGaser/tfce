@@ -31,7 +31,7 @@ function varargout = tfce_list(varargin)
 %
 % (see spm_getSPM.m for further details of xSPM structures)
 %
-% hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
+% hReg   - Handle of results section XYZ registry (see tfce_results_ui.m)
 %
 % Num    - number of maxima per cluster [3]
 % Dis    - distance among clusters {mm} [8]
@@ -469,7 +469,7 @@ case 'table'                                                        %-Table
     
     %-Get current location (to highlight selected voxel in table)
     %----------------------------------------------------------------------
-    xyzmm = spm_results_ui('GetCoords');
+    xyzmm = tfce_results_ui('GetCoords');
     
     %-Setup Graphics panel
     %----------------------------------------------------------------------
@@ -481,7 +481,7 @@ case 'table'                                                        %-Table
         Fgraph = spm_figure('GetWin','Graphics');
         ht = 0.4; bot = 0.1;
     end
-    spm_results_ui('Clear',Fgraph)
+    tfce_results_ui('Clear',Fgraph)
     FS     = spm('FontSizes');           %-Scaled font sizes
     PF     = spm_platform('fonts');      %-Font names (for this platform)
     
@@ -507,7 +507,7 @@ case 'table'                                                        %-Table
       text(0,y,['Statistics:  \it\fontsize{',num2str(FS(9)),'}',TabDat.tit],...
               'FontSize',FS(11),'FontWeight','Bold');   y = y - dy/2;
     end
-    line([0 1],[y y],'LineWidth',3,'Color','b'),        y = y - 9*dy/8;
+    line([0 1],[y y],'LineWidth',3,'Color','r'),        y = y - 9*dy/8;
     
     %-Display table header
     %----------------------------------------------------------------------
@@ -522,7 +522,7 @@ case 'table'                                                        %-Table
         h = text(0.55,y, 'peak-level','FontSize',FS(9));
     end
     Hp = [Hp,h];
-    h = line([0.38,0.88],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','b'); Hp = [Hp,h];
+    h = line([0.38,0.88],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r'); Hp = [Hp,h];
     h  = text(0.49,y-9*dy/8,    TabDat.hdr{3,7});              Hp = [Hp,h];
     h  = text(0.58,y-9*dy/8,    TabDat.hdr{3,8});              Hp = [Hp,h];
     h  = text(0.67,y-9*dy/8,    TabDat.hdr{3,9});              Hp = [Hp,h];
@@ -533,7 +533,7 @@ case 'table'                                                        %-Table
     %-Move to next vertical position marker
     %----------------------------------------------------------------------
     y     = y - 7*dy/4;
-    line([0 1],[y y],'LineWidth',1,'Color','b')
+    line([0 1],[y y],'LineWidth',1,'Color','r')
     y     = y - 5*dy/4;
     y0    = y;
 
@@ -544,7 +544,7 @@ case 'table'                                                        %-Table
 
     %-Footnote with SPM parameters (if classical inference)
     %----------------------------------------------------------------------
-    line([0 1],[0.01 0.01],'LineWidth',1,'Color','b')
+    line([0 1],[0.01 0.01],'LineWidth',1,'Color','r')
     if ~isempty(TabDat.ftr)
         set(gca,'DefaultTextFontName',PF.helvetica,...
             'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
@@ -642,7 +642,7 @@ case 'table'                                                        %-Table
 
         HlistXYZ = [HlistXYZ, h];
         if spm_XYZreg('Edist',xyzmm,tXYZmm)<eps && ~isempty(hReg)
-            set(h,'Color','b')
+            set(h,'Color','r')
         end
         hPage  = [hPage, h];
 
@@ -709,12 +709,6 @@ case 'table'                                                        %-Table
         if nargin < 2, error('Not enough input arguments.'); end
         if nargin < 3, hReg = []; else hReg = varargin{3};   end
         xSPM = varargin{2};
-
-        if isfield(xSPM,'G')
-            warning('"current cluster" option not implemented for meshes.');
-            varargout = { evalin('base','TabDat') };
-            return;
-        end
         
         %-Get number of maxima per cluster to be reported
         %------------------------------------------------------------------
@@ -737,19 +731,35 @@ case 'table'                                                        %-Table
             %-Jump to voxel nearest current location
             %--------------------------------------------------------------
             [xyzmm,i] = spm_XYZreg('NearestXYZ',...
-                spm_results_ui('GetCoords'),xSPM.XYZmm);
-            spm_results_ui('SetCoords',xSPM.XYZmm(:,i));
-
-            %-Find selected cluster
-            %--------------------------------------------------------------
-            A          = spm_clusters(xSPM.XYZ);
-            j          = find(A == A(i));
-            xSPM.Z     = xSPM.Z(j);
-            xSPM.Qu    = SPM.Qu(j);
-            xSPM.Pu    = SPM.Pu(j);
-            xSPM.Pz    = SPM.Pz(j);
-            xSPM.XYZ   = xSPM.XYZ(:,j);
-            xSPM.XYZmm = xSPM.XYZmm(:,j);
+                tfce_results_ui('GetCoords'),xSPM.XYZmm);
+            warning off
+            tfce_results_ui('SetCoords',xSPM.XYZmm(:,i));
+            
+            if isfield(xSPM,'G')
+                C = NaN(1,size(xSPM.G.vertices,1));
+                C(xSPM.XYZ(1,:)) = ones(size(xSPM.Z));
+                j = spm_mesh_clusters(xSPM.G,C);
+                j = j==j(xSPM.XYZ(1,i));
+                j = j(xSPM.XYZ(1,:));
+                xSPM.Z     = xSPM.Z(j);
+                xSPM.Qu    = xSPM.Qu(j);
+                xSPM.Pu    = xSPM.Pu(j);
+                xSPM.Pz    = xSPM.Pz(j);
+                xSPM.XYZ   = xSPM.XYZ(:,j);
+                xSPM.XYZmm = xSPM.XYZmm(:,j);
+            else
+    
+                %-Find selected cluster
+                %--------------------------------------------------------------
+                A          = spm_clusters(xSPM.XYZ);
+                j          = find(A == A(i));
+                xSPM.Z     = xSPM.Z(j);
+                xSPM.Qu    = xSPM.Qu(j);
+                xSPM.Pu    = xSPM.Pu(j);
+                xSPM.Pz    = xSPM.Pz(j);
+                xSPM.XYZ   = xSPM.XYZ(:,j);
+                xSPM.XYZmm = xSPM.XYZmm(:,j);
+            end
         end
 
         %-Call 'list' functionality to produce table
@@ -862,7 +872,7 @@ case 'table'                                                        %-Table
         if iscell(XYZ), XYZ = cat(2,XYZ{:}); end
         [tmp,i,d] = spm_XYZreg('NearestXYZ',xyz,XYZ);
         if d<eps
-            set(HlistXYZ(i),'Color','b');
+            set(HlistXYZ(i),'Color','r');
         end
 
     %======================================================================
@@ -879,7 +889,7 @@ case 'table'                                                        %-Table
 
     % F  = spm_figure('GetWin','Satellite');
     % spm_figure('Focus',F);
-    % spm_results_ui('Clear',F);
+    % tfce_results_ui('Clear',F);
     % 
     % %-Display activation labels
     % %----------------------------------------------------------------------

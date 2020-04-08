@@ -245,6 +245,7 @@ SVNid = '$Rev$';
 %--------------------------------------------------------------------------
 if nargin == 0, Action='Setup'; else Action=varargin{1}; end
  
+global tfce_result_ui_varargout;
  
 %==========================================================================
 switch lower(Action), case 'setup'                         %-Set up results
@@ -253,6 +254,12 @@ switch lower(Action), case 'setup'                         %-Set up results
     %-Initialise
     %----------------------------------------------------------------------
     spm('FnBanner',mfilename,SVNid);
+    try
+      dcm = datacursormode(spm_figure('FindWin','Graphics')); 
+      set(dcm,'Enable','off','UpdateFcn',[]); 
+      
+      spm_figure('Clear',spm_figure('FindWin','Graphics')); 
+    end
     [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TFCE: Results');
     spm_clf('Satellite');
  
@@ -354,7 +361,7 @@ switch lower(Action), case 'setup'                         %-Set up results
     
     %-Atlas menu
     %----------------------------------------------------------------------
-    if isequal(units,{'mm' 'mm' 'mm'})
+    if ~spm_mesh_detect(xSPM.Vspm)
         hAtlasUI = tfce_results_ui('SetupAtlasMenu',Finter);
     end
     
@@ -363,11 +370,23 @@ switch lower(Action), case 'setup'                         %-Set up results
     FS     = spm('FontSizes');
     hMIPax = axes('Parent',Fgraph,'Position',[0.05 0.60 0.55 0.36],'Visible','off');
     if spm_mesh_detect(xSPM.Vspm)
-        hMax = spm_mesh_render('Disp',SPM.xVol.G,'Parent',hMIPax);
-        tmp = zeros(1,prod(xSPM.DIM));
-        tmp(xSPM.XYZ(1,:)) = xSPM.Z;
-        hMax = spm_mesh_render('Overlay',hMax,tmp);
-        hMax = spm_mesh_render('Register',hMax,hReg);
+       % block to call cat_surf_render rather than spm_mesh_render
+        try
+            hMax = cat_surf_render('Disp',SPM.xVol.G,'Parent',hMIPax,'Results',1);
+            tmp  = zeros(1,prod(xSPM.DIM));
+            tmp(xSPM.XYZ(1,:)) = xSPM.Z;
+            hMax = cat_surf_render('Overlay',hMax,tmp);
+            hMax = cat_surf_render('ColourMap',hMax,jet);
+            hMax = cat_surf_render('Register',hMax,hReg);
+        catch
+            hMax = spm_mesh_render('Disp',SPM.xVol.G,'Parent',hMIPax);
+            tmp  = zeros(1,prod(xSPM.DIM));
+            tmp(xSPM.XYZ(1,:)) = xSPM.Z;
+            hMax = spm_mesh_render('Overlay',hMax,tmp);
+            hMax = spm_mesh_render('Register',hMax,hReg);
+            hMax = spm_mesh_render('ColourMap',hMax,jet);
+            hMax = spm_mesh_render('View',hMax,'top');
+        end
     elseif isequal(units(2:3),{'' ''})
         set(hMIPax, 'Position',[0.05 0.65 0.55 0.25]);
         [allS,allXYZmm] = spm_read_vols(xSPM.Vspm);
@@ -519,6 +538,71 @@ switch lower(Action), case 'setup'                         %-Set up results
     spm('Pointer','Arrow')
  
  
+    
+  
+% -------------------------------------------------------------------------
+% This block is required for postprocessing the SPM result figure. 
+% It include fixes to avoid rotation of non 3D elements and some other tiny 
+% changes to the contrast & design matrix.
+
+		if isfield(xSPM,'G')
+				% create SPM result table and fix elements to avoid rotation of tables
+				tfce_list('List',xSPM,hReg); 
+			
+				% corrections for top elements
+				hRes.Fgraph       = spm_figure('GetWin','Graphics');
+				hRes.FgraphC      = get( hRes.Fgraph ,'children'); 
+				hRes.FgraphAx     = findobj( hRes.FgraphC,'Type','Axes');
+				hRes.FgraphAxPos  = cell2mat(get( hRes.FgraphAx , 'Position'));
+				hRes.Ftext        = findobj(hRes.Fgraph,'Type','Text');
+				% fine red lines of the SPM result table
+				hRes.Fline        = findobj(hRes.Fgraph,'Type','Line','Tag','');% ,'UIcontextMenu',[]);
+				hRes.FlineAx      = get(hRes.Fline,'parent');
+		
+				% find the SPM result texts to fix them against rotation
+				hres.Ftext      = findobj(hRes.Fgraph,'Type','Text','Color',[0.7 0.7 0.7]); 
+				hRes.Ftext3dres = get(  hres.Ftext ,'parent'); 
+			 % for axi=1:numel(hRes.Ftext),      set( hRes.Ftext(axi),'Color',[0.2 0.2 0.2]); end
+				for axi = 1:numel(hRes.Ftext3dres), set( hRes.Ftext3dres{axi},'HitTest','off'); end
+				for axi = 1:numel(hRes.FlineAx ),   set( hRes.FlineAx{axi},'visible','off'); end
+				
+				% make nice contrast box that is a bit larger than the original boxes
+				hRes.Fcons        = hRes.FgraphAx( hRes.FgraphAxPos(:,1) == 0.65 & hRes.FgraphAxPos(:,2) > 0.6 ) ;  
+				for axi = 1:numel( hRes.Fcons ), l = get( hRes.Fcons(axi) , 'ylim'); set(hRes.Fcons(axi) , 'box','on','ylim', round(l) + [-0.015 0.015]); end
+		
+				% remove non integer values
+				hRes.Fdesm        = hRes.FgraphAx( hRes.FgraphAxPos(:,1) == 0.65 & hRes.FgraphAxPos(:,2) < 0.6 ) ;  
+				xt = get(hRes.Fdesm,'xtick'); xt(round(xt)~=xt) = []; set(hRes.Fdesm,'xtick',xt); 
+		
+				%
+				hRes.Fval         = hRes.FgraphAx( hRes.FgraphAxPos(:,1) > 10); 
+				hRes.Fsurf        = hRes.FgraphAx( hRes.FgraphAxPos(:,1) == 0.05);
+				hRes.Flabels      = [ hRes.FgraphAx( hRes.FgraphAxPos(:,1) == 0.65); hRes.FgraphAx( hRes.FgraphAxPos(:,1) == 0.02)]; 
+				for axi = 1:numel( hRes.Flabels ), set(hRes.Flabels(axi),'HitTest','off'); end
+		
+				if nargout==0, 
+						fprintf( ...
+						 ['\n' ...
+							'========================================================================\n' ...
+							'  You have to call tfce_results_ui with all output parameters: \n' ...
+							'    [hReg,xSPM,SPM] = tfce_results_ui; \n\n' ...
+							'  Otherwise, the menu and tables will not work properly! Call now: \n    %s\n'...
+							'========================================================================\n\n'], ...
+							spm_file('[hReg,xSPM,SPM] = tfce_results_ui(''Output'');',...
+								'link','[hReg,xSPM,SPM] = tfce_results_ui(''Output'');'));  
+					
+						tfce_result_ui_varargout = varargout; 
+						clear varargout; 
+				end
+		end
+% -------------------------------------------------------------------------
+    
+    %======================================================================
+    case 'output'                            %-Set up results section GUI
+    %======================================================================
+        fprintf('Updated tfce_result_ui output.\n'); 
+        varargout = tfce_result_ui_varargout; 
+ 
     %======================================================================
     case 'setupgui'                            %-Set up results section GUI
     %======================================================================
@@ -591,7 +675,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             'ToolTipString',...
             'Tabulate summary of local maxima, p-values & statistics',...
             'Callback','TabDat = tfce_list(''List'',xSPM,hReg);',...
-            'Interruptible','on','Enable','on',...
+            'Interruptible','on','Enable','on',... 
             'Position',[005 055 100 020].*WS);
         uicontrol('Parent',hPan,'Style','PushButton','String','current cluster',...
             'Units','Pixels',...
@@ -599,11 +683,17 @@ switch lower(Action), case 'setup'                         %-Set up results
             'ToolTipString',...
             'Tabulate p-values & statistics for local maxima of nearest cluster',...
             'Callback','TabDat = tfce_list(''ListCluster'',xSPM,hReg);',...
-            'Interruptible','on','Enable','on',...
+            'Interruptible','off','Enable','on',...
             'Position',[005 030 100 020].*WS); 
  
         %-SPM area - used for Volume of Interest analyses
         %------------------------------------------------------------------
+        xSPM = evalin('base','xSPM;');
+        if spm_mesh_detect(xSPM.Vspm)
+            Enable = 'off';
+        else
+            Enable = 'on';
+        end
         hPan = uipanel('Parent',hReg,'Title','Multivariate','Units','Pixels',...
             'Position',[120 085 150 092].*WS,...
             'BorderType','Beveledout', ...
@@ -617,15 +707,16 @@ switch lower(Action), case 'setup'                         %-Set up results
             'ToolTipString',...
             'Responses (principal eigenvariate) in volume of interest',...
             'Callback','[Y,xY] = spm_regions(xSPM,SPM,hReg)',...
-            'Interruptible','on','Enable','on',...
+            'Interruptible','on','Enable',Enable,...
             'FontSize',FS(10));
         uicontrol('Parent',hPan,'Style','PushButton','String','CVA',...
             'Position',[076 055 069 020].*WS,...
             'ToolTipString',...
             'Canonical variates analysis for the current contrast and VOI',...
             'Callback','CVA = spm_cva_ui('''',xSPM,SPM)',...
-            'Interruptible','on','Enable','on',...
-            'FontSize',FS(10));
+            'Interruptible','off','Enable',Enable,...
+            'FontSize',FS(10));            
+
   
         %-Visualisation
         %------------------------------------------------------------------
@@ -694,7 +785,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         %------------------------------------------------------------------
         uicontrol('Parent',hReg,'Style','PushButton','String','clear',...
             'ToolTipString','Clear results subpane',...
-            'FontSize',FS(9),'ForegroundColor','b',...
+							'FontSize',FS(9),'ForegroundColor','r',...
             'Callback',['tfce_results_ui(''Clear''); ',...
               'spm_input(''!DeleteInputObj''),',...
               'spm_clf(''Satellite'')'],...
@@ -797,7 +888,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         
         varargout = {hC};
     
-    
+
     %======================================================================
     case 'drawxyzgui'                                   %-Draw XYZ GUI area
     %======================================================================
@@ -1211,6 +1302,7 @@ switch lower(Action), case 'setup'                         %-Set up results
     %======================================================================
     case 'close'                                            %-Close Results
     %======================================================================
+        set(spm_figure('GetWin','Graphics'),'Color',[1 1 1]);
         spm_clf('Interactive');
         spm_clf('Graphics');
         close(spm_figure('FindWin','Satellite'));
@@ -1369,7 +1461,11 @@ if isfield(xSPM,'G')
     C(xSPM.XYZ(1,:)) = Z; % or use NODE_INDEX
     M.cdata = C;
     save(M,F);
-    cmd   = 'spm_mesh_render(''Disp'',''%s'')';
+    if exist('cat_surf_render','file')
+        cmd   = 'cat_surf_render(''Disp'',''%s'')';
+    else
+        cmd   = 'spm_mesh_render(''Disp'',''%s'')';
+    end
 else
     V   = spm_write_filtered(Z, XYZ, xSPM.DIM, xSPM.M,...
     sprintf('SPM{%c}-filtered: u = %5.3f, k = %d',xSPM.STAT,xSPM.u,xSPM.k));

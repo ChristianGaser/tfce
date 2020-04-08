@@ -1,5 +1,18 @@
 ------------------------------------------------------------------------
-r189 | gaser | 2020-04-08 02:18:59
+r190 | gaser | 2020-04-08 02:26:27
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+R       spm
+A       spm/spm_getSPM.m
+A       spm/spm_list.m
+A       spm/spm_results_ui.m
+
+(1) Fixed: Resolved conflict with spm folder.
+(2) Fixed: Corrected port of ssh command in makefile.
+------------------------------------------------------------------------
+r189 | gaser | 2020-04-08 02:19:15 +0200 (Mi, 08 Apr 2020) | 87 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -87,6 +100,7 @@ A  +    tfce_update.m
 (1) Changed: Renamed all functions to start with "tfce".
 (2) Changed: Updated many functions w.r.t. to new functionality in SPM12
     result functions.
+
 ------------------------------------------------------------------------
 r188 | gaser | 2020-02-25 11:44:14 +0100 (Di, 25 Feb 2020) | 10 lines
 

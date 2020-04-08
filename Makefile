@@ -63,4 +63,4 @@ zip: update
 scp: zip
 	-@echo scp to http://${STARGET_HOST}/tfce/${ZIPFILE}
 	-@scp -P 2222 CHANGES.txt ${ZIPFILE} ${STARGET}
-	-@bash -c "ssh ${STARGET_HOST} ln -fs ${STARGET_FOLDER}/${ZIPFILE} ${STARGET_FOLDER}/tfce_latest.zip"
+	-@bash -c "ssh -p 2222 ${STARGET_HOST} ln -fs ${STARGET_FOLDER}/${ZIPFILE} ${STARGET_FOLDER}/tfce_latest.zip"

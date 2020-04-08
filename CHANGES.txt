@@ -1,5 +1,26 @@
 ------------------------------------------------------------------------
-r191 | gaser | 2020-04-09 00:33:19
+r192 | gaser | 2020-04-09 00:35:17
+
+Changed paths:
+M       CHANGES.txt
+D       TFCE.txt
+A       html
+A       html/images
+A       html/images/TFCE.png
+A       html/images/home.jpg
+A       html/images/research.jpg
+A       html/style.css
+A       html/tfce.html
+A       html/tfce.txt
+A       html/tfce_FN.html
+A       html/tfce_starting.html
+MM      spm/spm_getSPM.m
+MM      spm/spm_list.m
+MM      spm/spm_results_ui.m
+
+Added: Added html help text
+------------------------------------------------------------------------
+r191 | gaser | 2020-04-09 00:33:33 +0200 (Do, 09 Apr 2020) | 14 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -14,6 +35,7 @@ M       tfce_results_ui.m
     cat_stat_spm_results_ui.m for surface visualization of results.
 (3) Changed: Implemented function for displaying only current cluster.
 (4) Changed: Updated help text.
+
 ------------------------------------------------------------------------
 r190 | gaser | 2020-04-08 02:26:29 +0200 (Mi, 08 Apr 2020) | 11 lines
 

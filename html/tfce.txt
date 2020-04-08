@@ -1,0 +1,50 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Threshold Free Cluster Enhancement Toolbox for SPM12</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <link rel="stylesheet" type="text/css" href="spm.css" />
+    <link rel="stylesheet" type="text/css" href="../spm.css" />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+  </head>
+  
+  <body>
+    <div id="header" style="background: black url('images/home.jpg') right;">
+      <h1><a href="matlab:web('http://www.neuro.uni-jena.de/','-browser');">Structural Brain Mapping Group</a></h1>
+      <p>
+          <a href="matlab:web('http://www.neuro.uni-jena.de/people/christian-gaser','-browser');">Christian Gaser</a> |
+          <a href="matlab:web('http://www.neuro.uniklinikum-jena.de','-browser');">Department of Neurology</a> | 
+          <a href="matlab:web('http://www.psychiatrie.uniklinikum-jena.de','-browser');">Department of Psychiatry</a> | 
+          <a href="matlab:web('http://www.uni-jena.de/en/start_en.html','-browser');">University of Jena</a>
+      </p>
+      <!-- required for layout -->
+      <div id="breadcrumbs">
+        <a href="cat.html">CAT</a>
+      </div>
+    </div>
+  
+    <div id="content">
+      <br />
+      <p align="center" style="text-align:center;">This is TFCE <b>RELNUMBER from DATE</b><br />You can update your copy of TFCE here: <a href="matlab:spm('alert',evalc('tfce_update(1)'),'TFCE Update');">Check for update</a>.<br />If you find any bug, please report them at <a href="mailto:vbmweb@gmail.com">vbmweb@gmail.com</a>.</p>
+      <h1 style="text-align:center;"><img src="images/TFCE.png" width=40% height=auto alt="CAT" ></h1>
+
+      <hr />
+    
+    <div id="button">
+      <p align="center" style="text-align:center;"><a href="matlab:web(fullfile(spm('dir'),'toolbox','TFCE','html','tfce_starting.html'))">Open ''Quick Start Guide'' in external window</a></p>      
+    </div>
+
+      <h2>Description</h2>
+      <p>This toolbox is a an extension to <a href="matlab:web('http://www.fil.ion.ucl.ac.uk/spm/software/spm12/','-browser');">SPM12</a> (Wellcome Department of Cognitive Neurology) to provide non-parametric statistics based on threshold-free cluster enhancement (TFCE). The idea of the TFCE approach is to combine focal effects with large voxel height as well as broad effects. In contrast to common approaches that consider cluster-based thresholding no initial (and arbitrary) cluster-forming threshold is necessary. Furthermore, TFCE is fairly robust to nonstationarity in the data, which can be often seen in VBM data. </p>
+      <p>The toolbox is developed by Christian Gaser (University of Jena, Departments of Psychiatry and Neurology) and free but copyright software, distributed under the terms of the <a href="matlab:web('http://www.gnu.org/licenses/gpl-2.0.html','-browser')">GNU General Public Licence</a> as published by the Free Software Foundation; either version 2 of the Licence, or (at your option) any later version. If you use any TFCE code for commercial application, please send a <a href="mailto:christian.gaser@uni-jena.de">mail</a>.</p>
+      <p>The toolbox can be applied to (almost) any existing statistical (parametric) SPM design for 3D volume or surface data.</p>
+    </div>
+  
+      <ol>
+        <li><a href=tfce_starting.html>Quick start guide</a></li>         
+        <li><a href=tfce_FN.html>Visualization and naming convention of output files</a></li>         
+      </ol>
+    <div id="footer">
+      <p>Copyright (C) Structural Brain Mapping Group &lt;<a href="mailto:christian.gaser@uni-jena.de">christian.gaser@uni-jena.de</a>&gt;</p>
+    </div>
+  </body>
+</html>

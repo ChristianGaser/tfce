@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r192 | gaser | 2020-04-09 00:35:17
+r193 | gaser | 2020-04-09 00:36:48
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+M       html/tfce.html
+
+Changed: Updated Makefile.
+------------------------------------------------------------------------
+r192 | gaser | 2020-04-09 00:35:26 +0200 (Do, 09 Apr 2020) | 19 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -19,6 +28,7 @@ MM      spm/spm_list.m
 MM      spm/spm_results_ui.m
 
 Added: Added html help text
+
 ------------------------------------------------------------------------
 r191 | gaser | 2020-04-09 00:33:33 +0200 (Do, 09 Apr 2020) | 14 lines
 

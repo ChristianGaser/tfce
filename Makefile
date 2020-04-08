@@ -17,7 +17,7 @@ STARGET=${STARGET_HOST}:${STARGET_FOLDER}
 
 MATLAB_FILES=Contents.m tfce_*.m spm_TFCE.m snpm_P_FDR.m tbx_cfg_tfce.m
 C_FILES=tfceMex_pthread.* 
-MISC_FILES=TFCE.man html
+MISC_FILES=html
 
 FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}
 
@@ -47,10 +47,6 @@ update: doc
 	-@echo '% TFCE Toolbox' > Contents.m
 	-@echo '% Version ' ${REVISION} ' (version '${NEWVERSION}')' ${DATE} >> Contents.m
 	-@cat Contents_info.txt >> Contents.m
-	-@echo '% __________________________________________________________________________' > TFCE.man
-	-@echo '% TFCE Toolbox for SPM12' >> TFCE.man
-	-@echo '% Version ' ${REVISION} ${NEWVERSION} ${DATE} >> TFCE.man
-	-@cat TFCE.txt >> TFCE.man
 	-@perl -p -i -e "s/${OLDVERSION}/${NEWVERSION}/g" spm_TFCE.m
 	-@echo '% TFCE Toolbox' > INSTALL.txt
 	-@echo '% Version ' ${REVISION} ${NEWVERSION} ${DATE} >> INSTALL.txt

@@ -1,5 +1,21 @@
 ------------------------------------------------------------------------
-r194 | gaser | 2020-04-09 13:42:04
+r195 | gaser | 2020-04-10 01:22:01
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+A       cat_spm_results_ui.m
+M       html/tfce.html
+M       spm_TFCE.m
+M       tfce_list.m
+M       tfce_results_ui.m
+
+(1) Changed: ARenamed tfce_results_ui.m to cat_spm_results_ui.m and added
+    functionality from CAT12 result call.
+(2) Changed: Corrected internal function names.
+
+------------------------------------------------------------------------
+r194 | gaser | 2020-04-09 13:42:16 +0200 (Do, 09 Apr 2020) | 19 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -19,6 +35,7 @@ M       tfce_results_ui.m
     tfce_results_ui.m.
 (2) Changed: Corrected internal function name in tfce_estimate_stat.m
 (3) Changed: Set server to old dbm-server in Makefile.
+
 ------------------------------------------------------------------------
 r193 | gaser | 2020-04-09 00:36:57 +0200 (Do, 09 Apr 2020) | 7 lines
 

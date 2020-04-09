@@ -20,7 +20,7 @@ STARGET_FOLDER=/Applications/xampp/htdocs/tfce
 
 STARGET=${STARGET_HOST}:${STARGET_FOLDER}
 
-MATLAB_FILES=Contents.m tfce_*.m spm_TFCE.m snpm_P_FDR.m tbx_cfg_tfce.m
+MATLAB_FILES=Contents.m tfce_*.m spm_TFCE.m snpm_P_FDR.m tbx_cfg_tfce.m cat_spm_results_ui.m
 C_FILES=tfceMex_pthread.* 
 MISC_FILES=html
 

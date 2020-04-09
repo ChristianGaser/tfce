@@ -31,7 +31,7 @@ function varargout = tfce_list(varargin)
 %
 % (see spm_getSPM.m for further details of xSPM structures)
 %
-% hReg   - Handle of results section XYZ registry (see tfce_results_ui.m)
+% hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
 % Num    - number of maxima per cluster [3]
 % Dis    - distance among clusters {mm} [8]
@@ -469,7 +469,7 @@ case 'table'                                                        %-Table
     
     %-Get current location (to highlight selected voxel in table)
     %----------------------------------------------------------------------
-    xyzmm = tfce_results_ui('GetCoords');
+    xyzmm = spm_results_ui('GetCoords');
     
     %-Setup Graphics panel
     %----------------------------------------------------------------------
@@ -481,7 +481,7 @@ case 'table'                                                        %-Table
         Fgraph = spm_figure('GetWin','Graphics');
         ht = 0.4; bot = 0.1;
     end
-    tfce_results_ui('Clear',Fgraph)
+    spm_results_ui('Clear',Fgraph)
     FS     = spm('FontSizes');           %-Scaled font sizes
     PF     = spm_platform('fonts');      %-Font names (for this platform)
     
@@ -731,9 +731,9 @@ case 'table'                                                        %-Table
             %-Jump to voxel nearest current location
             %--------------------------------------------------------------
             [xyzmm,i] = spm_XYZreg('NearestXYZ',...
-                tfce_results_ui('GetCoords'),xSPM.XYZmm);
+                spm_results_ui('GetCoords'),xSPM.XYZmm);
             warning off
-            tfce_results_ui('SetCoords',xSPM.XYZmm(:,i));
+            spm_results_ui('SetCoords',xSPM.XYZmm(:,i));
             
             if isfield(xSPM,'G')
                 C = NaN(1,size(xSPM.G.vertices,1));
@@ -889,7 +889,7 @@ case 'table'                                                        %-Table
 
     % F  = spm_figure('GetWin','Satellite');
     % spm_figure('Focus',F);
-    % tfce_results_ui('Clear',F);
+    % spm_results_ui('Clear',F);
     % 
     % %-Display activation labels
     % %----------------------------------------------------------------------

@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r195 | gaser | 2020-04-10 01:22:01
+r196 | gaser | 2020-04-10 01:30:53
+
+Changed paths:
+M       CHANGES.txt
+M       cat_spm_results_ui.m
+
+Changed: Added check to cat_spm_results_ui if TFCE is installed (for general 
+use in CAT12).
+------------------------------------------------------------------------
+r195 | gaser | 2020-04-10 01:22:07 +0200 (Fr, 10 Apr 2020) | 14 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -13,6 +22,7 @@ M       tfce_results_ui.m
 (1) Changed: ARenamed tfce_results_ui.m to cat_spm_results_ui.m and added
     functionality from CAT12 result call.
 (2) Changed: Corrected internal function names.
+
 
 ------------------------------------------------------------------------
 r194 | gaser | 2020-04-09 13:42:16 +0200 (Do, 09 Apr 2020) | 19 lines

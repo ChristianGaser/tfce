@@ -1,5 +1,26 @@
 ------------------------------------------------------------------------
-r193 | gaser | 2020-04-09 00:36:48
+r194 | gaser | 2020-04-09 13:42:04
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+ M      html/images/TFCE.png
+ M      html/images/home.jpg
+ M      html/images/research.jpg
+ M      html/style.css
+MM      html/tfce.html
+ M      html/tfce.txt
+ M      html/tfce_FN.html
+ M      html/tfce_starting.html
+M       tfce_estimate_stat.m
+M       tfce_results_ui.m
+
+(1) Changed: Added option to list more detailed cluster information in 
+    tfce_results_ui.m.
+(2) Changed: Corrected internal function name in tfce_estimate_stat.m
+(3) Changed: Set server to old dbm-server in Makefile.
+------------------------------------------------------------------------
+r193 | gaser | 2020-04-09 00:36:57 +0200 (Do, 09 Apr 2020) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +28,7 @@ M       Makefile
 M       html/tfce.html
 
 Changed: Updated Makefile.
+
 ------------------------------------------------------------------------
 r192 | gaser | 2020-04-09 00:35:26 +0200 (Do, 09 Apr 2020) | 19 lines
 

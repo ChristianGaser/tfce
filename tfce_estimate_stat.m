@@ -1,7 +1,7 @@
-function tfce_estimate(job)
+function tfce_estimate_stat(job)
 % main TFCE function for estimating TFCE statistics
 %
-% FORMAT tfce_estimate(job)
+% FORMAT tfce_estimate_stat(job)
 % job - job from tbx_cfg_tfce
 % 
 %_______________________________________________________________________

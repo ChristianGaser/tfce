@@ -157,10 +157,11 @@ function varargout = tfce_results_ui(varargin)
 % Finter  - handle (or 'Tag') of Interactive window (default 'Interactive')
 % hReg    - handle of XYZ registry object
 %
-% FORMAT tfce_results_ui('DrawButts',hReg,DIM,Finter,WS,FS)
+% FORMAT tfce_results_ui('DrawButts',hReg,DIM,xSPM,Finter,WS,FS)
 % Draw GUI buttons
 % hReg    - handle of XYZ registry object
 % DIM     - 3 vector of image X, Y & Z dimensions
+% xSPM    - structure containing xSPM. Required fields are:
 % Finter  - handle of Interactive window
 % WS      - WinScale  [Default spm('WinScale') ]
 % FS      - FontSizes [Default spm('FontSizes')]
@@ -611,6 +612,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         if nargin < 4, error('Insufficient arguments'), end
         M      = varargin{2};
         DIM    = varargin{3};
+        xSPM   = varargin{4};
         Finter = spm_figure('GetWin',Finter);
         WS     = spm('WinScale');
         FS     = spm('FontSizes');
@@ -637,7 +639,7 @@ switch lower(Action), case 'setup'                         %-Set up results
  
         %-Set up buttons for results functions
         %------------------------------------------------------------------
-        tfce_results_ui('DrawButts',hReg,DIM,Finter,WS,FS);
+        tfce_results_ui('DrawButts',hReg,DIM,xSPM,Finter,WS,FS);
 
         if spm_check_version('matlab','7.11') ~= 0
             drawnow; % required to force "ratio locking"
@@ -649,15 +651,16 @@ switch lower(Action), case 'setup'                         %-Set up results
     %======================================================================
     case 'drawbutts'   %-Draw results section buttons in Interactive window
     %======================================================================
-        % tfce_results_ui('DrawButts',hReg,DIM,Finter,WS,FS)
+        % tfce_results_ui('DrawButts',hReg,DIM,xSPM,Finter,WS,FS)
         %
-        if nargin < 3, error('Insufficient arguments'), end
+        if nargin < 4, error('Insufficient arguments'), end
         hReg = varargin{2};
         DIM  = varargin{3};
-        if nargin < 4, Finter = spm_figure('FindWin','Interactive');
-        else Finter = varargin{4}; end
-        if nargin < 5, WS = spm('WinScale');  else  WS = varargin{5}; end
-        if nargin < 6, FS = spm('FontSizes'); else  FS = varargin{6}; end
+        xSPM = varargin{4};
+        if nargin < 5, Finter = spm_figure('FindWin','Interactive');
+        else Finter = varargin{5}; end
+        if nargin < 6, WS = spm('WinScale');  else  WS = varargin{6}; end
+        if nargin < 7, FS = spm('FontSizes'); else  FS = varargin{7}; end
  
         %-p-values
         %------------------------------------------------------------------
@@ -688,12 +691,12 @@ switch lower(Action), case 'setup'                         %-Set up results
  
         %-SPM area - used for Volume of Interest analyses
         %------------------------------------------------------------------
-        xSPM = evalin('base','xSPM;');
         if spm_mesh_detect(xSPM.Vspm)
             Enable = 'off';
         else
             Enable = 'on';
         end
+        
         hPan = uipanel('Parent',hReg,'Title','Multivariate','Units','Pixels',...
             'Position',[120 085 150 092].*WS,...
             'BorderType','Beveledout', ...
@@ -811,7 +814,7 @@ switch lower(Action), case 'setup'                         %-Set up results
     SPM  = varargin{3};
     Finter = spm_figure('GetWin',Finter);
     hC   = uimenu(Finter,'Label','Contrasts', 'Tag','ContrastsUI');
-    hC1 = uimenu(hC,'Label','Change Contrast');
+    hC1  = uimenu(hC,'Label','Change Contrast');
     
     for i=1:numel(SPM.xCon)
         % check whether TFCE results were found
@@ -856,6 +859,14 @@ switch lower(Action), case 'setup'                         %-Set up results
     uimenu(hC1,'Label',[xSPM.thresDesc ', k=' num2str(xSPM.k)],...
         'Enable','off','Separator','on');
     
+    hC1 = uimenu(hC,'Label','Default cluster listings in result table',...
+        'Separator','on',...
+            'Callback',{@mycluster,xSPM,8,3});
+
+    hC1 = uimenu(hC,'Label','Detailed cluster listings in result table',...
+        'Separator','off',...
+            'Callback',{@mycluster,xSPM,4,16});
+
     hC1 = uimenu(hC,'Label','Multiple display...',...
         'Separator','on',...
         'Callback',{@mycheckres,xSPM});
@@ -1351,6 +1362,17 @@ switch lower(Action), case 'setup'                         %-Set up results
         error('Unknown action string')
  
 end
+
+%==========================================================================
+function mycluster(obj,evt,xSPM,distmin,nbmax)
+%==========================================================================
+
+spm_get_defaults('stats.results.volume.distmin',distmin);
+spm_get_defaults('stats.results.volume.nbmax',nbmax);
+
+hReg = evalin('base','hReg;');
+TabDat = tfce_list('List',xSPM,hReg);
+figure(spm_figure('GetWin','Interactive'));
 
 %==========================================================================
 function mychgcon(obj,evt,xSPM)

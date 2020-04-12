@@ -1,11 +1,20 @@
 ------------------------------------------------------------------------
-r197 | gaser | 2020-04-13 01:38:14
+r198 | gaser | 2020-04-13 01:50:44
+
+Changed paths:
+M       CHANGES.txt
+M       tfce_getSPM.m
+
+Fixed: Corrected mesh detection to be compatible to older versions.
+------------------------------------------------------------------------
+r197 | gaser | 2020-04-13 01:38:21 +0200 (Mo, 13 Apr 2020) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
 MM      cat_spm_results_ui.m
 
 Fixed: Corrected some inconsistencies in cat_spm_results_ui.m.
+
 ------------------------------------------------------------------------
 r196 | gaser | 2020-04-10 01:30:56 +0200 (Fr, 10 Apr 2020) | 7 lines
 

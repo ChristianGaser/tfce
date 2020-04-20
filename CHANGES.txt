@@ -1,5 +1,16 @@
 ------------------------------------------------------------------------
-r199 | gaser | 2020-04-13 02:11:32
+r200 | gaser | 2020-04-20 22:26:09
+
+Changed paths:
+M       CHANGES.txt
+M       cat_spm_results_ui.m
+M       html/tfce.html
+
+Fixed: Removed bug in cat_spm_results_ui.m where surface results could not
+be displayed.
+
+------------------------------------------------------------------------
+r199 | gaser | 2020-04-13 02:11:38 +0200 (Mo, 13 Apr 2020) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -8,6 +19,7 @@ M       html/tfce.html
 
 Fixed: Corrected bug with non-detectable call_list function in 
 cat_spm_results_ui.m
+
 ------------------------------------------------------------------------
 r198 | gaser | 2020-04-13 01:50:47 +0200 (Mo, 13 Apr 2020) | 6 lines
 

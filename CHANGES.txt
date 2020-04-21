@@ -1,5 +1,16 @@
 ------------------------------------------------------------------------
-r200 | gaser | 2020-04-20 22:26:09
+r201 | gaser | 2020-04-21 22:38:42
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+M       cat_spm_results_ui.m
+M       html/tfce.html
+
+Fixed: Removed dome inconsitencies in cat_spm_results_ui.m where existing
+TFCE results were initially not found. 
+------------------------------------------------------------------------
+r200 | gaser | 2020-04-20 22:26:23 +0200 (Mo, 20 Apr 2020) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -8,6 +19,7 @@ M       html/tfce.html
 
 Fixed: Removed bug in cat_spm_results_ui.m where surface results could not
 be displayed.
+
 
 ------------------------------------------------------------------------
 r199 | gaser | 2020-04-13 02:11:38 +0200 (Mo, 13 Apr 2020) | 8 lines

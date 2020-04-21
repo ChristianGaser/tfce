@@ -14,10 +14,6 @@ STARGET_HOST=141.35.69.218
 STARGET_HTDOCS=${STARGET_HOST}:/volume1/web/
 STARGET_FOLDER=/volume1/web/tfce
 
-STARGET_HOST=141.35.69.214
-STARGET_HTDOCS=${STARGET_HOST}:/Applications/xampp/htdocs/
-STARGET_FOLDER=/Applications/xampp/htdocs/tfce
-
 STARGET=${STARGET_HOST}:${STARGET_FOLDER}
 
 MATLAB_FILES=Contents.m tfce_*.m spm_TFCE.m snpm_P_FDR.m tbx_cfg_tfce.m cat_spm_results_ui.m

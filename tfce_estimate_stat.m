@@ -406,7 +406,8 @@ for con = 1:length(Ic0)
       fprintf('Interaction design between two or more regressors found\n')
             
       % remove all entries where contrast is not defined
-      label(all(xX.X(:,ind_X)==0,2)) = [];
+      % this does not work for all data CG 20200829
+      % label(all(xX.X(:,ind_X)==0,2)) = [];
     else
       if repeated_anova
         fprintf('Repeated Anova with contrast for covariate found\n');

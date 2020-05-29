@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r201 | gaser | 2020-04-21 22:38:42
+r202 | gaser | 2020-05-29 15:14:25
+
+Changed paths:
+M       CHANGES.txt
+M       html/tfce.html
+M       tfce_estimate_stat.m
+
+Fixed: Solved issue if covariates across multiple columns were zero.
+------------------------------------------------------------------------
+r201 | gaser | 2020-04-21 22:38:48 +0200 (Di, 21 Apr 2020) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -9,6 +18,7 @@ M       html/tfce.html
 
 Fixed: Removed dome inconsitencies in cat_spm_results_ui.m where existing
 TFCE results were initially not found. 
+
 ------------------------------------------------------------------------
 r200 | gaser | 2020-04-20 22:26:23 +0200 (Mo, 20 Apr 2020) | 9 lines
 

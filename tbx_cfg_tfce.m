@@ -76,6 +76,8 @@ n_perm.help    = {'In order to obtain reliable estimates you need about 5000-100
                   'There is also an option to interrrupt the permutation process and to save the results at this step to take a first look on your results.'
                   ''
                   'If the number of maximal possible permutations is smaller, then this number is used resulting in an exact permutation test.'
+                  ''
+                  'Please note, that a tail approximation is finally used to estimate the corrected p-values. Thus, there is no dependency anymore between the lowest achievable p-value and the number of permutations as in previous versions.'
 }';
 n_perm.strtype = 'e';
 n_perm.val     = {5000};

@@ -1648,7 +1648,11 @@ if ~isempty(xSPM.thresDesc)
         if use_tfce
             xSPM2.invResult = xSPM.invResult;
         end
-        xSPM2.statType = xSPM.statType;
+        if isfield(xSPM,'statType')
+          xSPM2.statType = xSPM.statType;
+        elseif isfield(xSPM,'STAT')
+          xSPM2.statType = xSPM.STAT;
+        end
         xSPM2.u     = str2double(td.u);
         xSPM2.k     = xSPM.k;
     end

@@ -21,6 +21,10 @@ convert_to_z = 0;
 % experimental, does not result in any improvement, only for 3D images
 filter_bilateral = 0;
 
+% use (unappropriate) method for estimating maximum statistic from old release 
+% r184 for compatibility purposes only
+old_method_stat = 0;
+
 % variance smoothing (experimental, only for 3D images)
 vFWHM = 0;
 
@@ -116,7 +120,7 @@ if repeated_anova
     groupListed(exch_block_labels(i)) = true;
   end
   
-  for i = 1: max(exch_block_labels)
+  for i = 1:max(exch_block_labels)
     if ~groupListed(i) 
       fprintf('Error: block %d must be assigned to at least one design row in the blocks file.\n',i);
       return
@@ -578,11 +582,13 @@ for con = 1:length(Ic0)
       [t0, df2] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim);
     end
     
-    ind_mask_0   = find(t0 == 0);
-    ind_mask_1   = find(t0 ~= 0);
-    ind_mask_P   = find(t0 > 0);
-    ind_mask_N   = find(t0 < 0);
-    ind_mask_NaN = find(mask == 0);
+    mask_0   = (t0 == 0);
+    mask_1   = (t0 ~= 0);
+    mask_P   = (t0 > 0);
+    mask_N   = (t0 < 0);
+    mask_NaN = (mask == 0);
+    found_P  = sum(mask_P(:)) > 0;
+    found_N  = sum(mask_N(:)) > 0;
   
     df1 = size(xCon.c,2);
   
@@ -623,7 +629,7 @@ for con = 1:length(Ic0)
       % measure computation time to test whether multi-threading causes issues
       tstart = tic;
       % only estimate neg. tfce values for non-positive t-values
-      if ~isempty(ind_mask_N)
+      if found_N
         tfce0 = tfceMex_pthread(t0,dh,E,H,1,0)*dh;
       else
         tfce0 = tfceMex_pthread(t0,dh,E,H,0,0)*dh;
@@ -963,9 +969,9 @@ for con = 1:length(Ic0)
         if convert_to_z
           % use faster z-transformation of SPM for T-statistics
           if strcmp(xCon.STAT,'T')
-            t(ind_mask_1) = spm_t2z(t(ind_mask_1),df2);
+            t(mask_1) = spm_t2z(t(mask_1),df2);
           else
-            t(ind_mask_1) = palm_gtoz(t(ind_mask_1),df1,df2);
+            t(mask_1) = palm_gtoz(t(mask_1),df1,df2);
           end
         end
       
@@ -1008,20 +1014,29 @@ for con = 1:length(Ic0)
       end
     end % test_mode
     
+    % use (unappropriate) method for estimating maximum statistic from old release 
+    % r184 for compatibility purposes only
+    if old_method_stat
+      mask_stat = mask_1 | mask_0;
+    else  
+      mask_stat = mask_1;
+
+    end
+    
     % update label_matrix for checking of unique permutations
     if use_half_permutations
       label_matrix = [label_matrix; rand_order_sorted; [rand_order_sorted(find(label(ind_label) == 2)) rand_order_sorted(find(label(ind_label) == 1))]];
 
       if ~test_mode
         % maximum statistic
-        tfce_max = [tfce_max max(tfce(ind_mask_1)) -min(tfce(ind_mask_1))];
-        t_max    = [t_max    max(t(ind_mask_1))    -min(t(ind_mask_1))];
-        tfce_min = [tfce_min min(tfce(ind_mask_1)) -max(tfce(ind_mask_1))];
-        t_min    = [t_min    min(t(ind_mask_1))    -max(t(ind_mask_1))];
-        tperm(ind_mask_P)    = tperm(ind_mask_P) + 2*(t(ind_mask_P) >= t0(ind_mask_P));
-        tperm(ind_mask_N)    = tperm(ind_mask_N) - 2*(t(ind_mask_N) <= t0(ind_mask_N));
-        tfceperm(ind_mask_P) = tfceperm(ind_mask_P) + 2*(tfce(ind_mask_P) >= tfce0(ind_mask_P));
-        tfceperm(ind_mask_N) = tfceperm(ind_mask_N) - 2*(tfce(ind_mask_N) <= tfce0(ind_mask_N));
+        tfce_max = [tfce_max max(tfce(mask_stat)) -min(tfce(mask_stat))];
+        t_max    = [t_max    max(t(mask_stat))    -min(t(mask_stat))];
+        tfce_min = [tfce_min min(tfce(mask_stat)) -max(tfce(mask_stat))];
+        t_min    = [t_min    min(t(mask_stat))    -max(t(mask_stat))];
+        tperm(mask_P)    = tperm(mask_P) + 2*(t(mask_P) >= t0(mask_P));
+        tperm(mask_N)    = tperm(mask_N) - 2*(t(mask_N) <= t0(mask_N));
+        tfceperm(mask_P) = tfceperm(mask_P) + 2*(tfce(mask_P) >= tfce0(mask_P));
+        tfceperm(mask_N) = tfceperm(mask_N) - 2*(tfce(mask_N) <= tfce0(mask_N));
         
       end
     else
@@ -1033,14 +1048,14 @@ for con = 1:length(Ic0)
 
       if ~test_mode
         % maximum statistic
-        tfce_max = [tfce_max max(tfce(ind_mask_1))];
-        t_max    = [t_max    max(t(ind_mask_1))];
-        tfce_min = [tfce_min min(tfce(ind_mask_1))];
-        t_min    = [t_min    min(t(ind_mask_1))];
-        tperm(ind_mask_P)    = tperm(ind_mask_P) + (t(ind_mask_P) >= t0(ind_mask_P));
-        tperm(ind_mask_N)    = tperm(ind_mask_N) - (t(ind_mask_N) <= t0(ind_mask_N));
-        tfceperm(ind_mask_P) = tfceperm(ind_mask_P) + (tfce(ind_mask_P) >= tfce0(ind_mask_P));
-        tfceperm(ind_mask_N) = tfceperm(ind_mask_N) - (tfce(ind_mask_N) <= tfce0(ind_mask_N));
+        tfce_max = [tfce_max max(tfce(mask_stat))];
+        t_max    = [t_max    max(t(mask_stat))];
+        tfce_min = [tfce_min min(tfce(mask_stat))];
+        t_min    = [t_min    min(t(mask_stat))];
+        tperm(mask_P)    = tperm(mask_P) + (t(mask_P) >= t0(mask_P));
+        tperm(mask_N)    = tperm(mask_N) - (t(mask_N) <= t0(mask_N));
+        tfceperm(mask_P) = tfceperm(mask_P) + (tfce(mask_P) >= tfce0(mask_P));
+        tfceperm(mask_N) = tfceperm(mask_N) - (tfce(mask_N) <= tfce0(mask_N));
   
       end
     end
@@ -1090,7 +1105,7 @@ for con = 1:length(Ic0)
       % p-values to check wheter something went wrong    
       % use odd numbers to consider parameter use_half_permutations
       
-        if ((perm == 501) | (perm >= n_perm-1)) & ~check_validity & (~isempty(ind_mask_P) | ~isempty(ind_mask_N))
+        if ((perm == 501) | (perm >= n_perm-1)) & ~check_validity & (found_P | found_N)
 
         % estimate p-values
         nPt = tperm/perm;
@@ -1111,10 +1126,10 @@ for con = 1:length(Ic0)
         end
 
         % check correlation between parametric and non-parametric p-values
-        if ~isempty(ind_mask_P)
-          [cc, Pcc] = corrcoef(nPt(ind_mask_P),Pt(ind_mask_P));
+        if found_P
+          [cc, Pcc] = corrcoef(nPt(mask_P),Pt(mask_P));
         else
-          [cc, Pcc] = corrcoef(nPt(ind_mask_N),Pt(ind_mask_N));
+          [cc, Pcc] = corrcoef(nPt(mask_N),Pt(mask_N));
         end
 
         % use different criteria depending on use of SVC
@@ -1213,19 +1228,19 @@ for con = 1:length(Ic0)
     nPtfce = tfceperm/n_perm;
     nPtfcelog10 = zeros(size(tfce0));
   
-    if ~isempty(ind_mask_P)
-      nPtfcelog10(ind_mask_P) = -log10(nPtfce(ind_mask_P));
+    if found_P
+      nPtfcelog10(mask_P) = -log10(nPtfce(mask_P));
     end
     
-    if ~isempty(ind_mask_N)
-      nPtfce(ind_mask_N) = -nPtfce(ind_mask_N);
-      nPtfcelog10(ind_mask_N) =  log10(nPtfce(ind_mask_N));
+    if found_N
+      nPtfce(mask_N) = -nPtfce(mask_N);
+      nPtfcelog10(mask_N) =  log10(nPtfce(mask_N));
     end
     
-    nPtfce(ind_mask_0)   = 1;
-    nPtfce(ind_mask_NaN) = NaN;
-    nPtfcelog10(ind_mask_0)   = 0;
-    nPtfcelog10(ind_mask_NaN) = NaN;
+    nPtfce(mask_0)   = 1;
+    nPtfce(mask_NaN) = NaN;
+    nPtfcelog10(mask_0)   = 0;
+    nPtfcelog10(mask_NaN) = NaN;
   
     if spm12
       Vt = spm_data_hdr_write(Vt);
@@ -1246,19 +1261,19 @@ for con = 1:length(Ic0)
     % estimate p-values
     nPt = tperm/n_perm;
    
-    if ~isempty(ind_mask_P)
-      nPtlog10(ind_mask_P) = -log10(nPt(ind_mask_P));
+    if found_P
+      nPtlog10(mask_P) = -log10(nPt(mask_P));
     end
     
-    if ~isempty(ind_mask_N)
-      nPt(ind_mask_N) = -nPt(ind_mask_N);
-      nPtlog10(ind_mask_N) =  log10(nPt(ind_mask_N));
+    if found_N
+      nPt(mask_N) = -nPt(mask_N);
+      nPtlog10(mask_N) =  log10(nPt(mask_N));
     end
     
-    nPt(ind_mask_0)   = 1;
-    nPt(ind_mask_NaN) = NaN;
-    nPtlog10(ind_mask_0)   = 0;
-    nPtlog10(ind_mask_NaN) = NaN;
+    nPt(mask_0)   = 1;
+    nPt(mask_NaN) = NaN;
+    nPtlog10(mask_0)   = 0;
+    nPtlog10(mask_NaN) = NaN;
   
     if spm12
       Vt = spm_data_hdr_write(Vt);
@@ -1287,35 +1302,35 @@ for con = 1:length(Ic0)
         ind_tail = 1:n_perm;
       end
       
-      if ~isempty(ind_mask_P)
+      if found_P
         [mu,s2,gamm1] = palm_moments(tfce_max(ind_tail)');
-        corrP(ind_mask_P) = palm_gamma(tfce0(ind_mask_P),mu,s2,gamm1,false,1/n_perm);
+        corrP(mask_P) = palm_gamma(tfce0(mask_P),mu,s2,gamm1,false,1/n_perm);
       end
       
-      if ~isempty(ind_mask_N)
+      if found_N
         [mu,s2,gamm1] = palm_moments(-tfce_min(ind_tail)');
-        corrP(ind_mask_N) = -palm_gamma(-tfce0(ind_mask_N),mu,s2,gamm1,false,1/n_perm);
+        corrP(mask_N) = -palm_gamma(-tfce0(mask_N),mu,s2,gamm1,false,1/n_perm);
       end
       
     else
 
-      if ~isempty(ind_mask_P)
+      if found_P
         for t2 = tfce_max
           %-FWE-corrected p is proportion of randomisation greater or
           % equal to statistic.
           %-Use a > b -tol rather than a >= b to avoid comparing
           % two reals for equality.
-          corrP(ind_mask_P) = corrP(ind_mask_P) + (t2 > (tfce0(ind_mask_P)  - tol));
+          corrP(mask_P) = corrP(mask_P) + (t2 > (tfce0(mask_P)  - tol));
         end
       end
       
-      if ~isempty(ind_mask_N)
+      if found_N
         for t2 = tfce_min
           %-FWE-corrected p is proportion of randomisation greater or
           % equal to statistic.
           %-Use a > b -tol rather than a >= b to avoid comparing
           % two reals for equality.
-          corrP(ind_mask_N) = corrP(ind_mask_N) - (t2 < (tfce0(ind_mask_N) + tol));
+          corrP(mask_N) = corrP(mask_N) - (t2 < (tfce0(mask_N) + tol));
         end
       end
       
@@ -1323,19 +1338,19 @@ for con = 1:length(Ic0)
     end
     corrPlog10 = zeros(size(tfce0));
   
-    if ~isempty(ind_mask_P)
-      corrPlog10(ind_mask_P) = -log10(corrP(ind_mask_P));
+    if found_P
+      corrPlog10(mask_P) = -log10(corrP(mask_P));
     end
     
-    if ~isempty(ind_mask_N)
-      corrP(ind_mask_N) = -corrP(ind_mask_N);
-      corrPlog10(ind_mask_N) =  log10(corrP(ind_mask_N));
+    if found_N
+      corrP(mask_N) = -corrP(mask_N);
+      corrPlog10(mask_N) =  log10(corrP(mask_N));
     end
     
-    corrP(ind_mask_0)   = 1;
-    corrP(ind_mask_NaN) = NaN;
-    corrPlog10(ind_mask_0)   = 0;
-    corrPlog10(ind_mask_NaN) = NaN;
+    corrP(mask_0)   = 1;
+    corrP(mask_NaN) = NaN;
+    corrPlog10(mask_0)   = 0;
+    corrPlog10(mask_NaN) = NaN;
   
     if spm12
       Vt = spm_data_hdr_write(Vt);
@@ -1355,34 +1370,34 @@ for con = 1:length(Ic0)
   
     if use_tail_approximation
       
-      if ~isempty(ind_mask_P)
+      if found_P
         [mu,s2,gamm1] = palm_moments(t_max(ind_tail)');
-        corrP(ind_mask_P) = palm_gamma(t0(ind_mask_P),mu,s2,gamm1,false,1/n_perm);
+        corrP(mask_P) = palm_gamma(t0(mask_P),mu,s2,gamm1,false,1/n_perm);
       end
       
-      if ~isempty(ind_mask_N)
+      if found_N
         [mu,s2,gamm1] = palm_moments(-t_min(ind_tail)');
-        corrP(ind_mask_N) = -palm_gamma(-t0(ind_mask_N),mu,s2,gamm1,false,1/n_perm);
+        corrP(mask_N) = -palm_gamma(-t0(mask_N),mu,s2,gamm1,false,1/n_perm);
       end
       
     else
-      if ~isempty(ind_mask_P)
+      if found_P
         for t2 = t_max
           %-FWE-corrected p is proportion of randomisation greater or
           % equal to statistic.
           %-Use a > b -tol rather than a >= b to avoid comparing
           % two reals for equality.
-          corrP(ind_mask_P) = corrP(ind_mask_P) + (t2 > t0(ind_mask_P)  - tol);
+          corrP(mask_P) = corrP(mask_P) + (t2 > t0(mask_P)  - tol);
         end
       end
       
-      if ~isempty(ind_mask_N)
+      if found_N
         for t2 = t_min
           %-FWE-corrected p is proportion of randomisation greater or
           % equal to statistic.
           %-Use a > b -tol rather than a >= b to avoid comparing
           % two reals for equality.
-          corrP(ind_mask_N) = corrP(ind_mask_N) - (t2 < t0(ind_mask_N) + tol);
+          corrP(mask_N) = corrP(mask_N) - (t2 < t0(mask_N) + tol);
         end
       end
       
@@ -1391,20 +1406,20 @@ for con = 1:length(Ic0)
 
     corrPlog10 = zeros(size(tfce0));
   
-    if ~isempty(ind_mask_P)
-      corrP(ind_mask_P) = corrP(ind_mask_P);
-      corrPlog10(ind_mask_P) = -log10(corrP(ind_mask_P));
+    if found_P
+      corrP(mask_P) = corrP(mask_P);
+      corrPlog10(mask_P) = -log10(corrP(mask_P));
     end
     
-    if ~isempty(ind_mask_N)
-      corrP(ind_mask_N) = -corrP(ind_mask_N);
-      corrPlog10(ind_mask_N) =  log10(corrP(ind_mask_N));
+    if found_N
+      corrP(mask_N) = -corrP(mask_N);
+      corrPlog10(mask_N) =  log10(corrP(mask_N));
     end
   
-    corrP(ind_mask_0)   = 1;
-    corrP(ind_mask_NaN) = NaN;
-    corrPlog10(ind_mask_0)   = 0;
-    corrPlog10(ind_mask_NaN) = NaN;
+    corrP(mask_0)   = 1;
+    corrP(mask_NaN) = NaN;
+    corrPlog10(mask_0)   = 0;
+    corrPlog10(mask_NaN) = NaN;
   
     if spm12
       Vt = spm_data_hdr_write(Vt);
@@ -1425,28 +1440,28 @@ for con = 1:length(Ic0)
     corrPfdr = NaN(size(t));
     corrPfdrlog10 = zeros(size(tfce0));
   
-    if ~isempty(ind_mask_P)
-      [snP_pos,I_pos] = sort(nPtfce(ind_mask_P));
+    if found_P
+      [snP_pos,I_pos] = sort(nPtfce(mask_P));
       if ~isempty(snP_pos)
         corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
         corrPfdr_pos(I_pos) = corrPfdr_pos;
-        corrPfdr(ind_mask_P) = corrPfdr_pos;
-        corrPfdrlog10(ind_mask_P) = -log10(corrPfdr(ind_mask_P));
+        corrPfdr(mask_P) = corrPfdr_pos;
+        corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
       end
     end
   
-    if ~isempty(ind_mask_N)
-      [snP_neg,I_neg] = sort(nPtfce(ind_mask_N));
+    if found_N
+      [snP_neg,I_neg] = sort(nPtfce(mask_N));
       if ~isempty(snP_neg)
         corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
         corrPfdr_neg(I_neg) = corrPfdr_neg;
-        corrPfdr(ind_mask_N) = corrPfdr_neg;
-        corrPfdrlog10(ind_mask_N) =  log10(corrPfdr(ind_mask_N));
+        corrPfdr(mask_N) = corrPfdr_neg;
+        corrPfdrlog10(mask_N) =  log10(corrPfdr(mask_N));
       end
     end
       
-    corrPfdrlog10(ind_mask_0)   = 0;
-    corrPfdrlog10(ind_mask_NaN) = NaN;
+    corrPfdrlog10(mask_0)   = 0;
+    corrPfdrlog10(mask_NaN) = NaN;
   
     if spm12
       Vt = spm_data_hdr_write(Vt);
@@ -1465,28 +1480,28 @@ for con = 1:length(Ic0)
     corrPfdr = NaN(size(t));
     corrPfdrlog10 = zeros(size(tfce0));
   
-    if ~isempty(ind_mask_P)
+    if found_P
       if ~isempty(snP_pos)
-        [snP_pos,I_pos] = sort(nPt(ind_mask_P));
+        [snP_pos,I_pos] = sort(nPt(mask_P));
         corrPfdr_pos = snpm_P_FDR([],[],'P',[],snP_pos);
         corrPfdr_pos(I_pos) = corrPfdr_pos;
-        corrPfdr(ind_mask_P) = corrPfdr_pos;
-        corrPfdrlog10(ind_mask_P) = -log10(corrPfdr(ind_mask_P));
+        corrPfdr(mask_P) = corrPfdr_pos;
+        corrPfdrlog10(mask_P) = -log10(corrPfdr(mask_P));
       end
     end
   
-    if ~isempty(ind_mask_N)
-      [snP_neg,I_neg] = sort(nPt(ind_mask_N));
+    if found_N
+      [snP_neg,I_neg] = sort(nPt(mask_N));
       if ~isempty(snP_neg)
         corrPfdr_neg = snpm_P_FDR([],[],'P',[],snP_neg);
         corrPfdr_neg(I_neg) = corrPfdr_neg;
-        corrPfdr(ind_mask_N) = corrPfdr_neg;
-        corrPfdrlog10(ind_mask_N) =  log10(corrPfdr(ind_mask_N));
+        corrPfdr(mask_N) = corrPfdr_neg;
+        corrPfdrlog10(mask_N) =  log10(corrPfdr(mask_N));
       end
     end
   
-    corrPfdrlog10(ind_mask_0)   = 0;
-    corrPfdrlog10(ind_mask_NaN) = NaN;
+    corrPfdrlog10(mask_0)   = 0;
+    corrPfdrlog10(mask_NaN) = NaN;
   
     if spm12
       Vt = spm_data_hdr_write(Vt);
@@ -1602,12 +1617,13 @@ c = xCon.c;
 
 xKXs = spm_sp('Set',xX.W*xX.X);
 xKXs.X = full(xKXs.X);
-pKX = spm_sp('x-',xKXs);
+pKX = single(spm_sp('x-',xKXs));
 
 n_data = size(xX.X,1);
 
 Beta = Y*pKX';
-res0 = Beta*(xKXs.X') - Y;     %-Residuals
+res0 = Beta*(single(xKXs.X'));
+res0 = res0 - Y; %-Residuals
 res0 = res0.^2;
 ResSS = double(sum(res0,2));
 clear res0

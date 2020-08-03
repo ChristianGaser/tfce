@@ -1,5 +1,17 @@
 ------------------------------------------------------------------------
-r203 | gaser | 2020-06-23 10:56:40
+r204 | gaser | 2020-08-03 14:03:09
+
+Changed paths:
+M       CHANGES.txt
+M       cat_spm_results_ui.m
+M       html/tfce.html
+M       tfce_estimate_stat.m
+
+(1) Changed: Updated cat_spm_results_ui.m using newest version from CAT12.
+(2) Changed: Added option for using old method for estimating maximum statistic
+             from release r184 for compatibility purposes.
+------------------------------------------------------------------------
+r203 | gaser | 2020-06-23 10:56:50 +0200 (Di, 23 Jun 2020) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -10,6 +22,7 @@ M       tbx_cfg_tfce.m
 
 (1) Changed: Updated cat_spm_results_ui.m using newest version from CAT12.
 (2) Changed: Updated help text.
+
 ------------------------------------------------------------------------
 r202 | gaser | 2020-05-29 15:14:31 +0200 (Fr, 29 Mai 2020) | 7 lines
 

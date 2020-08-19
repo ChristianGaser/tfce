@@ -9,16 +9,53 @@ rev = '$Rev$';
 
 addpath(fileparts(which(mfilename)));
 
+% try to estimate number of processor cores
+try
+  if strcmpi(spm_check_version,'octave')
+    numcores      = nproc;
+  else
+    numcores      = feature('numcores');
+  end
+
+  % because of poor memory management use only half of the cores for windows
+  if ispc
+    numcores = round(numcores/2);
+  end
+  numcores = max(numcores,1);
+catch
+  numcores = 0;
+end
+
+% force running in the foreground if only one processor was found or for compiled version
+% or for Octave
+if numcores == 1 || isdeployed || strcmpi(spm_check_version,'octave'), numcores = 0; end
+
+%_______________________________________________________________________
+nproc         = cfg_entry;
+nproc.tag     = 'nproc';
+nproc.name    = 'Split job into separate processes';
+nproc.strtype = 'w';
+nproc.val     = {numcores};
+nproc.num     = [1 1];
+nproc.hidden  = numcores <= 1 || isdeployed;
+nproc.help    = {
+    'In order to use multi-threading the TFCE job with multiple SPM.mat files can be split into separate processes that run in the background. If you do not want to run processes in the background then set this value to 0.'
+    ''
+    'Keep in mind that each process might need a large amount of RAM, which should be considered to choose the appropriate number of processes.'
+    ''
+    'Please further note that additional modules in the batch can now be used because the processes are checked every minute.'
+  };
+
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
 spmmat         = cfg_files;
 spmmat.tag     = 'spmmat';
 spmmat.name    = 'Select SPM.mat';
-spmmat.help    = {'Select the SPM.mat file that contains the design specification from a previous (parametric) estimation, where all required contrasts are already specified.'};
+spmmat.help    = {'Select the SPM.mat files that contain the design specification from a previous (parametric) estimation, where all required contrasts are already specified.'};
 spmmat.filter  = 'mat';
 spmmat.ufilter = '^SPM\.mat$';
-spmmat.num     = [1 1];
+spmmat.num     = [1 Inf];
 
 % ---------------------------------------------------------------------
 % mask Select mask to restrict analysis
@@ -157,6 +194,6 @@ singlethreaded.help = {[...
 tfce_estimate          = cfg_exbranch;
 tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
-tfce_estimate.val      = {spmmat mask conspec nuisance_method tbss E_weight singlethreaded};
+tfce_estimate.val      = {spmmat nproc mask conspec nuisance_method tbss E_weight singlethreaded};
 tfce_estimate.help     = {''};
 tfce_estimate.prog     = @tfce_estimate_stat;

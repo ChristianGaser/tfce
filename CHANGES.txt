@@ -1,5 +1,18 @@
 ------------------------------------------------------------------------
-r204 | gaser | 2020-08-03 14:03:09
+r205 | gaser | 2020-08-19 15:29:59
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+M       tbx_cfg_tfce.m
+M       tfce_estimate_stat.m
+
+(1) Changed: Added option for multiple processes to TFCE.
+(2) Changed: Updated Makefile.
+(3) Fixed:   Corrected check for validity of design using correlation between 
+             parametric and permutation tests for SVC with external mask.
+------------------------------------------------------------------------
+r204 | gaser | 2020-08-03 14:03:16 +0200 (Mo, 03 Aug 2020) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -10,6 +23,7 @@ M       tfce_estimate_stat.m
 (1) Changed: Updated cat_spm_results_ui.m using newest version from CAT12.
 (2) Changed: Added option for using old method for estimating maximum statistic
              from release r184 for compatibility purposes.
+
 ------------------------------------------------------------------------
 r203 | gaser | 2020-06-23 10:56:50 +0200 (Di, 23 Jun 2020) | 10 lines
 

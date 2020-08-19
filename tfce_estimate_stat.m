@@ -2,11 +2,22 @@ function tfce_estimate_stat(job)
 % main TFCE function for estimating TFCE statistics
 %
 % FORMAT tfce_estimate_stat(job)
-% job - job from tbx_cfg_tfce
+% job        - job from tbx_cfg_tfce
 % 
 %_______________________________________________________________________
 % Christian Gaser
 % $Id$
+
+% disable parallel processing for only one SPM.mat file
+if numel(job.spmmat) == 1
+  job.nproc = 0;
+end
+
+% split job and data into separate processes to save computation time
+if isfield(job,'nproc') && job.nproc>0 && (~isfield(job,'process_index'))
+  cat_parallelize(job,mfilename,'spmmat');
+  return
+end  
 
 % Use tail approximation from the Gamma distribution for corrected P-values 
 use_tail_approximation = 1;
@@ -169,8 +180,12 @@ else
   mesh_detected = 0;
 end
 
-% check whether 3D filters were selected for surfaces meshes
+% check whether 3D filters were selected for surfaces meshes or whether CAT12 is installed
 if mesh_detected
+  if ~exist('spm_cat12')
+    error('For using surface analysis you need to install CAT12.');
+  end
+
   if filter_bilateral
     fprintf('Warning: Bilateral filter is not supported for meshes.\n')
     filter_bilateral = 0;
@@ -187,9 +202,13 @@ if ~test_mode
   if isempty(job.mask)
     maskname = fullfile(cwd,['mask' file_ext]);
   else
-    maskname = job.mask{1};
+    if ~isempty(job.mask{1})
+      maskname = job.mask{1};
+    else    
+      maskname = fullfile(cwd,['mask' file_ext]);
+    end
   end
-      
+  
   % load mask
   try
     if spm12
@@ -616,6 +635,16 @@ for con = 1:length(Ic0)
     % calculate tfce of unpermuted t-map
     if mesh_detected
       if ~isstruct(SPM.xVol.G)
+        % check whether path is correct and file exist
+        if ~exist(SPM.xVol.G)
+          [pathG,nameG,extG] = spm_fileparts(SPM.xVol.G);
+          % use new path
+          if ~isempty(strfind(pathG,'_32k'))
+            SPM.xVol.G = fullfile(spm('dir'),'toolbox','cat12','templates_surfaces_32k',[nameG extG]);
+          else
+            SPM.xVol.G = fullfile(spm('dir'),'toolbox','cat12','templates_surfaces',[nameG extG]);
+          end
+        end
         SPM.xVol.G = gifti(SPM.xVol.G);
       end
       tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, dh, E, H)*dh;
@@ -672,7 +701,7 @@ for con = 1:length(Ic0)
       'HorizontalAlignment','Center',...
       'VerticalAlignment','middle')
   
-    text(0.5,0.25,spm_str_manip(spm_fileparts(job.spmmat{1}),'a50'),...
+    text(0.5,0.25,spm_str_manip(spm_fileparts(job.spmmat{1}),'a80'),...
       'FontSize',spm('FontSize',8),...
       'HorizontalAlignment','Center',...
       'VerticalAlignment','middle')
@@ -1126,14 +1155,15 @@ for con = 1:length(Ic0)
         end
 
         % check correlation between parametric and non-parametric p-values
+        % exclude Pt==0.5 values that can distort masked analysis values
         if found_P
-          [cc, Pcc] = corrcoef(nPt(mask_P),Pt(mask_P));
+          [cc, Pcc] = corrcoef(nPt(mask_P & Pt ~=0.5),Pt(mask_P & Pt ~=0.5));
         else
-          [cc, Pcc] = corrcoef(nPt(mask_N),Pt(mask_N));
+          [cc, Pcc] = corrcoef(nPt(mask_N & Pt ~=0.5),Pt(mask_N & Pt ~=0.5));
         end
 
-        % use different criteria depending on use of SVC
-        if (((Pcc(1,2) > 1e-6 || cc(1,2) < 0.85) && isempty(job.mask)) || (Pcc(1,2) > 1e-2 && ~isempty(job.mask)))
+        % check for low correlation between non-parametric and permutation test
+        if cc(1,2) < 0.85
           if nuisance_method > 0
             spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric statistic found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),1);
             fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g)! Please try a different method to deal with nuisance parameters.\n',cc(1,2));

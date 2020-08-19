@@ -1,5 +1,15 @@
 ------------------------------------------------------------------------
-r205 | gaser | 2020-08-19 15:29:59
+r206 | gaser | 2020-08-19 15:48:10
+
+Changed paths:
+M       CHANGES.txt
+M       html/tfce.html
+M       tbx_cfg_tfce.m
+M       tfce_estimate_stat.m
+
+Changed: Updated help text.
+------------------------------------------------------------------------
+r205 | gaser | 2020-08-19 15:30:02 +0200 (Mi, 19 Aug 2020) | 11 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -11,6 +21,7 @@ M       tfce_estimate_stat.m
 (2) Changed: Updated Makefile.
 (3) Fixed:   Corrected check for validity of design using correlation between 
              parametric and permutation tests for SVC with external mask.
+
 ------------------------------------------------------------------------
 r204 | gaser | 2020-08-03 14:03:16 +0200 (Mo, 03 Aug 2020) | 10 lines
 

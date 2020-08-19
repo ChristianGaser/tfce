@@ -404,7 +404,6 @@ for con = 1:length(Ic0)
         use_half_permutations = 0;
       elseif sum(n_data_cond(find(c0==exch_blocks(1)))) == sum(n_data_cond(find(c0==exch_blocks(2))))
         use_half_permutations = 1;
-        fprintf('Equal sample sizes: half of permutations are used.\n');
       end
     end
   end
@@ -537,17 +536,21 @@ for con = 1:length(Ic0)
     return
   end
   
-  fprintf('# full permutations: %d\n',n_perm_full);
+  if n_perm_full < n_perm
+    fprintf('Warning: Maximum number of possible permutations is lower than defined number of permutations: %d\n',n_perm_full);
+  end
+  
+  n_perm = min([n_perm n_perm_full]);
+
+  fprintf('Number of permutations: %d\n',n_perm);
   if use_half_permutations
-    fprintf('Equal sample size found: Use half permutations.\n');
+    fprintf('Equal sample sizes: Use half the number of permutations.\n');
   end
   fprintf('Exchangeability block/variable: ');
   fprintf('%d ',unique(cell2mat(ind_exch_blocks)));
   fprintf('\n');
   fprintf('# of conditions: %d\n',n_cond);
-  
-  n_perm = min([n_perm n_perm_full]);
-         
+           
   % Guttman partioning of design matrix into effects of interest X and nuisance variables Z
   X = xX.X(:,ind_X);
   ind_Z = [xX.iH xX.iC xX.iB xX.iG];

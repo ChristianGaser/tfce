@@ -12,9 +12,9 @@ addpath(fileparts(which(mfilename)));
 % try to estimate number of processor cores
 try
   if strcmpi(spm_check_version,'octave')
-    numcores      = nproc;
+    numcores = nproc;
   else
-    numcores      = feature('numcores');
+    numcores = feature('numcores');
   end
 
   % because of poor memory management use only half of the cores for windows

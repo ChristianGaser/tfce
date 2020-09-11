@@ -1,5 +1,17 @@
 ------------------------------------------------------------------------
-r206 | gaser | 2020-08-19 15:48:10
+r207 | gaser | 2020-09-11 11:31:14
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+M       html/tfce.html
+M       tfce_estimate_stat.m
+
+(1) Changed: Interactive selection of contrasts is not necessary anymore of
+             only one contrast is defined.
+(2) Changed: Updated Makefile.
+------------------------------------------------------------------------
+r206 | gaser | 2020-08-19 15:48:12 +0200 (Mi, 19 Aug 2020) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -8,6 +20,7 @@ M       tbx_cfg_tfce.m
 M       tfce_estimate_stat.m
 
 Changed: Updated help text.
+
 ------------------------------------------------------------------------
 r205 | gaser | 2020-08-19 15:30:02 +0200 (Mi, 19 Aug 2020) | 11 lines
 

@@ -9,7 +9,7 @@ DATE=`svn info |grep 'Last Changed Date: '|sed -e 's/Last Changed Date: //g'|cut
 
 TARGET=/Users/gaser/spm/spm12/toolbox/TFCE
 TARGET2=/Volumes/UltraMax/spm12/toolbox/TFCE
-TARGET3=paris.biomag.uni-jena.de:/Volumes/UltraMax/spm12/toolbox/TFCE
+TARGET3=paris.biomag.uni-jena.de:/home/gaser/spm12/toolbox/TFCE
 
 STARGET_HOST=141.35.69.218
 STARGET_HTDOCS=${STARGET_HOST}:/volume1/web/

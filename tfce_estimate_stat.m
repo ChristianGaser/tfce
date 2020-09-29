@@ -96,7 +96,7 @@ end
 Ic0 = job.conspec.contrasts;
 
 % check whether contrast are defined
-if ~isfield(SPM,'xCon')
+if ~isfield(SPM,'xCon') | (isfield(SPM,'xCon') & isempty(SPM.xCon))
   [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
         '  Select contrast(s)...',' ',1);
   SPM.xCon = xCon;

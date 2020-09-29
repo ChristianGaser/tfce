@@ -1,5 +1,15 @@
 ------------------------------------------------------------------------
-r208 | gaser | 2020-09-29 13:00:33
+r209 | gaser | 2020-09-29 13:59:10
+
+Changed paths:
+M       CHANGES.txt
+M       html/tfce.html
+M       tfce_estimate_stat.m
+
+Fixed:  Recognition of missing contrasts did not always work.
+
+------------------------------------------------------------------------
+r208 | gaser | 2020-09-29 13:00:39 +0200 (Di, 29 Sep 2020) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +17,7 @@ M       tfce_estimate_stat.m
 
 Fixed:  Always the first contrast was used independent of contrast 
         selection in tfce_estimate_stat.m in r207.
+
 ------------------------------------------------------------------------
 r207 | gaser | 2020-09-11 11:31:21 +0200 (Fr, 11 Sep 2020) | 10 lines
 

@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r207 | gaser | 2020-09-11 11:31:14
+r208 | gaser | 2020-09-29 13:00:33
+
+Changed paths:
+M       CHANGES.txt
+M       tfce_estimate_stat.m
+
+Fixed:  Always the first contrast was used independent of contrast 
+        selection in tfce_estimate_stat.m in r207.
+------------------------------------------------------------------------
+r207 | gaser | 2020-09-11 11:31:21 +0200 (Fr, 11 Sep 2020) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -10,6 +19,7 @@ M       tfce_estimate_stat.m
 (1) Changed: Interactive selection of contrasts is not necessary anymore of
              only one contrast is defined.
 (2) Changed: Updated Makefile.
+
 ------------------------------------------------------------------------
 r206 | gaser | 2020-08-19 15:48:12 +0200 (Mi, 19 Aug 2020) | 8 lines
 

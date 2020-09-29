@@ -321,8 +321,6 @@ if numel(Ic0)==1 & ~isfinite(Ic0) & numel(SPM.xCon) > 1
   [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
     '  Select contrast(s)...',' ',1);
   SPM.xCon = xCon;
-else
-  Ic0 = 1;
 end
 
 % go through all contrasts

@@ -47,15 +47,15 @@ nproc.help    = {
   };
 
 % ---------------------------------------------------------------------
-% spmmat Select SPM.mat
+% data Select SPM.mat
 % ---------------------------------------------------------------------
-spmmat         = cfg_files;
-spmmat.tag     = 'spmmat';
-spmmat.name    = 'Select SPM.mat';
-spmmat.help    = {'Select the SPM.mat files that contain the design specification from a previous (parametric) estimation, where all required contrasts are already specified.'};
-spmmat.filter  = 'mat';
-spmmat.ufilter = '^SPM\.mat$';
-spmmat.num     = [1 Inf];
+data         = cfg_files;
+data.tag     = 'data';
+data.name    = 'Select SPM.mat';
+data.help    = {'Select the SPM.mat files that contain the design specification from a previous (parametric) estimation, where all required contrasts are already specified.'};
+data.filter  = 'mat';
+data.ufilter = '^SPM\.mat$';
+data.num     = [1 Inf];
 
 % ---------------------------------------------------------------------
 % mask Select mask to restrict analysis
@@ -194,6 +194,6 @@ singlethreaded.help = {[...
 tfce_estimate          = cfg_exbranch;
 tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
-tfce_estimate.val      = {spmmat nproc mask conspec nuisance_method tbss E_weight singlethreaded};
+tfce_estimate.val      = {data nproc mask conspec nuisance_method tbss E_weight singlethreaded};
 tfce_estimate.help     = {''};
 tfce_estimate.prog     = @tfce_estimate_stat;

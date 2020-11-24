@@ -8,19 +8,31 @@ function tfce_estimate_stat(job)
 % Christian Gaser
 % $Id$
 
+global old_method_stat
+
 % disable parallel processing for only one SPM.mat file
-if numel(job.spmmat) == 1
+if numel(job.data) == 1
   job.nproc = 0;
 end
 
 % split job and data into separate processes to save computation time
 if isfield(job,'nproc') && job.nproc>0 && (~isfield(job,'process_index'))
-  cat_parallelize(job,mfilename,'spmmat');
+  cat_parallelize(job,mfilename,'data');
   return
-end  
+% or run though all data step-by-step
+elseif (~isfield(job,'process_index'))
+  data = job.data;
+  for i=1:numel(job.data)
+    job = rmfield(job,'data');
+    job.process_index = i;
+    job.data{1} = data{i};
+    tfce_estimate_stat(job)
+  end
+  return
+end
 
 % Use tail approximation from the Gamma distribution for corrected P-values 
-use_tail_approximation = 1;
+use_gamma_tail_approximation = 1;
 tail_approximation_wo_unpermuted_data = 0;
 
 % single-threaded?
@@ -32,9 +44,20 @@ convert_to_z = 0;
 % experimental, does not result in any improvement, only for 3D images
 filter_bilateral = 0;
 
-% use (unappropriate) method for estimating maximum statistic from old release 
-% r184 for compatibility purposes only
-old_method_stat = 0;
+% use (too liberal) method for estimating maximum statistic from old release 
+% r184 for compatibility purposes only that was estimating max/min statistics
+% only inside pos./neg. effects and not both
+if isfield(job,'old_method_stat')
+  old_method_stat = job.old_method_stat;
+elseif exist('old_method_stat')
+  old_method_stat = old_method_stat;
+else
+  old_method_stat = 0;
+end
+
+if old_method_stat
+  fprintf('Use old method from r184 to estimate maximum statistics which might be too liberal.\n');
+end
 
 % variance smoothing (experimental, only for 3D images)
 vFWHM = 0;
@@ -78,8 +101,8 @@ else
   spm12 = 0;
 end
 
-load(job.spmmat{1});
-cwd = fileparts(job.spmmat{1});
+load(job.data{1});
+cwd = fileparts(job.data{1});
 
 %-Check that model has been estimated
 if ~isfield(SPM, 'xVol')
@@ -100,6 +123,12 @@ if ~isfield(SPM,'xCon') | (isfield(SPM,'xCon') & isempty(SPM.xCon))
   [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
         '  Select contrast(s)...',' ',1);
   SPM.xCon = xCon;
+end
+
+if isempty(SPM.xCon(Ic0).eidf)
+  fprintf('You have to call results first.\n');
+  cat_spm_results_ui('Setup',SPM);
+  load(job.data{1});
 end
 
 % check that no temporal filter was used
@@ -267,7 +296,7 @@ if ~test_mode
       
     % update SPM
     if size(SPM.xY.VY,1)==n
-      save(job.spmmat{1},'SPM','-v7.3');
+      save(job.data{1},'SPM','-v7.3');
     else
       fprintf('ERROR: Number of files is not correct\n');
       return
@@ -704,7 +733,7 @@ for con = 1:length(Ic0)
       'HorizontalAlignment','Center',...
       'VerticalAlignment','middle')
   
-    text(0.5,0.25,spm_str_manip(spm_fileparts(job.spmmat{1}),'a80'),...
+    text(0.5,0.25,spm_str_manip(spm_fileparts(job.data{1}),'a80'),...
       'FontSize',spm('FontSize',8),...
       'HorizontalAlignment','Center',...
       'VerticalAlignment','middle')
@@ -1046,25 +1075,27 @@ for con = 1:length(Ic0)
       end
     end % test_mode
     
-    % use (unappropriate) method for estimating maximum statistic from old release 
-    % r184 for compatibility purposes only
+    % use (too liberal) method for estimating maximum statistic from old release 
+    % r184 for compatibility purposes only that was estimating max/min statistics
+    % only inside pos./neg. effects and not both
     if old_method_stat
-      mask_stat = mask_1 | mask_0;
+      mask_stat_P = mask_P;
+      mask_stat_N = mask_N;
     else  
-      mask_stat = mask_1;
-
+      mask_stat_P = mask_1;
+      mask_stat_N = mask_1;
     end
     
-    % update label_matrix for checking of unique permutations
+    % update label_matrix to check for unique permutations
     if use_half_permutations
       label_matrix = [label_matrix; rand_order_sorted; [rand_order_sorted(find(label(ind_label) == 2)) rand_order_sorted(find(label(ind_label) == 1))]];
 
       if ~test_mode
         % maximum statistic
-        tfce_max = [tfce_max max(tfce(mask_stat)) -min(tfce(mask_stat))];
-        t_max    = [t_max    max(t(mask_stat))    -min(t(mask_stat))];
-        tfce_min = [tfce_min min(tfce(mask_stat)) -max(tfce(mask_stat))];
-        t_min    = [t_min    min(t(mask_stat))    -max(t(mask_stat))];
+        t_max    = [t_max    max(t(mask_stat_P))    -min(t(mask_stat_N))];
+        t_min    = [t_min    min(t(mask_stat_N))    -max(t(mask_stat_P))];
+        tfce_max = [tfce_max max(tfce(mask_stat_P)) -min(tfce(mask_stat_N))];
+        tfce_min = [tfce_min min(tfce(mask_stat_N)) -max(tfce(mask_stat_P))];
         tperm(mask_P)    = tperm(mask_P) + 2*(t(mask_P) >= t0(mask_P));
         tperm(mask_N)    = tperm(mask_N) - 2*(t(mask_N) <= t0(mask_N));
         tfceperm(mask_P) = tfceperm(mask_P) + 2*(tfce(mask_P) >= tfce0(mask_P));
@@ -1080,10 +1111,10 @@ for con = 1:length(Ic0)
 
       if ~test_mode
         % maximum statistic
-        tfce_max = [tfce_max max(tfce(mask_stat))];
-        t_max    = [t_max    max(t(mask_stat))];
-        tfce_min = [tfce_min min(tfce(mask_stat))];
-        t_min    = [t_min    min(t(mask_stat))];
+        t_max    = [t_max    max(t(mask_stat_P))];
+        t_min    = [t_min    min(t(mask_stat_N))];
+        tfce_max = [tfce_max max(tfce(mask_stat_P))];
+        tfce_min = [tfce_min min(tfce(mask_stat_N))];
         tperm(mask_P)    = tperm(mask_P) + (t(mask_P) >= t0(mask_P));
         tperm(mask_N)    = tperm(mask_N) - (t(mask_N) <= t0(mask_N));
         tfceperm(mask_P) = tfceperm(mask_P) + (tfce(mask_P) >= tfce0(mask_P));
@@ -1326,7 +1357,7 @@ for con = 1:length(Ic0)
   
     corrP = ones(size(t));
   
-    if use_tail_approximation
+    if use_gamma_tail_approximation
       fprintf('Using tail approximation from the Gamma distribution for corrected P-values.\n');
       
       if tail_approximation_wo_unpermuted_data
@@ -1401,7 +1432,7 @@ for con = 1:length(Ic0)
   
     corrP = zeros(size(t));
   
-    if use_tail_approximation
+    if use_gamma_tail_approximation
       
       if found_P
         [mu,s2,gamm1] = palm_moments(t_max(ind_tail)');

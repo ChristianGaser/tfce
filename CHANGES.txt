@@ -1,5 +1,20 @@
 ------------------------------------------------------------------------
-r209 | gaser | 2020-09-29 13:59:10
+r210 | gaser | 2020-11-24 15:00:22
+
+Changed paths:
+M       CHANGES.txt
+M       html/tfce.html
+M       spm_TFCE.m
+M       tbx_cfg_tfce.m
+M       tfceMex_pthread.c
+M       tfce_estimate_stat.m
+
+(1) Fixed:   Calculation of multiple SPM.mat files failed if nproc was set to "0".
+(2) Changed: Changed data field to support call via cat_standalone.sh.
+(3) Changed: Re-implemented option to use old method to estimate maximum 
+             statistics from r184 for compatibility purposes.
+------------------------------------------------------------------------
+r209 | gaser | 2020-09-29 13:59:27 +0200 (Di, 29 Sep 2020) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +22,7 @@ M       html/tfce.html
 M       tfce_estimate_stat.m
 
 Fixed:  Recognition of missing contrasts did not always work.
+
 
 ------------------------------------------------------------------------
 r208 | gaser | 2020-09-29 13:00:39 +0200 (Di, 29 Sep 2020) | 7 lines

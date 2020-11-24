@@ -206,16 +206,16 @@ void tfce(double *inData, double *outData, double dh, const mwSize *dims, double
   ThreadList = (pthread_t *) calloc(n_steps,sizeof(pthread_t));
   ThreadArgs = (myargument*) calloc( n_steps,sizeof(myargument));
   if (pthread_mutex_init(&mutex, NULL) != 0)
-	{
-			printf("\n mutex init failed\n");
-			exit(1);
-	}
+  {
+      printf("\n mutex init failed\n");
+      exit(1);
+  }
 
   for (i=0; i<n_steps; i++)
   {         
     curThr = (double)(i+1)*dh;
     
-	  /* Make Thread Structure   */
+    /* Make Thread Structure   */
     ThreadArgs[i].inData = inData;
     ThreadArgs[i].outData = outData;
     ThreadArgs[i].thresh = curThr;
@@ -293,7 +293,7 @@ else if (nlhs>2)
   mexErrMsgTxt("Too many output arguments.");
   
 if (!mxIsDouble(prhs[0]))
-	mexErrMsgTxt("First argument must be double.");
+  mexErrMsgTxt("First argument must be double.");
 
 /* get input */
 inData = (double*)mxGetPr(prhs[0]);

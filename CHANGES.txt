@@ -1,5 +1,23 @@
 ------------------------------------------------------------------------
-r210 | gaser | 2020-11-24 15:00:22
+r211 | gaser | 2020-11-25 17:11:58
+
+Changed paths:
+M       CHANGES.txt
+M       cat_spm_results_ui.m
+M       html/tfce.html
+M       html/tfce_FN.html
+A  +    old_tfce_results_ui.m
+        > moved from tfce_results_ui.m
+D       tfce_results_ui.m
+        > moved to old_tfce_results_ui.m
+
+(1) Fixed:   Corrected a typo in html file that called cat_vol_slice_overlay
+             (thanks to Do-Joon Yi for pointing to that issue).
+(2) Removed: Removed oldtfce_results_ui.m which is not needed anymore because
+             now always cat_spm_results_ui.m is used for both CAT12 and TFCE.
+(3) Changed: Use updated cat_spm_results_ui.m from CAT12.
+------------------------------------------------------------------------
+r210 | gaser | 2020-11-24 15:00:29 +0100 (Di, 24 Nov 2020) | 13 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -13,6 +31,7 @@ M       tfce_estimate_stat.m
 (2) Changed: Changed data field to support call via cat_standalone.sh.
 (3) Changed: Re-implemented option to use old method to estimate maximum 
              statistics from r184 for compatibility purposes.
+
 ------------------------------------------------------------------------
 r209 | gaser | 2020-09-29 13:59:27 +0200 (Di, 29 Sep 2020) | 8 lines
 

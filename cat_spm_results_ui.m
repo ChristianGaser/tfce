@@ -279,34 +279,45 @@ switch lower(Action), case 'setup'                         %-Set up results
             [SPM,xSPM] = spm_getSPM(varargin{2});
         end
     else
-        [spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
-        swd = spm_file(spmmatfile,'fpath');
-        load(fullfile(swd,'SPM.mat'));
-        [Ic,xCon] = spm_conman(SPM,'T&F',Inf,'    Select contrast(s)...');
-        SPM.Ic = Ic; SPM.xCon = xCon;
-        SPM.swd = swd;
+        if exist(fullfile(spm('dir'),'toolbox','TFCE'),'dir')
+            [spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+            swd = spm_file(spmmatfile,'fpath');
+            warning off
+            load(fullfile(swd,'SPM.mat'),'SPM','xSPM');
+            warning on
         
-        % check for existing TFCE results for this contrast
-        if numel(Ic)==1 & exist(fullfile(swd,sprintf('%s_log_p_%04d.nii',xCon(Ic).STAT,Ic))) || ...
-                          exist(fullfile(swd,sprintf('%s_log_p_%04d.gii',xCon(Ic).STAT,Ic)))
-            stat_str = {'TFCE',xCon(Ic).STAT};
-            statType = spm_input('Type of statistic',1,'m',...
-                sprintf('TFCE (non-parametric)|%s (non-parametric)|%s (SPM parametric)',...
-                xCon(Ic).STAT,xCon(Ic).STAT),[],1);
-            if statType < 3
-                use_tfce = 1;
-                SPM.statType = stat_str{statType};
-                [SPM,xSPM] = tfce_getSPM(SPM);
-                xSPM.statType = stat_str{statType};
+            [Ic,xCon] = spm_conman(SPM,'T&F',Inf,'    Select contrast(s)...');
+            SPM.Ic = Ic; SPM.xCon = xCon;
+            SPM.swd = swd;
+
+            % check for existing TFCE results for this contrast
+            if numel(Ic)==1 & exist(fullfile(swd,sprintf('%s_log_p_%04d.nii',xCon(Ic).STAT,Ic))) || ...
+                              exist(fullfile(swd,sprintf('%s_log_p_%04d.gii',xCon(Ic).STAT,Ic)))
+                stat_str = {'TFCE',xCon(Ic).STAT};
+                statType = spm_input('Type of statistic',1,'m',...
+                    sprintf('TFCE (non-parametric)|%s (non-parametric)|%s (SPM parametric)',...
+                    xCon(Ic).STAT,xCon(Ic).STAT),[],1);
+                if statType < 3
+                    use_tfce = 1;
+                    SPM.statType = stat_str{statType};
+                    [SPM,xSPM] = tfce_getSPM(SPM);
+                    xSPM.statType = stat_str{statType};
+                else
+                    use_tfce = 0;
+                    [SPM,xSPM] = spm_getSPM(SPM);
+                    xSPM.statType = xCon(Ic).STAT;
+                end
             else
                 use_tfce = 0;
                 [SPM,xSPM] = spm_getSPM(SPM);
                 xSPM.statType = xCon(Ic).STAT;
             end
         else
-            use_tfce = 0;
-            [SPM,xSPM] = spm_getSPM(SPM);
-            xSPM.statType = xCon(Ic).STAT;
+            if nargin > 1
+                [SPM,xSPM] = spm_getSPM(varargin{2});
+            else
+                [SPM,xSPM] = spm_getSPM;
+            end  
         end
     end
  
@@ -315,6 +326,10 @@ switch lower(Action), case 'setup'                         %-Set up results
         return;
     end
  
+    if ~use_tfce
+        xSPM.invResult = 0;
+    end
+    
     if spm_mesh_detect(xSPM.Vspm)
       mesh_detect = 1;
     else
@@ -452,18 +467,16 @@ switch lower(Action), case 'setup'                         %-Set up results
     FS     = spm('FontSizes');
     hMIPax = axes('Parent',Fgraph,'Position',[0.05 0.60 0.55 0.36],'Visible','off');
     if spm_mesh_detect(xSPM.Vspm)
+       tmp  = zeros(1,prod(xSPM.DIM));
+       tmp(xSPM.XYZ(1,:)) = xSPM.Z;
        % block to call cat_surf_render rather than spm_mesh_render
         if useCAT>1 & exist('cat_surf_render')
             hMax = cat_surf_render('Disp',SPM.xVol.G,'Parent',hMIPax,'Results',1);
-            tmp  = zeros(1,prod(xSPM.DIM));
-            tmp(xSPM.XYZ(1,:)) = xSPM.Z;
             hMax = cat_surf_render('Overlay',hMax,tmp);
             hMax = cat_surf_render('ColourMap',hMax,jet);
             hMax = cat_surf_render('Register',hMax,hReg);
         else
             hMax = spm_mesh_render('Disp',SPM.xVol.G,'Parent',hMIPax);
-            tmp  = zeros(1,prod(xSPM.DIM));
-            tmp(xSPM.XYZ(1,:)) = xSPM.Z;
             hMax = spm_mesh_render('Overlay',hMax,tmp);
             hMax = spm_mesh_render('Register',hMax,hReg);
             hMax = spm_mesh_render('ColourMap',hMax,jet);
@@ -517,7 +530,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         'DefaultTextVerticalAlignment','baseline',...
         'DefaultTextFontSize',FS(9),...
         'DefaultTextColor',[1,1,1]*.7,...
-        'Units','points',...
+        'Units','Pixel',...
         'Visible','off');
     AxPos = get(hResAx,'Position'); set(hResAx,'YLim',[0,AxPos(4)])
     h     = text(0,24,'SPMresults:','Parent',hResAx,...
@@ -640,7 +653,11 @@ switch lower(Action), case 'setup'                         %-Set up results
 
     if isfield(xSPM,'G')
         % create SPM result table and fix elements to avoid rotation of tables
-        spm_list_cleanup; 
+        if use_tfce
+            tfce_list('List',xSPM,hReg); 
+        else
+            spm_list_cleanup; 
+        end
 
         % corrections for top elements
         hRes.Fgraph       = spm_figure('GetWin','Graphics');
@@ -800,15 +817,17 @@ switch lower(Action), case 'setup'                         %-Set up results
             Enable = 'on';
         end
         
-        uicontrol('Parent',hPan,'Style','PushButton','String','small volume',...
-            'Units','Pixels',...
-            'FontSize',FS(10),...
-            'ToolTipString',['Small Volume Correction - corrected p-values ',...
-            'for a small search region'],...
-            'Callback','TabDat = spm_VOI(SPM,xSPM,hReg);',...
-            'Interruptible','off','Enable',Enable,...  
-            'Position',[005 005 100 020].*WS);
-
+        if ~use_tfce
+            uicontrol('Parent',hPan,'Style','PushButton','String','small volume',...
+                'Units','Pixels',...
+                'FontSize',FS(10),...
+                'ToolTipString',['Small Volume Correction - corrected p-values ',...
+                'for a small search region'],...
+                'Callback','TabDat = spm_VOI(SPM,xSPM,hReg);',...
+                'Interruptible','off','Enable',Enable,...  
+                'Position',[005 005 100 020].*WS);
+        end
+        
         hPan = uipanel('Parent',hReg,'Title','Multivariate','Units','Pixels',...
             'Position',[120 085 150 092].*WS,...
             'BorderType','Beveledout', ...
@@ -1062,9 +1081,14 @@ switch lower(Action), case 'setup'                         %-Set up results
         hC1  = uimenu(hC,'Label','Label using');
         
         list = spm_atlas('List','installed');
+        if use_tfce
+          clist = 'tfce_list';
+        else
+          clist = 'spm_list';
+        end
         for i=1:numel(list)
             uimenu(hC1,'Label',list(i).name,...
-                'Callback',sprintf('call_list(''label'',''%s''); cat_spm_results_ui(''spm_list_cleanup'');',list(i).name));
+                'Callback',sprintf('%s(''label'',''%s''); cat_spm_results_ui(''spm_list_cleanup'');',clist,list(i).name));
         end
         if isempty(list), set(hC1,'Enable','off'); end
         

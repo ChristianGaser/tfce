@@ -1,11 +1,21 @@
 ------------------------------------------------------------------------
-r213 | gaser | 2021-02-05 00:15:54
+r214 | gaser | 2021-02-05 10:25:56
+
+Changed paths:
+M       CHANGES.txt
+M       tfce_estimate_stat.m
+
+Fixed: Interactive selection with defining contrast as Inf was not working.
+
+------------------------------------------------------------------------
+r213 | gaser | 2021-02-05 00:16:01 +0100 (Fr, 05 Feb 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
 M       cat_spm_results_ui.m
 
 Fixed: Calling cat_spm_results_ui from other functions now works correctly.
+
 
 ------------------------------------------------------------------------
 r212 | gaser | 2020-12-02 23:58:03 +0100 (Mi, 02 Dez 2020) | 7 lines

@@ -119,7 +119,7 @@ end
 Ic0 = job.conspec.contrasts;
 
 % check whether contrast are defined
-if ~isfield(SPM,'xCon') | (isfield(SPM,'xCon') & isempty(SPM.xCon))
+if ~isfinite(Ic0) | ~isfield(SPM,'xCon') | (isfield(SPM,'xCon') & isempty(SPM.xCon))
   [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
         '  Select contrast(s)...',' ',1);
   SPM.xCon = xCon;
@@ -1075,18 +1075,18 @@ for con = 1:length(Ic0)
         end
         
       end
+      
+      % use (too liberal) method for estimating maximum statistic from old release 
+      % r184 for compatibility purposes only that was estimating max/min statistics
+      % only inside pos./neg. effects and not both
+      if old_method_stat
+        mask_stat_P = mask_P;
+        mask_stat_N = mask_N;
+      else  
+        mask_stat_P = mask_1;
+        mask_stat_N = mask_1;
+      end
     end % test_mode
-    
-    % use (too liberal) method for estimating maximum statistic from old release 
-    % r184 for compatibility purposes only that was estimating max/min statistics
-    % only inside pos./neg. effects and not both
-    if old_method_stat
-      mask_stat_P = mask_P;
-      mask_stat_N = mask_N;
-    else  
-      mask_stat_P = mask_1;
-      mask_stat_N = mask_1;
-    end
     
     % update label_matrix to check for unique permutations
     if use_half_permutations

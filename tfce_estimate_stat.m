@@ -32,17 +32,17 @@ elseif (~isfield(job,'process_index'))
 end
 
 % Use tail approximation from the Gamma distribution for corrected P-values 
-use_gamma_tail_approximation = 1;
-tail_approximation_wo_unpermuted_data = 0;
+use_gamma_tail_approximation = true;
+tail_approximation_wo_unpermuted_data = false;
 
 % single-threaded?
 singlethreaded = job.singlethreaded;
 
 % convert to z-statistic
-convert_to_z = 0;
+convert_to_z = false;
 
 % experimental, does not result in any improvement, only for 3D images
-filter_bilateral = 0;
+filter_bilateral = false;
 
 % use (too liberal) method for estimating maximum statistic from old release 
 % r184 for compatibility purposes only that was estimating max/min statistics
@@ -74,7 +74,7 @@ show_permuted_designmatrix = 1;
 % allow to test permutations without analyzing data
 % test mode is automatically chosen if only a SPM.mat is available
 % without any data
-test_mode = 0;
+test_mode = false;
 
 % define stepsize for tfce
 n_steps_tfce = 100;
@@ -95,10 +95,8 @@ end
 tol = 1e-4;
     
 % check spm version
-if strcmp(spm('ver'),'SPM12')
-  spm12 = 1;
-else
-  spm12 = 0;
+if ~strcmp(spm('ver'),'SPM12')
+  error('Please use any TFCE version < r215 that still supports SPM8.')
 end
 
 load(job.data{1});
@@ -149,9 +147,22 @@ n_data = size(xX.X,1);
 % sometimes xX.iB and xX.iH are not correct and cannot be used to reliably recognize the design
 xX = correct_xX(xX);
 
+% check whether voxel-wise covariate is defined
+voxel_covariate = 0;
+for i = 1:numel(SPM.xC)
+  if isfield(SPM.xC(i),'P') && ~isempty(SPM.xC(i).P)
+    voxel_covariate = i;
+    fprintf('Voxel-wise covariate found.\n');
+  end
+end
+
 % find exchangeability block labels for longitudinal designs (paired t-test, flexible factorial)
 repeated_anova = ~isempty(xX.iB);
 if repeated_anova
+  if voxel_covariate
+    fprintf('Error: Voxelwise covariate not supported for repeated Anova designs');
+    return
+  end
   [rw,cl] = find(xX.I == length(xX.iB)); % find column which codes subject factor (length(xX.iB) -> n_subj)
   exch_block_labels = xX.I(:,cl(1));     % column from above contains the subject factor
 
@@ -174,15 +185,10 @@ end
 
 if ~test_mode
   % check for meshes
-  if spm12
-    if spm_mesh_detect(VY)
-      mesh_detected = 1;
-    else
-      mesh_detected = 0;
-    end
+  if spm_mesh_detect(VY)
+    mesh_detected = true;
   else
-    % versions before spm12 don't support meshes
-    mesh_detected = 0;
+    mesh_detected = false;
   end
   
   % set E according to type data
@@ -201,12 +207,12 @@ if ~test_mode
     file_ext = '.gii';
   else
     spm('alert!',sprintf('WARNING: No mask file found. Switch to test mode.\n\n'),'',spm('CmdLine'),1);
-    test_mode = 1;
+    test_mode = true;
   end
 
 else
   % for test_mode
-  mesh_detected = 0;
+  mesh_detected = false;
 end
 
 % check whether 3D filters were selected for surfaces meshes or whether CAT12 is installed
@@ -217,7 +223,7 @@ if mesh_detected
 
   if filter_bilateral
     fprintf('Warning: Bilateral filter is not supported for meshes.\n')
-    filter_bilateral = 0;
+    filter_bilateral = false;
   end
   
   if vFWHM > 0
@@ -240,22 +246,14 @@ if ~test_mode
   
   % load mask
   try
-    if spm12
-      Vmask = spm_data_hdr_read(maskname);
-    else
-      Vmask = spm_vol(maskname);
-    end
+    Vmask = spm_data_hdr_read(maskname);
   catch
     if mesh_detected
       maskname = spm_select(1,'mesh','select surface mask');
     else
       maskname = spm_select(1,'image','select mask image');
     end
-    if spm12
-      Vmask = spm_data_hdr_read(maskname);
-    else
-      Vmask = spm_vol(maskname);
-    end
+    Vmask = spm_data_hdr_read(maskname);
   end
     
   % if first image was not found you have to select all files again
@@ -269,11 +267,7 @@ if ~test_mode
       P = spm_select(n,'image','select images');
     end
     
-    if spm12
-      VY = spm_data_hdr_read(P);
-    else
-      VY = spm_vol(P);
-    end
+    VY = spm_data_hdr_read(P);
     
     %-Apply gSF to memory-mapped scalefactors to implement scaling
     %--------------------------------------------------------------------------
@@ -305,39 +299,125 @@ if ~test_mode
     end
   end
         
+  if voxel_covariate
+    % if first image of voxel-wise covariate was not found you have to select all files again
+    if ~exist(SPM.xC(voxel_covariate).VC(1).fname);
+  
+      fprintf('Covariate data not found. Please select covariate data in the order defined in the design matrix.\n');
+      n = numel(SPM.xC(voxel_covariate).P);
+      if mesh_detected
+        P = spm_select(n,'mesh','select surfaces');
+      else
+        P = spm_select(n,'image','select images');
+      end
+      SPM.xC(voxel_covariate).P = cellstr(P);
+      
+      if size(P,1)==n
+        save(job.data{1},'SPM','-v7.3');
+      else
+        fprintf('ERROR: Number of files is not correct\n');
+        return
+      end
+    end
+    
+    VC = spm_data_hdr_read(char(SPM.xC(voxel_covariate).P));
+    n = numel(VC);
+    
+    %-Apply gSF to memory-mapped scalefactors to implement scaling for
+    % voxel-wise covariate
+    %--------------------------------------------------------------------------
+    if isfield(SPM.xC(voxel_covariate),'gSF')
+      for i = 1:n
+        VC(i).pinfo(1:2,:) = VC(i).pinfo(1:2,:)*SPM.xC(voxel_covariate).gSF(i);
+        if mesh_detected
+          if isfield(VC(i).private.private.data{1}.data,'scl_slope')
+            VC(i).private.private.data{1}.data.scl_slope = ...
+                VC(i).private.private.data{1}.data.scl_slope * SPM.xC(voxel_covariate).gSF(i);
+            VC(i).private.private.data{1}.data.scl_inter = ...
+                VC(i).private.private.data{1}.data.scl_inter * SPM.xC(voxel_covariate).gSF(i);
+          end
+        else
+          VC(i).private.dat.scl_slope = ...
+              VC(i).private.dat.scl_slope * SPM.xC(voxel_covariate).gSF(i);
+          VC(i).private.dat.scl_inter = ...
+              VC(i).private.dat.scl_inter * SPM.xC(voxel_covariate).gSF(i);
+        end
+      end
+    end
+    SPM.xC(voxel_covariate).VC = VC;
+  end
+
   % check whether mask images fits to the data
   if mesh_detected, dim_index = 1; else dim_index=1:3; end
   if sum(sum((Vmask.mat-VY(1).mat).^2)) > 1e-6 || any(Vmask.dim(dim_index) ~= VY(1).dim(dim_index))
     error('Mask must have the same dimensions and orientation as the data.');
   end
   
-  % read mask and data
-  if spm12
-    mask = spm_data_read(Vmask);
-  else
-    mask = spm_read_vols(Vmask);
+  if voxel_covariate
+    resample = false;
+    if sum(sum((Vmask.mat-VC(1).mat).^2)) > 1e-6 || any(Vmask.dim(dim_index) ~= VC(1).dim(dim_index))
+      fprintf('Covariate data has different dimensions and orientation as the other data. Thus, your covariate data will be resampled.\n');
+      fprintf('Please check that your covariate data are co-registered to your other data!\n');
+      resample = true;
+    end
   end
+
+  % read mask and data
+  mask = spm_data_read(Vmask);
   
   ind_mask = find(mask>0);
   n = numel(VY);
   
   if ~isempty(ind_mask)
     Y = zeros([length(ind_mask) n],'single');
-  
-    % load data
-    for i=1:n
-      if spm12
-        tmp = spm_data_read(VY(i));
-      else 
-        tmp = spm_read_vols(VY(i));
-      end
-      Y(:,i) = tmp(ind_mask);
+    if voxel_covariate
+      C = zeros([length(ind_mask) n],'single');
+      meanC = zeros(length(ind_mask),1,'single');
+    else
+      C = [];
     end
+    
+    % load data
+    fprintf('Load data ')
+    for i=1:n
+      fprintf('.')
+      tmp = spm_data_read(VY(i));
+      Y(:,i) = tmp(ind_mask);
+      if voxel_covariate
+        
+        % we need to resample voxel-wise covariate
+        if resample
+          tmp = zeros(Vmask.dim);
+          for z=1:Vmask.dim(3)
+            M = spm_matrix([0 0 z]);
+            M1  = Vmask(1).mat\VC(i).mat\M;
+            tmp(:,:,z) = spm_slice_vol(VC(i),M1, Vmask.dim(1:2),[1 0]);
+          end  
+        else
+          tmp = spm_data_read(VC(i));
+        end
+        
+        tmp = tmp(ind_mask);
+        C(:,i) = tmp;
+        meanC = meanC + tmp;
+      end
+    end
+    fprintf('\n')
     clear tmp;
   
     % whitening matrix
     W = single(full(xX.W));
     Y = Y*W;
+
+    % mean correct voxel-wise covariate
+    if voxel_covariate
+      meanC = meanC/n;
+      for i=1:n
+        C(:,i) = C(:,i) - meanC;
+      end
+      C = C*W;
+    end
+
   else
     error('Empty mask.');
   end
@@ -449,15 +529,17 @@ for con = 1:length(Ic0)
   end
 
   fprintf('\n');
-
+  
   % check design
+  interaction_design = false;
   switch n_cond
   case 0 % correlation
     label = 1:n_data;
 
     if n_exch_blocks >= 2 & any(diff(exch_blocks(:))) % # exch_blocks >1 & differential contrast
       fprintf('Interaction design between two or more regressors found\n')
-            
+      interaction_design = true;
+
       % remove all entries where contrast is not defined
       % this does not work for all data CG 20200829
       % label(all(xX.X(:,ind_X)==0,2)) = [];
@@ -593,10 +675,10 @@ for con = 1:length(Ic0)
 
   % if Hz is zero or Ic is empty then no confounds were found and we can skip the time-consuming
   % Freedman-Lane permutation
-  if (all(~any(Hz)) | isempty(xX.iC)) | all(~any(diff(Hz)))
-    exist_nuisance = 0;
+  if (all(~any(Hz)) | isempty(xX.iC)) | all(~any(diff(Hz))) | (interaction_design & numel(xX.iC) == numel(ind_X))
+    exist_nuisance = false;
   else
-    exist_nuisance = 1;
+    exist_nuisance = true;
   end
   
   if ~exist_nuisance & nuisance_method > 0
@@ -606,6 +688,11 @@ for con = 1:length(Ic0)
 
   if nuisance_method > 0 & repeated_anova
     fprintf('Use Draper-Stoneman permutation for repeated measures Anova.\n\n');
+    nuisance_method = 0;
+  end
+
+  if nuisance_method == 1 & voxel_covariate
+    fprintf('Use Draper-Stoneman permutation for voxel-wise covariates.\n\n');
     nuisance_method = 0;
   end
 
@@ -629,12 +716,11 @@ for con = 1:length(Ic0)
 
   if ~test_mode
     % compute unpermuted t/F-map
-    if vFWHM > 0
+    if ~voxel_covariate
       [t0, df2, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim,vFWHM);
     else
-      [t0, df2] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim);
+      [t0, df2, SmMask] = calc_GLM_voxelwise(Y,xX,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,[],ind_X);
     end
-    
     mask_0   = (t0 == 0);
     mask_1   = (t0 ~= 0);
     mask_P   = (t0 > 0);
@@ -764,7 +850,7 @@ for con = 1:length(Ic0)
   n_unique_labels = length(unique_labels);
   
   perm = 1;
-  check_validity = 0;
+  check_validity = false;
   while perm<=n_perm
 
     % randomize subject vector
@@ -1013,19 +1099,19 @@ for con = 1:length(Ic0)
         xXperm   = xX;
         xXperm.X = Xperm;        
         xXperm.W = Wperm;
-        
+
         % Freedman-Lane permutation of data
         if nuisance_method == 1
-          if vFWHM > 0
-            t = calc_GLM(Y*(Pset'*Rz+Hz),xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
-          else
-            t = calc_GLM(Y*(Pset'*Rz+Hz),xXperm,xCon,ind_mask,VY(1).dim);
-          end
+          t = calc_GLM(Y*(Pset'*Rz+Hz),xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
         else
-          if vFWHM > 0
+          if ~voxel_covariate
             t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
           else
-            t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
+            if nuisance_method == 2
+              t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset*Rz,ind_X);
+            else
+              t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset,ind_X);
+            end
           end
         end
 
@@ -1169,8 +1255,9 @@ for con = 1:length(Ic0)
       % after 500 permutations or at n_perm compare uncorrected p-values with permutations with parametric 
       % p-values to check wheter something went wrong    
       % use odd numbers to consider parameter use_half_permutations
+      % skip that check for voxel-wise covariates
       
-        if ((perm == 501) | (perm >= n_perm-1)) & ~check_validity & (found_P | found_N)
+      if ~voxel_covariate && ((perm == 501) || (perm >= n_perm-1)) && ~check_validity && (found_P || found_N)
 
         % estimate p-values
         nPt = tperm/perm;
@@ -1199,8 +1286,10 @@ for con = 1:length(Ic0)
         end
 
         % check for low correlation between non-parametric and permutation test
+        % skip check for voxel-wise covariate
         if cc(1,2) < 0.85
-          if nuisance_method > 0
+          % check correlation between parametric and non-parametric statistic ofr Smith or Freedman-Lane correction
+          if nuisance_method > 0 
             spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric statistic found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),1);
             fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g)! Please try a different method to deal with nuisance parameters.\n',cc(1,2));
           else
@@ -1210,7 +1299,7 @@ for con = 1:length(Ic0)
         else
           fprintf('\nCorrelation between between parametric and non-parametric statistic is cc=%g.\n',cc(1,2));
         end
-        check_validity = 1;
+        check_validity = true;
       end
 
     end % test_mode
@@ -1255,12 +1344,8 @@ for con = 1:length(Ic0)
     name = sprintf('%s_%04d',xCon.STAT,Ic);
     Vt.fname = fullfile(cwd,[name file_ext]);
     Vt.descrip = sprintf('%s %04d %s',xCon.STAT,Ic, str_permutation_method);
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,t0);
-    else
-      spm_write_vol(Vt,t0);
-    end
+    Vt = spm_data_hdr_write(Vt);
+    spm_data_write(Vt,t0);
   
     %---------------------------------------------------------------
     % save unpermuted TFCE map
@@ -1268,12 +1353,8 @@ for con = 1:length(Ic0)
     name = sprintf('TFCE_%04d',Ic);
     Vt.fname = fullfile(cwd,[name file_ext]);
     Vt.descrip = sprintf('TFCE %04d %s',Ic, str_permutation_method);
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,tfce0);
-    else
-      spm_write_vol(Vt,tfce0);
-    end
+    Vt = spm_data_hdr_write(Vt);
+    spm_data_write(Vt,tfce0);
   
     % save ascii file with number of permutations
     name = sprintf('%s_%04d',xCon.STAT,Ic);
@@ -1308,12 +1389,8 @@ for con = 1:length(Ic0)
     nPtfcelog10(mask_0)   = 0;
     nPtfcelog10(mask_NaN) = NaN;
   
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,nPtfcelog10);
-    else
-      spm_write_vol(Vt,nPtfcelog10);
-    end
+    Vt = spm_data_hdr_write(Vt);
+    spm_data_write(Vt,nPtfcelog10);
   
     %---------------------------------------------------------------
     % save uncorrected p-values for T
@@ -1341,12 +1418,8 @@ for con = 1:length(Ic0)
     nPtlog10(mask_0)   = 0;
     nPtlog10(mask_NaN) = NaN;
   
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,nPtlog10);
-    else
-      spm_write_vol(Vt,nPtlog10);
-    end
+    Vt = spm_data_hdr_write(Vt);
+    spm_data_write(Vt,nPtlog10);
   
     %---------------------------------------------------------------
     % save corrected p-values for TFCE
@@ -1418,12 +1491,8 @@ for con = 1:length(Ic0)
     corrPlog10(mask_0)   = 0;
     corrPlog10(mask_NaN) = NaN;
   
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,corrPlog10);
-    else
-      spm_write_vol(Vt,corrPlog10);
-    end
+    Vt = spm_data_hdr_write(Vt);
+    spm_data_write(Vt,corrPlog10);
   
     %---------------------------------------------------------------
     % save corrected p-values for T
@@ -1487,12 +1556,8 @@ for con = 1:length(Ic0)
     corrPlog10(mask_0)   = 0;
     corrPlog10(mask_NaN) = NaN;
   
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,corrPlog10);
-    else
-      spm_write_vol(Vt,corrPlog10);
-    end
+    Vt = spm_data_hdr_write(Vt);
+    spm_data_write(Vt,corrPlog10);
   
     %---------------------------------------------------------------
     % save corrected FDR-values for TFCE
@@ -1529,12 +1594,8 @@ for con = 1:length(Ic0)
     corrPfdrlog10(mask_0)   = 0;
     corrPfdrlog10(mask_NaN) = NaN;
   
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,corrPfdrlog10);
-    else
-      spm_write_vol(Vt,corrPfdrlog10);
-    end
+    Vt = spm_data_hdr_write(Vt);
+    spm_data_write(Vt,corrPfdrlog10);
   
     %---------------------------------------------------------------
     % save corrected FDR-values for T
@@ -1569,12 +1630,8 @@ for con = 1:length(Ic0)
     corrPfdrlog10(mask_0)   = 0;
     corrPfdrlog10(mask_NaN) = NaN;
   
-    if spm12
-      Vt = spm_data_hdr_write(Vt);
-      spm_data_write(Vt,corrPfdrlog10);
-    else
-      spm_write_vol(Vt,corrPfdrlog10);
-    end
+    Vt = spm_data_hdr_write(Vt);
+    spm_data_write(Vt,corrPfdrlog10);
   end % test_mode
     
 end
@@ -1681,14 +1738,13 @@ function [T, trRV, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,dim,vFWHM,SmMask)
 
 c = xCon.c;
 
-xKXs = spm_sp('Set',xX.W*xX.X);
-xKXs.X = full(xKXs.X);
-pKX = single(spm_sp('x-',xKXs));
+X = xX.W*xX.X;
+pKX = pinv(X);
 
-n_data = size(xX.X,1);
+n_data = size(X,1);
 
 Beta = Y*pKX';
-res0 = Beta*(single(xKXs.X'));
+res0 = Beta*(single(X'));
 res0 = res0 - Y; %-Residuals
 res0 = res0.^2;
 ResSS = double(sum(res0,2));
@@ -1706,7 +1762,7 @@ if vFWHM > 0
   
   % save time by using pre-calculated smoothed mask which is
   % independent from permutations
-  if nargin < 7
+  if isempty(SmMask)
     SmMask = zeros(dim);
     TmpVol(ind_mask) = ones(size(ind_mask));
     spm_smooth(TmpVol,SmMask,vFWHM);
@@ -1715,6 +1771,8 @@ if vFWHM > 0
   TmpVol(ind_mask) = ResMS;
   spm_smooth(TmpVol,SmResMS,vFWHM);
   ResMS  = SmResMS(ind_mask)./SmMask(ind_mask);
+else
+  SmMask = [];
 end
 
 T = zeros(dim);
@@ -1732,6 +1790,83 @@ else
   
   T(ind_mask) = MVM./ResMS;
 end
+
+%---------------------------------------------------------------
+function [T, trRV, SmMask] = calc_GLM_voxelwise(Y,xX,xC,xCon,ind_mask,dim,C,Pset,ind_X)
+% compute T- or F-statistic using GLM
+%
+% Y        - masked data as vector
+% xX       - design structure
+% xCon     - contrast structure
+% ind_mask - index of mask image
+% dim      - image dimension
+%
+% Output:
+% T        - T/F-values
+% trRV     - df
+
+c = xCon.c;
+X = xX.W*xX.X;
+
+n_data = size(X,1);
+trRV = n_data - rank(xX.X);
+
+T  = zeros(dim);
+T0 = zeros(size(ind_mask));
+
+% only permute C if this covariate is selected by the contrast
+if ~isempty(Pset)
+  found_ind_X = false;
+  for j=1:numel(xC.cols)
+    if ~isempty(find(ind_X==xC.cols(j)))
+      found_ind_X = true;
+    else
+      found_ind_X = false;
+    end
+  end
+  if found_ind_X
+    C = C*full(Pset);
+  end
+end
+
+% go through all voxels inside mask
+for i=1:size(Y,1)
+
+  % get X and replace defined columns with voxel-wise covariate
+  Xi = X;
+  for j=1:numel(xC.cols)
+    ind = find(X(:,xC.cols(j)) > 0);
+    Xi(ind,xC.cols(j)) = C(i,ind)';
+  end
+  pKX = pinv(Xi);
+  
+  Beta = Y(i,:)*pKX';
+  res0 = Beta*(single(Xi'));
+  res0 = res0 - Y(i,:); %-Residuals
+  res0 = res0.^2;
+  ResSS = double(sum(res0,2));
+  
+  ResMS = ResSS/trRV;
+  
+  if strcmp(xCon.STAT,'T')
+    Bcov = pKX*pKX';
+    con = Beta*c;
+  
+    T0(i) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
+  else
+    error('F-test is not yet supported')
+    %-Compute ESS
+    h  = spm_FcUtil('Hsqr',xCon,xX.xKXs);
+    ess = sum((h*Beta').^2,1)';
+    MVM = ess/xCon.eidf;
+    
+    T(ind_mask) = MVM./ResMS;
+  end
+end
+
+T(ind_mask) = T0;
+
+SmMask = [];
 
 %---------------------------------------------------------------
 function xX = correct_xX(xX)

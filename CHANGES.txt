@@ -1,11 +1,25 @@
 ------------------------------------------------------------------------
-r214 | gaser | 2021-02-05 10:25:56
+r215 | gaser | 2021-04-15 19:48:31
+
+Changed paths:
+M       CHANGES.txt
+M       cat_spm_results_ui.m
+M       html/tfce.html
+M       tbx_cfg_tfce.m
+M       tfce_estimate_stat.m
+
+(1) Changed: Updated cat_spm_results_ui.m w.r.t. CAT12.
+(2) Changed: Removed SPM8 support.
+(3) Changed: Added support to use voxel-wise covariates.
+------------------------------------------------------------------------
+r214 | gaser | 2021-02-05 10:25:58 +0100 (Fr, 05 Feb 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
 M       tfce_estimate_stat.m
 
 Fixed: Interactive selection with defining contrast as Inf was not working.
+
 
 ------------------------------------------------------------------------
 r213 | gaser | 2021-02-05 00:16:01 +0100 (Fr, 05 Feb 2021) | 7 lines

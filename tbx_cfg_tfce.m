@@ -51,10 +51,10 @@ nproc.help    = {
 % ---------------------------------------------------------------------
 data         = cfg_files;
 data.tag     = 'data';
-data.name    = 'Select SPM.mat';
-data.help    = {'Select the SPM.mat files that contain the design specification from a previous (parametric) estimation, where all required contrasts are already specified.'};
+data.name    = 'Select (v)SPM.mat';
+data.help    = {'Select the (v)SPM.mat files that contain the design specification from a previous (parametric) estimation, where all required contrasts are already specified.'};
 data.filter  = 'mat';
-data.ufilter = '^SPM\.mat$';
+data.ufilter = 'SPM\.mat$';
 data.num     = [1 Inf];
 
 % ---------------------------------------------------------------------

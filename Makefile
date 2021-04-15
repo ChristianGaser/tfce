@@ -43,7 +43,7 @@ install3:
 
 help:
 	-@echo Available commands:
-	-@echo install zip scp doc update
+	-@echo install install2 install3 zip scp doc update
 
 doc:
 	-@cat html/tfce.txt | sed -e 's/VERSION/'${NEWVERSION}'/g' -e 's/RELNUMBER/r'${REVISION}'/g' -e 's/DATE/'${DATE}'/g' > html/tfce.html

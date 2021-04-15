@@ -1,5 +1,17 @@
 ------------------------------------------------------------------------
-r215 | gaser | 2021-04-15 19:48:31
+r216 | gaser | 2021-04-15 21:52:31
+
+Changed paths:
+M       CHANGES.txt
+M       Makefile
+M       html/tfce.html
+M       tfce_estimate_stat.m
+
+(1) Fixed:   Corrected check whether design should be estimated.
+(2) Changed: Updated Makefile.
+
+------------------------------------------------------------------------
+r215 | gaser | 2021-04-15 19:48:39 +0200 (Do, 15 Apr 2021) | 11 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -11,6 +23,7 @@ M       tfce_estimate_stat.m
 (1) Changed: Updated cat_spm_results_ui.m w.r.t. CAT12.
 (2) Changed: Removed SPM8 support.
 (3) Changed: Added support to use voxel-wise covariates.
+
 ------------------------------------------------------------------------
 r214 | gaser | 2021-02-05 10:25:58 +0100 (Fr, 05 Feb 2021) | 7 lines
 

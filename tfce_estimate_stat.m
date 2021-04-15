@@ -123,7 +123,9 @@ if ~isfinite(Ic0) | ~isfield(SPM,'xCon') | (isfield(SPM,'xCon') & isempty(SPM.xC
   SPM.xCon = xCon;
 end
 
-if isempty(SPM.xCon(Ic0).eidf)
+% results should be called first (except for voxel-wise covariate
+% indicated by vSPM.mat file
+if isempty(strfind(job.data{1},'vSPM')) && isempty(SPM.xCon(Ic0(1)).eidf)
   fprintf('You have to call results first.\n');
   cat_spm_results_ui('Setup',SPM);
   load(job.data{1});

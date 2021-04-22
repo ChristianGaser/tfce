@@ -1,5 +1,13 @@
 ------------------------------------------------------------------------
-r216 | gaser | 2021-04-15 21:52:31
+r217 | gaser | 2021-04-23 00:14:24
+
+Changed paths:
+M       CHANGES.txt
+M       tfce_estimate_stat.m
+
+Fixed: Corrected handling of parallel processing that ignored subsequent data.
+------------------------------------------------------------------------
+r216 | gaser | 2021-04-15 21:52:33 +0200 (Do, 15 Apr 2021) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -9,6 +17,7 @@ M       tfce_estimate_stat.m
 
 (1) Fixed:   Corrected check whether design should be estimated.
 (2) Changed: Updated Makefile.
+
 
 ------------------------------------------------------------------------
 r215 | gaser | 2021-04-15 19:48:39 +0200 (Do, 15 Apr 2021) | 11 lines

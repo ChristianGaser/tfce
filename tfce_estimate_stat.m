@@ -20,7 +20,7 @@ if isfield(job,'nproc') && job.nproc>0 && (~isfield(job,'process_index'))
   cat_parallelize(job,mfilename,'data');
   return
 % or run though all data step-by-step
-elseif (~isfield(job,'process_index'))
+elseif numel(job.data)>1
   data = job.data;
   for i=1:numel(job.data)
     job = rmfield(job,'data');
@@ -123,9 +123,7 @@ if ~isfinite(Ic0) | ~isfield(SPM,'xCon') | (isfield(SPM,'xCon') & isempty(SPM.xC
   SPM.xCon = xCon;
 end
 
-% results should be called first (except for voxel-wise covariate
-% indicated by vSPM.mat file
-if isempty(strfind(job.data{1},'vSPM')) && isempty(SPM.xCon(Ic0(1)).eidf)
+if isempty(SPM.xCon(Ic0).eidf)
   fprintf('You have to call results first.\n');
   cat_spm_results_ui('Setup',SPM);
   load(job.data{1});
@@ -208,7 +206,7 @@ if ~test_mode
   elseif exist(fullfile(cwd, 'mask.gii'))
     file_ext = '.gii';
   else
-    spm('alert!',sprintf('WARNING: No mask file found. Switch to test mode.\n\n'),'',spm('CmdLine'),1);
+%    spm('alert!',sprintf('WARNING: No mask file found. Switch to test mode.\n\n'),'',spm('CmdLine'),1);
     test_mode = true;
   end
 

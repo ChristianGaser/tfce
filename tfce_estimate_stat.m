@@ -99,6 +99,9 @@ if ~strcmp(spm('ver'),'SPM12')
   error('Please use any TFCE version < r215 that still supports SPM8.')
 end
 
+% indicate if voxel-wise covariates were modeled
+is_vSPM = strfind(job.data{1},'vSPM') > 0;
+
 load(job.data{1});
 cwd = fileparts(job.data{1});
 
@@ -123,7 +126,8 @@ if ~isfinite(Ic0) | ~isfield(SPM,'xCon') | (isfield(SPM,'xCon') & isempty(SPM.xC
   SPM.xCon = xCon;
 end
 
-if isempty(SPM.xCon(Ic0).eidf)
+% for default SPM.mat results has to be called first
+if isempty(SPM.xCon(Ic0).eidf) && ~is_vSPM
   fprintf('You have to call results first.\n');
   cat_spm_results_ui('Setup',SPM);
   load(job.data{1});

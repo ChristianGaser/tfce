@@ -1,11 +1,21 @@
 ------------------------------------------------------------------------
-r217 | gaser | 2021-04-23 00:14:24
+r218 | gaser | 2021-04-30 17:47:13
+
+Changed paths:
+M       CHANGES.txt
+M       tfce_estimate_stat.m
+
+Fixed: Corrected handling of voxel-wise covariates for subsequent calls of 
+       tfce_estimates.m
+------------------------------------------------------------------------
+r217 | gaser | 2021-04-23 00:14:31 +0200 (Fr, 23 Apr 2021) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
 M       tfce_estimate_stat.m
 
 Fixed: Corrected handling of parallel processing that ignored subsequent data.
+
 ------------------------------------------------------------------------
 r216 | gaser | 2021-04-15 21:52:33 +0200 (Do, 15 Apr 2021) | 10 lines
 

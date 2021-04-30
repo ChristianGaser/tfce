@@ -1073,7 +1073,7 @@ for con = 1:length(Ic0)
           % color-coded legend
           y = 1.0;
           text(-0.2,y, 'Columns of design matrix: ', 'Color',cmap(1, :),'FontWeight','Bold','FontSize',10); y = y - 0.10;
-          text(-0.2,y,['Exchangeability block/variable: ' num2str_short(unique(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',10); y = y - 0.05;
+          text(-0.2,y,['Exch. block: ' num2str_short(unique(cell2mat(ind_exch_blocks))')], 'Color',cmap(60,:),'FontWeight','Bold','FontSize',10); y = y - 0.05;
           if ~isempty(xX.iH)
             text(-0.2,y, ['iH - Indicator variable: ' num2str_short(xX.iH)], 'Color',cmap(16,:),'FontWeight','Bold','FontSize',10);
             y = y - 0.05; 

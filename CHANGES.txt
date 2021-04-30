@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r218 | gaser | 2021-04-30 17:47:13
+r219 | gaser | 2021-04-30 17:48:50
+
+Changed paths:
+M       CHANGES.txt
+M       html/tfce.html
+M       tfce_estimate_stat.m
+
+Changed: Shortened text in GUI window.
+------------------------------------------------------------------------
+r218 | gaser | 2021-04-30 17:47:20 +0200 (Fr, 30 Apr 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +16,7 @@ M       tfce_estimate_stat.m
 
 Fixed: Corrected handling of voxel-wise covariates for subsequent calls of 
        tfce_estimates.m
+
 ------------------------------------------------------------------------
 r217 | gaser | 2021-04-23 00:14:31 +0200 (Fr, 23 Apr 2021) | 6 lines
 

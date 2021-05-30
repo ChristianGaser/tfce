@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r219 | gaser | 2021-04-30 17:48:50
+r220 | gaser | 2021-05-30 19:24:27
+
+Changed paths:
+M       CHANGES.txt
+M       html/tfce.html
+M       tfce_estimate_stat.m
+
+Changed: Allow voxel-wise covariate for longitudinal designs.
+------------------------------------------------------------------------
+r219 | gaser | 2021-04-30 17:48:52 +0200 (Fr, 30 Apr 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +16,7 @@ M       html/tfce.html
 M       tfce_estimate_stat.m
 
 Changed: Shortened text in GUI window.
+
 ------------------------------------------------------------------------
 r218 | gaser | 2021-04-30 17:47:20 +0200 (Fr, 30 Apr 2021) | 7 lines
 

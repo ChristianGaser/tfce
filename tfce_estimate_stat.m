@@ -164,8 +164,8 @@ end
 repeated_anova = ~isempty(xX.iB);
 if repeated_anova
   if voxel_covariate
-    fprintf('Error: Voxelwise covariate not supported for repeated Anova designs');
-    return
+    fprintf('Warning: Voxelwise covariate not yet supported for repeated Anova designs\n');
+%    return
   end
   [rw,cl] = find(xX.I == length(xX.iB)); % find column which codes subject factor (length(xX.iB) -> n_subj)
   exch_block_labels = xX.I(:,cl(1));     % column from above contains the subject factor

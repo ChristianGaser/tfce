@@ -1,5 +1,12 @@
 ------------------------------------------------------------------------
-r220 | gaser | 2021-05-30 19:24:27
+r221 | gaser | 2021-05-31 22:58:41
+
+Changed paths:
+M       CHANGES.txt
+
+Changed: Allow voxel-wise covariate for longitudinal designs.
+------------------------------------------------------------------------
+r220 | gaser | 2021-05-30 19:24:34 +0200 (So, 30 Mai 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +14,7 @@ M       html/tfce.html
 M       tfce_estimate_stat.m
 
 Changed: Allow voxel-wise covariate for longitudinal designs.
+
 ------------------------------------------------------------------------
 r219 | gaser | 2021-04-30 17:48:52 +0200 (Fr, 30 Apr 2021) | 7 lines
 

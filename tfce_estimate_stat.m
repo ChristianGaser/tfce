@@ -1106,7 +1106,7 @@ for con = 1:length(Ic0)
 
         % Freedman-Lane permutation of data
         if nuisance_method == 1
-          t = calc_GLM(Y*(Pset'*Rz+Hz),xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
+          t = calc_GLM(Y*(Pset'*Rz),xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
         else
           if ~voxel_covariate
             t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);

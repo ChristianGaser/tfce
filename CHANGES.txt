@@ -1,5 +1,17 @@
 ------------------------------------------------------------------------
-r222 | gaser | 2021-06-30 12:19:20
+r223 | gaser | 2021-08-12 13:02:03
+
+Changed paths:
+M       CHANGES.txt
+M       cat_spm_results_ui.m
+M       html/tfce.html
+M       tfce_estimate_stat.m
+
+(1) Changed: Use a faster Freedman-Lane approach thanks to blog entry of Anderson 
+             Winkler (https://brainder.org/2020/05/19/simplifying-freedman-lane).
+(2) Fixed:  Corrected issues with non-existing VSPM field in tfce_stat_estimate.m.
+------------------------------------------------------------------------
+r222 | gaser | 2021-06-30 12:19:27 +0200 (Wed, 30 Jun 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +19,7 @@ M       cat_spm_results_ui.m
 
 Fixed: Corrected path if results are called from another folder in 
        cat_spm_results_ui.m.
+
 ------------------------------------------------------------------------
 r221 | gaser | 2021-05-31 22:58:50 +0200 (Mon, 31 May 2021) | 5 lines
 

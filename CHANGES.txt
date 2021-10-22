@@ -1,5 +1,17 @@
 ------------------------------------------------------------------------
-r223 | gaser | 2021-08-12 13:02:03
+r224 | gaser | 2021-10-22 16:33:59
+
+Changed paths:
+M       CHANGES.txt
+M       cat_spm_results_ui.m
+M       html/tfce.html
+M       tfce_estimate_stat.m
+
+(1) Changed: Updated check for installed atlases in cat_spm_results_ui.m.
+(1) Fixed:   Corrected check for existing TFCE results in cat_spm_results_ui.m.
+(2) Fixed:   Corrected check for multiple contrasts in tfce_estimate_stats.m.
+------------------------------------------------------------------------
+r223 | gaser | 2021-08-12 13:02:11 +0200 (Thu, 12 Aug 2021) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -10,6 +22,7 @@ M       tfce_estimate_stat.m
 (1) Changed: Use a faster Freedman-Lane approach thanks to blog entry of Anderson 
              Winkler (https://brainder.org/2020/05/19/simplifying-freedman-lane).
 (2) Fixed:  Corrected issues with non-existing VSPM field in tfce_stat_estimate.m.
+
 ------------------------------------------------------------------------
 r222 | gaser | 2021-06-30 12:19:27 +0200 (Wed, 30 Jun 2021) | 7 lines
 

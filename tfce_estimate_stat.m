@@ -127,7 +127,7 @@ if ~isfinite(Ic0) | ~isfield(SPM,'xCon') | (isfield(SPM,'xCon') & isempty(SPM.xC
 end
 
 % for default SPM.mat results has to be called first
-if isempty(SPM.xCon(Ic0).eidf) && ~is_vSPM
+if isempty(SPM.xCon(Ic0(1)).eidf) && ~is_vSPM
   fprintf('You have to call results first.\n');
   cat_spm_results_ui('Setup',SPM);
   load(job.data{1});
@@ -432,7 +432,7 @@ if ~test_mode
 end % if ~test_mode
 
 % interactively select contrast(s) if necessary
-if numel(Ic0)==1 & ~isfinite(Ic0) & numel(SPM.xCon) > 1
+if numel(Ic0)==1 && ~isfinite(Ic0) && numel(SPM.xCon) > 1
   [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
     '  Select contrast(s)...',' ',1);
   SPM.xCon = xCon;

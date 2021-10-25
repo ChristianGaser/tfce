@@ -1,5 +1,18 @@
 ------------------------------------------------------------------------
-r224 | gaser | 2021-10-22 16:33:59
+r225 | gaser | 2021-10-25 09:09:19
+
+Changed paths:
+M       CHANGES.txt
+M       html/tfce.html
+M       tfce_estimate_stat.m
+
+(2) Changed: If only one contrast is defined skip interactive selection for that.
+(1) Fixed:   Added check for F-contrasts for effects of interest to 
+             tfce_estimate_stat.m to correctly recognize number of 
+             exchangeability blocks.
+           
+------------------------------------------------------------------------
+r224 | gaser | 2021-10-22 16:34:05 +0200 (Fri, 22 Oct 2021) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -10,6 +23,7 @@ M       tfce_estimate_stat.m
 (1) Changed: Updated check for installed atlases in cat_spm_results_ui.m.
 (1) Fixed:   Corrected check for existing TFCE results in cat_spm_results_ui.m.
 (2) Fixed:   Corrected check for multiple contrasts in tfce_estimate_stats.m.
+
 ------------------------------------------------------------------------
 r223 | gaser | 2021-08-12 13:02:11 +0200 (Thu, 12 Aug 2021) | 10 lines
 

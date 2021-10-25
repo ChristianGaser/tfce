@@ -119,8 +119,13 @@ end
     
 Ic0 = job.conspec.contrasts;
 
+% if just one contrast s defined use this and skip interactive selection
+if ~isfinite(Ic0) && isfield(SPM,'xCon') && numel(SPM.xCon) == 1
+  Ic0 = 1;
+end
+
 % check whether contrast are defined
-if ~isfinite(Ic0) | ~isfield(SPM,'xCon') | (isfield(SPM,'xCon') & isempty(SPM.xCon))
+if ~isfinite(Ic0) || ~isfield(SPM,'xCon') || (isfield(SPM,'xCon') && isempty(SPM.xCon))
   [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
         '  Select contrast(s)...',' ',1);
   SPM.xCon = xCon;
@@ -431,6 +436,11 @@ if ~test_mode
   
 end % if ~test_mode
 
+% if just one contrast s defined use this and skip interactive selection
+if ~isfinite(Ic0) && isfield(SPM,'xCon') && numel(SPM.xCon) == 1
+  Ic0 = 1;
+end
+
 % interactively select contrast(s) if necessary
 if numel(Ic0)==1 && ~isfinite(Ic0) && numel(SPM.xCon) > 1
   [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
@@ -481,8 +491,16 @@ for con = 1:length(Ic0)
 
   % find exchangeability blocks using contrasts without zero values
   exch_blocks   = c0(ind_X,:);
-  
+    
   n_exch_blocks = length(ind_X);
+  
+  % recognize effects of interest contrast for F-tests
+  if F_contrast_multiple_rows
+    is_eoi = all(all(exch_blocks == eye(n_exch_blocks)));
+    if is_eoi
+      n_exch_blocks = 1;
+    end
+  end
   
   % check for exchangeability blocks and design matrix
   if n_exch_blocks == 1
@@ -495,7 +513,7 @@ for con = 1:length(Ic0)
     end
     
     % for F-contrast with multiple rows n_cond is always n_exch_blocks
-    if F_contrast_multiple_rows & length(xX.iH) > 1
+    if F_contrast_multiple_rows && length(xX.iH) > 1
       n_cond = n_exch_blocks;
     elseif F_contrast_multiple_rows & length(xX.iH) == 1
       n_cond = 0;
@@ -540,7 +558,17 @@ for con = 1:length(Ic0)
   case 0 % correlation
     label = 1:n_data;
 
-    if n_exch_blocks >= 2 & any(diff(exch_blocks(:))) % # exch_blocks >1 & differential contrast
+    % we have to correct for some F-contrasts (i.e. effects of interest
+    % with eyes)
+    if F_contrast_multiple_rows && is_eoi
+      is_one = find(any(c0'));
+      for j=1:numel(is_one)
+        ind_exch_blocks{j} = is_one(j);
+      end
+      ind_exch_blocks = ind_exch_blocks';
+    end
+    
+    if n_exch_blocks >= 2 && any(diff(exch_blocks(:))) % # exch_blocks >1 & differential contrast
       fprintf('Interaction design between two or more regressors found\n')
       interaction_design = true;
 
@@ -648,7 +676,7 @@ for con = 1:length(Ic0)
 
   % sometimes for F-tests with multiple independent rows the design cannot be fully recognized
   % and # of permutations is wrong
-  if n_perm_full == 1 & F_contrast_multiple_rows
+  if n_perm_full == 1 && F_contrast_multiple_rows
     fprintf('ERROR: This F-contrast and type of design with multiple independent rows is not yet supported.\n');
     return
   end

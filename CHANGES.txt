@@ -1,5 +1,14 @@
 ------------------------------------------------------------------------
-r225 | gaser | 2021-10-25 09:09:19
+r226 | gaser | 2021-10-30 00:23:27
+
+Changed paths:
+M       CHANGES.txt
+M       html/tfce.html
+M       tfce_estimate_stat.m
+
+Changed: Added hidden option to save null distribution.
+------------------------------------------------------------------------
+r225 | gaser | 2021-10-25 09:09:26 +0200 (Mo, 25 Okt 2021) | 11 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -11,8 +20,9 @@ M       tfce_estimate_stat.m
              tfce_estimate_stat.m to correctly recognize number of 
              exchangeability blocks.
            
+
 ------------------------------------------------------------------------
-r224 | gaser | 2021-10-22 16:34:05 +0200 (Fri, 22 Oct 2021) | 10 lines
+r224 | gaser | 2021-10-22 16:34:05 +0200 (Fr, 22 Okt 2021) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -25,7 +35,7 @@ M       tfce_estimate_stat.m
 (2) Fixed:   Corrected check for multiple contrasts in tfce_estimate_stats.m.
 
 ------------------------------------------------------------------------
-r223 | gaser | 2021-08-12 13:02:11 +0200 (Thu, 12 Aug 2021) | 10 lines
+r223 | gaser | 2021-08-12 13:02:11 +0200 (Do, 12 Aug 2021) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -38,7 +48,7 @@ M       tfce_estimate_stat.m
 (2) Fixed:  Corrected issues with non-existing VSPM field in tfce_stat_estimate.m.
 
 ------------------------------------------------------------------------
-r222 | gaser | 2021-06-30 12:19:27 +0200 (Wed, 30 Jun 2021) | 7 lines
+r222 | gaser | 2021-06-30 12:19:27 +0200 (Mi, 30 Jun 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -48,7 +58,7 @@ Fixed: Corrected path if results are called from another folder in
        cat_spm_results_ui.m.
 
 ------------------------------------------------------------------------
-r221 | gaser | 2021-05-31 22:58:50 +0200 (Mon, 31 May 2021) | 5 lines
+r221 | gaser | 2021-05-31 22:58:50 +0200 (Mo, 31 Mai 2021) | 5 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -56,7 +66,7 @@ M       CHANGES.txt
 Changed: Allow voxel-wise covariate for longitudinal designs.
 
 ------------------------------------------------------------------------
-r220 | gaser | 2021-05-30 19:24:34 +0200 (Sun, 30 May 2021) | 7 lines
+r220 | gaser | 2021-05-30 19:24:34 +0200 (So, 30 Mai 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -66,7 +76,7 @@ M       tfce_estimate_stat.m
 Changed: Allow voxel-wise covariate for longitudinal designs.
 
 ------------------------------------------------------------------------
-r219 | gaser | 2021-04-30 17:48:52 +0200 (Fri, 30 Apr 2021) | 7 lines
+r219 | gaser | 2021-04-30 17:48:52 +0200 (Fr, 30 Apr 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -76,7 +86,7 @@ M       tfce_estimate_stat.m
 Changed: Shortened text in GUI window.
 
 ------------------------------------------------------------------------
-r218 | gaser | 2021-04-30 17:47:20 +0200 (Fri, 30 Apr 2021) | 7 lines
+r218 | gaser | 2021-04-30 17:47:20 +0200 (Fr, 30 Apr 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -86,7 +96,7 @@ Fixed: Corrected handling of voxel-wise covariates for subsequent calls of
        tfce_estimates.m
 
 ------------------------------------------------------------------------
-r217 | gaser | 2021-04-23 00:14:31 +0200 (Fri, 23 Apr 2021) | 6 lines
+r217 | gaser | 2021-04-23 00:14:31 +0200 (Fr, 23 Apr 2021) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -95,7 +105,7 @@ M       tfce_estimate_stat.m
 Fixed: Corrected handling of parallel processing that ignored subsequent data.
 
 ------------------------------------------------------------------------
-r216 | gaser | 2021-04-15 21:52:33 +0200 (Thu, 15 Apr 2021) | 10 lines
+r216 | gaser | 2021-04-15 21:52:33 +0200 (Do, 15 Apr 2021) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -108,7 +118,7 @@ M       tfce_estimate_stat.m
 
 
 ------------------------------------------------------------------------
-r215 | gaser | 2021-04-15 19:48:39 +0200 (Thu, 15 Apr 2021) | 11 lines
+r215 | gaser | 2021-04-15 19:48:39 +0200 (Do, 15 Apr 2021) | 11 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -122,7 +132,7 @@ M       tfce_estimate_stat.m
 (3) Changed: Added support to use voxel-wise covariates.
 
 ------------------------------------------------------------------------
-r214 | gaser | 2021-02-05 10:25:58 +0100 (Fri, 05 Feb 2021) | 7 lines
+r214 | gaser | 2021-02-05 10:25:58 +0100 (Fr, 05 Feb 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -132,7 +142,7 @@ Fixed: Interactive selection with defining contrast as Inf was not working.
 
 
 ------------------------------------------------------------------------
-r213 | gaser | 2021-02-05 00:16:01 +0100 (Fri, 05 Feb 2021) | 7 lines
+r213 | gaser | 2021-02-05 00:16:01 +0100 (Fr, 05 Feb 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -142,7 +152,7 @@ Fixed: Calling cat_spm_results_ui from other functions now works correctly.
 
 
 ------------------------------------------------------------------------
-r212 | gaser | 2020-12-02 23:58:03 +0100 (Wed, 02 Dec 2020) | 7 lines
+r212 | gaser | 2020-12-02 23:58:03 +0100 (Mi, 02 Dez 2020) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -152,7 +162,7 @@ Fixed: Check that scl_slope field exist for global scaling of surfaces.
 
 
 ------------------------------------------------------------------------
-r211 | gaser | 2020-11-25 17:12:05 +0100 (Wed, 25 Nov 2020) | 16 lines
+r211 | gaser | 2020-11-25 17:12:05 +0100 (Mi, 25 Nov 2020) | 16 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -171,7 +181,7 @@ D       tfce_results_ui.m
 (3) Changed: Use updated cat_spm_results_ui.m from CAT12.
 
 ------------------------------------------------------------------------
-r210 | gaser | 2020-11-24 15:00:29 +0100 (Tue, 24 Nov 2020) | 13 lines
+r210 | gaser | 2020-11-24 15:00:29 +0100 (Di, 24 Nov 2020) | 13 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -187,7 +197,7 @@ M       tfce_estimate_stat.m
              statistics from r184 for compatibility purposes.
 
 ------------------------------------------------------------------------
-r209 | gaser | 2020-09-29 13:59:27 +0200 (Tue, 29 Sep 2020) | 8 lines
+r209 | gaser | 2020-09-29 13:59:27 +0200 (Di, 29 Sep 2020) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -198,7 +208,7 @@ Fixed:  Recognition of missing contrasts did not always work.
 
 
 ------------------------------------------------------------------------
-r208 | gaser | 2020-09-29 13:00:39 +0200 (Tue, 29 Sep 2020) | 7 lines
+r208 | gaser | 2020-09-29 13:00:39 +0200 (Di, 29 Sep 2020) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -208,7 +218,7 @@ Fixed:  Always the first contrast was used independent of contrast
         selection in tfce_estimate_stat.m in r207.
 
 ------------------------------------------------------------------------
-r207 | gaser | 2020-09-11 11:31:21 +0200 (Fri, 11 Sep 2020) | 10 lines
+r207 | gaser | 2020-09-11 11:31:21 +0200 (Fr, 11 Sep 2020) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -221,7 +231,7 @@ M       tfce_estimate_stat.m
 (2) Changed: Updated Makefile.
 
 ------------------------------------------------------------------------
-r206 | gaser | 2020-08-19 15:48:12 +0200 (Wed, 19 Aug 2020) | 8 lines
+r206 | gaser | 2020-08-19 15:48:12 +0200 (Mi, 19 Aug 2020) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -232,7 +242,7 @@ M       tfce_estimate_stat.m
 Changed: Updated help text.
 
 ------------------------------------------------------------------------
-r205 | gaser | 2020-08-19 15:30:02 +0200 (Wed, 19 Aug 2020) | 11 lines
+r205 | gaser | 2020-08-19 15:30:02 +0200 (Mi, 19 Aug 2020) | 11 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -246,7 +256,7 @@ M       tfce_estimate_stat.m
              parametric and permutation tests for SVC with external mask.
 
 ------------------------------------------------------------------------
-r204 | gaser | 2020-08-03 14:03:16 +0200 (Mon, 03 Aug 2020) | 10 lines
+r204 | gaser | 2020-08-03 14:03:16 +0200 (Mo, 03 Aug 2020) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -259,7 +269,7 @@ M       tfce_estimate_stat.m
              from release r184 for compatibility purposes.
 
 ------------------------------------------------------------------------
-r203 | gaser | 2020-06-23 10:56:50 +0200 (Tue, 23 Jun 2020) | 10 lines
+r203 | gaser | 2020-06-23 10:56:50 +0200 (Di, 23 Jun 2020) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -272,7 +282,7 @@ M       tbx_cfg_tfce.m
 (2) Changed: Updated help text.
 
 ------------------------------------------------------------------------
-r202 | gaser | 2020-05-29 15:14:31 +0200 (Fri, 29 May 2020) | 7 lines
+r202 | gaser | 2020-05-29 15:14:31 +0200 (Fr, 29 Mai 2020) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -282,7 +292,7 @@ M       tfce_estimate_stat.m
 Fixed: Solved issue if covariates across multiple columns were zero.
 
 ------------------------------------------------------------------------
-r201 | gaser | 2020-04-21 22:38:48 +0200 (Tue, 21 Apr 2020) | 9 lines
+r201 | gaser | 2020-04-21 22:38:48 +0200 (Di, 21 Apr 2020) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -294,7 +304,7 @@ Fixed: Removed dome inconsitencies in cat_spm_results_ui.m where existing
 TFCE results were initially not found. 
 
 ------------------------------------------------------------------------
-r200 | gaser | 2020-04-20 22:26:23 +0200 (Mon, 20 Apr 2020) | 9 lines
+r200 | gaser | 2020-04-20 22:26:23 +0200 (Mo, 20 Apr 2020) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -306,7 +316,7 @@ be displayed.
 
 
 ------------------------------------------------------------------------
-r199 | gaser | 2020-04-13 02:11:38 +0200 (Mon, 13 Apr 2020) | 8 lines
+r199 | gaser | 2020-04-13 02:11:38 +0200 (Mo, 13 Apr 2020) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -317,7 +327,7 @@ Fixed: Corrected bug with non-detectable call_list function in
 cat_spm_results_ui.m
 
 ------------------------------------------------------------------------
-r198 | gaser | 2020-04-13 01:50:47 +0200 (Mon, 13 Apr 2020) | 6 lines
+r198 | gaser | 2020-04-13 01:50:47 +0200 (Mo, 13 Apr 2020) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -326,7 +336,7 @@ M       tfce_getSPM.m
 Fixed: Corrected mesh detection to be compatible to older versions.
 
 ------------------------------------------------------------------------
-r197 | gaser | 2020-04-13 01:38:21 +0200 (Mon, 13 Apr 2020) | 6 lines
+r197 | gaser | 2020-04-13 01:38:21 +0200 (Mo, 13 Apr 2020) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -335,7 +345,7 @@ MM      cat_spm_results_ui.m
 Fixed: Corrected some inconsistencies in cat_spm_results_ui.m.
 
 ------------------------------------------------------------------------
-r196 | gaser | 2020-04-10 01:30:56 +0200 (Fri, 10 Apr 2020) | 7 lines
+r196 | gaser | 2020-04-10 01:30:56 +0200 (Fr, 10 Apr 2020) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -345,7 +355,7 @@ Changed: Added check to cat_spm_results_ui if TFCE is installed (for general
 use in CAT12).
 
 ------------------------------------------------------------------------
-r195 | gaser | 2020-04-10 01:22:07 +0200 (Fri, 10 Apr 2020) | 14 lines
+r195 | gaser | 2020-04-10 01:22:07 +0200 (Fr, 10 Apr 2020) | 14 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -362,7 +372,7 @@ M       tfce_results_ui.m
 
 
 ------------------------------------------------------------------------
-r194 | gaser | 2020-04-09 13:42:16 +0200 (Thu, 09 Apr 2020) | 19 lines
+r194 | gaser | 2020-04-09 13:42:16 +0200 (Do, 09 Apr 2020) | 19 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -384,7 +394,7 @@ M       tfce_results_ui.m
 (3) Changed: Set server to old dbm-server in Makefile.
 
 ------------------------------------------------------------------------
-r193 | gaser | 2020-04-09 00:36:57 +0200 (Thu, 09 Apr 2020) | 7 lines
+r193 | gaser | 2020-04-09 00:36:57 +0200 (Do, 09 Apr 2020) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -394,7 +404,7 @@ M       html/tfce.html
 Changed: Updated Makefile.
 
 ------------------------------------------------------------------------
-r192 | gaser | 2020-04-09 00:35:26 +0200 (Thu, 09 Apr 2020) | 19 lines
+r192 | gaser | 2020-04-09 00:35:26 +0200 (Do, 09 Apr 2020) | 19 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -416,7 +426,7 @@ MM      spm/spm_results_ui.m
 Added: Added html help text
 
 ------------------------------------------------------------------------
-r191 | gaser | 2020-04-09 00:33:33 +0200 (Thu, 09 Apr 2020) | 14 lines
+r191 | gaser | 2020-04-09 00:33:33 +0200 (Do, 09 Apr 2020) | 14 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -433,7 +443,7 @@ M       tfce_results_ui.m
 (4) Changed: Updated help text.
 
 ------------------------------------------------------------------------
-r190 | gaser | 2020-04-08 02:26:29 +0200 (Wed, 08 Apr 2020) | 11 lines
+r190 | gaser | 2020-04-08 02:26:29 +0200 (Mi, 08 Apr 2020) | 11 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -447,7 +457,7 @@ A       spm/spm_results_ui.m
 (2) Fixed: Corrected port of ssh command in makefile.
 
 ------------------------------------------------------------------------
-r189 | gaser | 2020-04-08 02:19:15 +0200 (Wed, 08 Apr 2020) | 87 lines
+r189 | gaser | 2020-04-08 02:19:15 +0200 (Mi, 08 Apr 2020) | 87 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -537,7 +547,7 @@ A  +    tfce_update.m
     result functions.
 
 ------------------------------------------------------------------------
-r188 | gaser | 2020-02-25 11:44:14 +0100 (Tue, 25 Feb 2020) | 10 lines
+r188 | gaser | 2020-02-25 11:44:14 +0100 (Di, 25 Feb 2020) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -550,7 +560,7 @@ M       cg_tfce_update.m
 (3) Changed: IP-address of server changed.
 
 ------------------------------------------------------------------------
-r187 | gaser | 2020-02-06 16:44:51 +0100 (Thu, 06 Feb 2020) | 14 lines
+r187 | gaser | 2020-02-06 16:44:51 +0100 (Do, 06 Feb 2020) | 14 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -567,7 +577,7 @@ M       tfceMex_pthread.mexw64
 (4) Changed: Updated compiler flags and recompiled tfceMex_pthread.c
 
 ------------------------------------------------------------------------
-r186 | gaser | 2019-12-03 10:46:25 +0100 (Tue, 03 Dec 2019) | 8 lines
+r186 | gaser | 2019-12-03 10:46:25 +0100 (Di, 03 Dez 2019) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -578,7 +588,7 @@ M       cg_tfce_estimate.m
 (2) Fixed: Design check for interaction designs is now correctly printed.
 
 ------------------------------------------------------------------------
-r185 | gaser | 2019-11-18 12:01:39 +0100 (Mon, 18 Nov 2019) | 10 lines
+r185 | gaser | 2019-11-18 12:01:39 +0100 (Mo, 18 Nov 2019) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -591,7 +601,7 @@ M       tfceMex_pthread.mexmaci64
 (2) Changed: Maximum statistic is now using a different mask.
 
 ------------------------------------------------------------------------
-r184 | gaser | 2019-09-19 23:48:18 +0200 (Thu, 19 Sep 2019) | 6 lines
+r184 | gaser | 2019-09-19 23:48:18 +0200 (Do, 19 Sep 2019) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -600,7 +610,7 @@ M       tbx_cfg_tfce_estimate.m
 Changed: Updated help text.
 
 ------------------------------------------------------------------------
-r183 | gaser | 2019-08-14 13:07:22 +0200 (Wed, 14 Aug 2019) | 7 lines
+r183 | gaser | 2019-08-14 13:07:22 +0200 (Mi, 14 Aug 2019) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -610,7 +620,7 @@ Fixed: Changed criteria for checking discrepancy between parametric and
 non-parametric statistic w.r.t. use of SVC.
 
 ------------------------------------------------------------------------
-r182 | gaser | 2019-08-09 17:02:06 +0200 (Fri, 09 Aug 2019) | 9 lines
+r182 | gaser | 2019-08-09 17:02:06 +0200 (Fr, 09 Aug 2019) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -622,7 +632,7 @@ M       tfceMex_pthread.mexw64
 Changed: Improved speed of tfceMex_pthread by still being thread-safe.
 
 ------------------------------------------------------------------------
-r181 | gaser | 2019-05-17 09:22:47 +0200 (Fri, 17 May 2019) | 11 lines
+r181 | gaser | 2019-05-17 09:22:47 +0200 (Fr, 17 Mai 2019) | 11 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -636,7 +646,7 @@ M       tfceMex_pthread.mexmaci64
     independent from number of threads or without multi-threading.
 
 ------------------------------------------------------------------------
-r180 | gaser | 2019-05-09 11:55:13 +0200 (Thu, 09 May 2019) | 6 lines
+r180 | gaser | 2019-05-09 11:55:13 +0200 (Do, 09 Mai 2019) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -645,7 +655,7 @@ M       cg_tfce_estimate.m
 Changed: Some cosmetic changes to cg_tfce_estimate.m
 
 ------------------------------------------------------------------------
-r179 | gaser | 2019-05-08 17:40:34 +0200 (Wed, 08 May 2019) | 6 lines
+r179 | gaser | 2019-05-08 17:40:34 +0200 (Mi, 08 Mai 2019) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -654,7 +664,7 @@ M       cg_tfce_estimate.m
 Changed: Speeded up GLM calculation by up to 50%!
 
 ------------------------------------------------------------------------
-r178 | gaser | 2019-05-08 11:25:14 +0200 (Wed, 08 May 2019) | 6 lines
+r178 | gaser | 2019-05-08 11:25:14 +0200 (Mi, 08 Mai 2019) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -663,7 +673,7 @@ M       cg_tfce_estimate.m
 Changed: Added tail approximation from Gamma distribution for corrected P-values.
 
 ------------------------------------------------------------------------
-r177 | gaser | 2019-04-16 04:35:06 +0200 (Tue, 16 Apr 2019) | 7 lines
+r177 | gaser | 2019-04-16 04:35:06 +0200 (Di, 16 Apr 2019) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -673,7 +683,7 @@ M       TFCE.txt
 Changed: Added new version information.
 
 ------------------------------------------------------------------------
-r176 | gaser | 2019-04-16 04:32:02 +0200 (Tue, 16 Apr 2019) | 7 lines
+r176 | gaser | 2019-04-16 04:32:02 +0200 (Di, 16 Apr 2019) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -683,7 +693,7 @@ M       spm_TFCE.m
 Changed: Added new version information.
 
 ------------------------------------------------------------------------
-r175 | gaser | 2019-04-12 02:22:34 +0200 (Fri, 12 Apr 2019) | 7 lines
+r175 | gaser | 2019-04-12 02:22:34 +0200 (Fr, 12 Apr 2019) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -693,7 +703,7 @@ Fixed: Corrected bug that occurred if no effects could be found for that design
 (thanks to Larry Lai for pinting to that).
 
 ------------------------------------------------------------------------
-r174 | gaser | 2019-01-07 13:01:44 +0100 (Mon, 07 Jan 2019) | 6 lines
+r174 | gaser | 2019-01-07 13:01:44 +0100 (Mo, 07 Jan 2019) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -702,7 +712,7 @@ M       cg_tfce_estimate.m
 Fixed: Corrected detection of multiple regression with F-contrasts.
 
 ------------------------------------------------------------------------
-r173 | gaser | 2019-01-07 12:58:05 +0100 (Mon, 07 Jan 2019) | 6 lines
+r173 | gaser | 2019-01-07 12:58:05 +0100 (Mo, 07 Jan 2019) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -711,7 +721,7 @@ M       cg_tfce_estimate.m
 Fixed: Corrected detection of multiple regression with F-contrasts.
 
 ------------------------------------------------------------------------
-r172 | gaser | 2019-01-07 01:52:47 +0100 (Mon, 07 Jan 2019) | 6 lines
+r172 | gaser | 2019-01-07 01:52:47 +0100 (Mo, 07 Jan 2019) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -720,7 +730,7 @@ M       cg_tfce_estimate.m
 Fixed: Corrected bug for non-estimated contrasts.
 
 ------------------------------------------------------------------------
-r171 | gaser | 2019-01-03 16:12:22 +0100 (Thu, 03 Jan 2019) | 8 lines
+r171 | gaser | 2019-01-03 16:12:22 +0100 (Do, 03 Jan 2019) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -731,7 +741,7 @@ M       cg_tfce_estimate.m
     and non-parametric T statistic.
 
 ------------------------------------------------------------------------
-r170 | gaser | 2019-01-02 23:58:22 +0100 (Wed, 02 Jan 2019) | 10 lines
+r170 | gaser | 2019-01-02 23:58:22 +0100 (Mi, 02 Jan 2019) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -744,7 +754,7 @@ M       cg_tfce_estimate.m
     of unreliable results.
 
 ------------------------------------------------------------------------
-r169 | gaser | 2018-12-28 15:58:03 +0100 (Fri, 28 Dec 2018) | 8 lines
+r169 | gaser | 2018-12-28 15:58:03 +0100 (Fr, 28 Dez 2018) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -755,7 +765,7 @@ p-values.
 
 
 ------------------------------------------------------------------------
-r168 | gaser | 2018-12-20 17:36:17 +0100 (Thu, 20 Dec 2018) | 10 lines
+r168 | gaser | 2018-12-20 17:36:17 +0100 (Do, 20 Dez 2018) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -768,7 +778,7 @@ M       cg_tfce_estimate.m
     has no effect).
 
 ------------------------------------------------------------------------
-r167 | gaser | 2018-09-26 16:12:23 +0200 (Wed, 26 Sep 2018) | 6 lines
+r167 | gaser | 2018-09-26 16:12:23 +0200 (Mi, 26 Sep 2018) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -777,7 +787,7 @@ M       cg_tfce_estimate.m
 Chaned: Added some more support for F-contrasts.
 
 ------------------------------------------------------------------------
-r166 | gaser | 2018-09-25 16:17:14 +0200 (Tue, 25 Sep 2018) | 7 lines
+r166 | gaser | 2018-09-25 16:17:14 +0200 (Di, 25 Sep 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -787,7 +797,7 @@ Fixed: Regression design where contrast is defined for covariate is now
 handled correctly?
 
 ------------------------------------------------------------------------
-r165 | gaser | 2018-09-20 09:29:24 +0200 (Thu, 20 Sep 2018) | 7 lines
+r165 | gaser | 2018-09-20 09:29:24 +0200 (Do, 20 Sep 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -797,7 +807,7 @@ Fixed: For comparisons between groups with equal number of subjects the plot
 was not displayed.
 
 ------------------------------------------------------------------------
-r164 | gaser | 2018-06-05 14:10:32 +0200 (Tue, 05 Jun 2018) | 7 lines
+r164 | gaser | 2018-06-05 14:10:32 +0200 (Di, 05 Jun 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -807,7 +817,7 @@ Changed: FDisabled F-tests in cg_tfce_estimate.m because of potential errors
 with some contrasts.
 
 ------------------------------------------------------------------------
-r163 | gaser | 2018-05-28 23:32:57 +0200 (Mon, 28 May 2018) | 7 lines
+r163 | gaser | 2018-05-28 23:32:57 +0200 (Mo, 28 Mai 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -817,7 +827,7 @@ M       cg_tfce_estimate.m
 Fixed: Don't allow F-contrasts with multiple rows currently...
 
 ------------------------------------------------------------------------
-r162 | gaser | 2018-05-27 17:56:16 +0200 (Sun, 27 May 2018) | 8 lines
+r162 | gaser | 2018-05-27 17:56:16 +0200 (So, 27 Mai 2018) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -828,7 +838,7 @@ M       cg_tfce_estimate.m
 (2) Changed: Updated and renamed SPM-Designs-Permutation.rtf
 
 ------------------------------------------------------------------------
-r161 | gaser | 2018-05-27 17:54:23 +0200 (Sun, 27 May 2018) | 10 lines
+r161 | gaser | 2018-05-27 17:54:23 +0200 (So, 27 Mai 2018) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -841,7 +851,7 @@ M       cg_tfce_estimate.m
 (2) Changed: Updated and renamed SPM-Designs-Permutation.rtf
 
 ------------------------------------------------------------------------
-r160 | gaser | 2018-05-14 11:01:44 +0200 (Mon, 14 May 2018) | 6 lines
+r160 | gaser | 2018-05-14 11:01:44 +0200 (Mo, 14 Mai 2018) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -850,7 +860,7 @@ M       cg_tfce_estimate.m
 Fixed: Fixed some smaller issues with on-sample t-test in cg_tfce_estimate.m
 
 ------------------------------------------------------------------------
-r159 | gaser | 2018-05-11 23:43:54 +0200 (Fri, 11 May 2018) | 7 lines
+r159 | gaser | 2018-05-11 23:43:54 +0200 (Fr, 11 Mai 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -860,7 +870,7 @@ Fixed: Corrected bug in cg_tfce_estimate.m for one-sample t-test (thanks
 to Larry Lai for pointing to this bug).
 
 ------------------------------------------------------------------------
-r158 | gaser | 2018-05-07 10:11:41 +0200 (Mon, 07 May 2018) | 6 lines
+r158 | gaser | 2018-05-07 10:11:41 +0200 (Mo, 07 Mai 2018) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -869,7 +879,7 @@ M       cg_tfce_estimate.m
 Fixed: Forgot to remove debugging code in cg_tfce_estimate.m
 
 ------------------------------------------------------------------------
-r157 | gaser | 2018-05-07 00:02:12 +0200 (Mon, 07 May 2018) | 7 lines
+r157 | gaser | 2018-05-07 00:02:12 +0200 (Mo, 07 Mai 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -879,7 +889,7 @@ Fixed: Some very rare designs were not working where in an interaction
 design the covariate was not defined for all data.
 
 ------------------------------------------------------------------------
-r156 | gaser | 2018-04-23 10:21:09 +0200 (Mon, 23 Apr 2018) | 7 lines
+r156 | gaser | 2018-04-23 10:21:09 +0200 (Mo, 23 Apr 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -889,7 +899,7 @@ Fixed: Set some parameters for plotting back to r153 because on some
 computers processes stalled.
 
 ------------------------------------------------------------------------
-r155 | gaser | 2018-04-09 15:55:37 +0200 (Mon, 09 Apr 2018) | 6 lines
+r155 | gaser | 2018-04-09 15:55:37 +0200 (Mo, 09 Apr 2018) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -898,7 +908,7 @@ M       TFCE.txt
 Changed: Updated version information.
 
 ------------------------------------------------------------------------
-r154 | gaser | 2018-03-14 16:13:38 +0100 (Wed, 14 Mar 2018) | 7 lines
+r154 | gaser | 2018-03-14 16:13:38 +0100 (Mi, 14 Mär 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -908,7 +918,7 @@ Fixed: Corrected missing graphical output for designs with equal number of
 subjects.
 
 ------------------------------------------------------------------------
-r153 | gaser | 2018-02-18 23:15:57 +0100 (Sun, 18 Feb 2018) | 12 lines
+r153 | gaser | 2018-02-18 23:15:57 +0100 (So, 18 Feb 2018) | 12 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -923,7 +933,7 @@ Changed: Renamed cat_surf_max.m to cg_tfce_surf_max.m to not interfere
 with older versions of the same function in CAT12.
 
 ------------------------------------------------------------------------
-r152 | gaser | 2018-02-18 23:04:05 +0100 (Sun, 18 Feb 2018) | 9 lines
+r152 | gaser | 2018-02-18 23:04:05 +0100 (So, 18 Feb 2018) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -935,7 +945,7 @@ to add non-unique entries using function find_connected_component
 in cat_surf_max.m.
 
 ------------------------------------------------------------------------
-r151 | gaser | 2018-02-16 16:01:14 +0100 (Fri, 16 Feb 2018) | 6 lines
+r151 | gaser | 2018-02-16 16:01:14 +0100 (Fr, 16 Feb 2018) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -944,7 +954,7 @@ M       cg_tfce_estimate.m
 Fixed: Filenames for GUI-selected contrasts were not correct.
 
 ------------------------------------------------------------------------
-r150 | gaser | 2018-02-16 00:13:38 +0100 (Fri, 16 Feb 2018) | 7 lines
+r150 | gaser | 2018-02-16 00:13:38 +0100 (Fr, 16 Feb 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -954,7 +964,7 @@ Fixed: Now non-differential F-contrasts really work in cg_tfce_estimate.m.
 
 
 ------------------------------------------------------------------------
-r149 | gaser | 2018-02-15 22:09:31 +0100 (Thu, 15 Feb 2018) | 6 lines
+r149 | gaser | 2018-02-15 22:09:31 +0100 (Do, 15 Feb 2018) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -963,7 +973,7 @@ M       cg_tfce_estimate.m
 Changed: Removed debugging output in cg_tfce_estimate.m.
 
 ------------------------------------------------------------------------
-r148 | gaser | 2018-02-15 22:06:24 +0100 (Thu, 15 Feb 2018) | 7 lines
+r148 | gaser | 2018-02-15 22:06:24 +0100 (Do, 15 Feb 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -973,7 +983,7 @@ Fixed: Sometimes the rank of xKXs in cg_tfce_estimate.m is not correct
 and spm_FcUtil('Hsqr',xCon,xKXs) is not working.
 
 ------------------------------------------------------------------------
-r147 | gaser | 2018-02-15 22:05:41 +0100 (Thu, 15 Feb 2018) | 7 lines
+r147 | gaser | 2018-02-15 22:05:41 +0100 (Do, 15 Feb 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -983,7 +993,7 @@ Fixed: Sometimes the rank of xKXs in cg_tfce_estimate.m is not correct
 and spm_FcUtil('Hsqr',xCon,xKXs) is not working.
 
 ------------------------------------------------------------------------
-r146 | gaser | 2018-02-15 21:30:39 +0100 (Thu, 15 Feb 2018) | 7 lines
+r146 | gaser | 2018-02-15 21:30:39 +0100 (Do, 15 Feb 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -993,7 +1003,7 @@ Fixed: Non-differential F-contrast were not working in cg_tfce_estimate.m.
 
 
 ------------------------------------------------------------------------
-r145 | gaser | 2018-02-14 17:44:32 +0100 (Wed, 14 Feb 2018) | 6 lines
+r145 | gaser | 2018-02-14 17:44:32 +0100 (Mi, 14 Feb 2018) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1002,7 +1012,7 @@ M       cg_tfce_estimate.m
 Changed: Updated some graphical output in cg_tfce_estimate.m
 
 ------------------------------------------------------------------------
-r144 | gaser | 2018-02-14 09:11:08 +0100 (Wed, 14 Feb 2018) | 7 lines
+r144 | gaser | 2018-02-14 09:11:08 +0100 (Mi, 14 Feb 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1012,7 +1022,7 @@ Changed: Added again variance smoothing for volumes to cg_tfce_estimate.m
 (experimental).
 
 ------------------------------------------------------------------------
-r143 | gaser | 2018-02-13 08:42:40 +0100 (Tue, 13 Feb 2018) | 7 lines
+r143 | gaser | 2018-02-13 08:42:40 +0100 (Di, 13 Feb 2018) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1022,7 +1032,7 @@ Fixed: Check for rng-function was not correct (builtin-flag is necessary) in
 cg_tfce_estimate.m
 
 ------------------------------------------------------------------------
-r142 | gaser | 2018-02-12 22:34:39 +0100 (Mon, 12 Feb 2018) | 8 lines
+r142 | gaser | 2018-02-12 22:34:39 +0100 (Mo, 12 Feb 2018) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1033,7 +1043,7 @@ M       cg_tfce_estimate.m
 (2) Changed: Updated table in SPM-Designs-Permutation.doc.
 
 ------------------------------------------------------------------------
-r141 | gaser | 2018-01-15 08:46:22 +0100 (Mon, 15 Jan 2018) | 9 lines
+r141 | gaser | 2018-01-15 08:46:22 +0100 (Mo, 15 Jan 2018) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1045,7 +1055,7 @@ M       tbx_cfg_tfce_estimate.m
     iH (time effects), because this was not always working in cg_tfce_estimate.m
 
 ------------------------------------------------------------------------
-r140 | gaser | 2017-12-01 00:08:53 +0100 (Fri, 01 Dec 2017) | 9 lines
+r140 | gaser | 2017-12-01 00:08:53 +0100 (Fr, 01 Dez 2017) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1057,7 +1067,7 @@ Changed: Added Smith permutation method as default to deal with nuisance
 parameters.
 
 ------------------------------------------------------------------------
-r139 | gaser | 2017-11-30 15:57:39 +0100 (Thu, 30 Nov 2017) | 9 lines
+r139 | gaser | 2017-11-30 15:57:39 +0100 (Do, 30 Nov 2017) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1069,7 +1079,7 @@ correlation of your nuisance parameter(s) and your effects of interest.
 
 
 ------------------------------------------------------------------------
-r138 | gaser | 2017-11-06 21:18:00 +0100 (Mon, 06 Nov 2017) | 7 lines
+r138 | gaser | 2017-11-06 21:18:00 +0100 (Mo, 06 Nov 2017) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1079,7 +1089,7 @@ Changed: If underlying mesh saved in SPM.xVol.G is not found a mesh with the
 same name in the toolbox/cat12/templates_surfaces folder is used.
 
 ------------------------------------------------------------------------
-r137 | gaser | 2017-11-06 17:08:08 +0100 (Mon, 06 Nov 2017) | 10 lines
+r137 | gaser | 2017-11-06 17:08:08 +0100 (Mo, 06 Nov 2017) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1092,7 +1102,7 @@ M       cg_tfce_list.m
 (2) Changed: Replaced spm_mesh_max by cat_surf_max in cg_tfce_list.m.
 
 ------------------------------------------------------------------------
-r136 | gaser | 2017-10-19 11:12:23 +0200 (Thu, 19 Oct 2017) | 7 lines
+r136 | gaser | 2017-10-19 11:12:23 +0200 (Do, 19 Okt 2017) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1102,7 +1112,7 @@ Fixed: If only one constant factors such as mean is used in the design this
 is now correctly detected for choosing method to deal with nuisance parameters.
 
 ------------------------------------------------------------------------
-r135 | gaser | 2017-09-08 16:03:15 +0200 (Fri, 08 Sep 2017) | 6 lines
+r135 | gaser | 2017-09-08 16:03:15 +0200 (Fr, 08 Sep 2017) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1111,7 +1121,7 @@ M       svn_ci_log
 Changed: Updated svn log system
 
 ------------------------------------------------------------------------
-r134 | gaser | 2017-09-08 15:38:03 +0200 (Fri, 08 Sep 2017) | 7 lines
+r134 | gaser | 2017-09-08 15:38:03 +0200 (Fr, 08 Sep 2017) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1121,7 +1131,7 @@ Changed: Recompiled Windows mex-files with pthread.
 
 
 ------------------------------------------------------------------------
-r133 | gaser | 2017-09-07 10:33:16 +0200 (Thu, 07 Sep 2017) | 7 lines
+r133 | gaser | 2017-09-07 10:33:16 +0200 (Do, 07 Sep 2017) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1131,7 +1141,7 @@ Fixed: Corrected error in cg_tfce_estimate for progress status.
 
 
 ------------------------------------------------------------------------
-r132 | gaser | 2017-09-07 10:29:59 +0200 (Thu, 07 Sep 2017) | 7 lines
+r132 | gaser | 2017-09-07 10:29:59 +0200 (Do, 07 Sep 2017) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1141,7 +1151,7 @@ Changed: Updated code for initialization in cg_tfce_estimate.
 
 
 ------------------------------------------------------------------------
-r131 | gaser | 2017-09-07 10:24:01 +0200 (Thu, 07 Sep 2017) | 6 lines
+r131 | gaser | 2017-09-07 10:24:01 +0200 (Do, 07 Sep 2017) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1150,7 +1160,7 @@ M       cg_tfce_estimate.m
 Fixed: Corrected ismember error for newer matlab versions in cg_tfce_estimate.
 
 ------------------------------------------------------------------------
-r130 | gaser | 2017-09-07 09:47:37 +0200 (Thu, 07 Sep 2017) | 8 lines
+r130 | gaser | 2017-09-07 09:47:37 +0200 (Do, 07 Sep 2017) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1161,7 +1171,7 @@ M       tfceMex_pthread.mexa64
 Changed: Updated intro text and update function.
 
 ------------------------------------------------------------------------
-r129 | gaser | 2017-09-06 12:52:18 +0200 (Wed, 06 Sep 2017) | 14 lines
+r129 | gaser | 2017-09-06 12:52:18 +0200 (Mi, 06 Sep 2017) | 14 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1178,7 +1188,7 @@ compatibility issues.
 the GUI.
 
 ------------------------------------------------------------------------
-r128 | gaser | 2017-09-03 11:48:25 +0200 (Sun, 03 Sep 2017) | 7 lines
+r128 | gaser | 2017-09-03 11:48:25 +0200 (So, 03 Sep 2017) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1188,7 +1198,7 @@ Fixed: Automatic detection of test-mode in cg_tfce_estimate.m was not
 working correctly.
 
 ------------------------------------------------------------------------
-r127 | gaser | 2017-09-03 00:22:12 +0200 (Sun, 03 Sep 2017) | 6 lines
+r127 | gaser | 2017-09-03 00:22:12 +0200 (So, 03 Sep 2017) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1197,7 +1207,7 @@ M       cg_tfce_estimate.m
 Changed: Added again test mode for checking designs without data.
 
 ------------------------------------------------------------------------
-r126 | gaser | 2017-08-24 00:05:53 +0200 (Thu, 24 Aug 2017) | 8 lines
+r126 | gaser | 2017-08-24 00:05:53 +0200 (Do, 24 Aug 2017) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1208,7 +1218,7 @@ M       tbx_cfg_tfce_estimate.m
 (2) Changed: Removed test-mode in cg_tfce_estimate.m.
 
 ------------------------------------------------------------------------
-r125 | gaser | 2017-08-23 16:59:44 +0200 (Wed, 23 Aug 2017) | 9 lines
+r125 | gaser | 2017-08-23 16:59:44 +0200 (Mi, 23 Aug 2017) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1220,7 +1230,7 @@ M       tfce_mesh.m
 (2) Changed: Added TFCE parameters E and H to tfce_mesh.m function.
 
 ------------------------------------------------------------------------
-r124 | gaser | 2017-08-23 14:21:20 +0200 (Wed, 23 Aug 2017) | 6 lines
+r124 | gaser | 2017-08-23 14:21:20 +0200 (Mi, 23 Aug 2017) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1229,7 +1239,7 @@ M       cg_tfce_estimate.m
 Changed: Some formatting.
 
 ------------------------------------------------------------------------
-r123 | gaser | 2017-08-13 17:38:33 +0200 (Sun, 13 Aug 2017) | 6 lines
+r123 | gaser | 2017-08-13 17:38:33 +0200 (So, 13 Aug 2017) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1238,7 +1248,7 @@ M       tfce_mesh.m
 Fixed: Removed peak error in tfce_mesh.m
 
 ------------------------------------------------------------------------
-r122 | gaser | 2017-08-11 22:48:09 +0200 (Fri, 11 Aug 2017) | 10 lines
+r122 | gaser | 2017-08-11 22:48:09 +0200 (Fr, 11 Aug 2017) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1251,7 +1261,7 @@ M       tfce_mesh.m
     default.
 
 ------------------------------------------------------------------------
-r121 | gaser | 2017-06-20 17:03:38 +0200 (Tue, 20 Jun 2017) | 6 lines
+r121 | gaser | 2017-06-20 17:03:38 +0200 (Di, 20 Jun 2017) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1260,7 +1270,7 @@ M       cg_tfce_estimate.m
 Fixed: Check for interaction design in r120 was not correct.
 
 ------------------------------------------------------------------------
-r120 | gaser | 2017-06-20 16:28:46 +0200 (Tue, 20 Jun 2017) | 7 lines
+r120 | gaser | 2017-06-20 16:28:46 +0200 (Di, 20 Jun 2017) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1270,7 +1280,7 @@ M       tbx_cfg_tfce_estimate.m
 Fixed: Complex interaction designs are now fully considered.
 
 ------------------------------------------------------------------------
-r119 | gaser | 2017-04-06 22:04:46 +0200 (Thu, 06 Apr 2017) | 6 lines
+r119 | gaser | 2017-04-06 22:04:46 +0200 (Do, 06 Apr 2017) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1279,7 +1289,7 @@ M       cg_tfce_estimate.m
 Fixed: Global scaling was not working.
 
 ------------------------------------------------------------------------
-r118 | gaser | 2017-04-06 08:52:30 +0200 (Thu, 06 Apr 2017) | 9 lines
+r118 | gaser | 2017-04-06 08:52:30 +0200 (Do, 06 Apr 2017) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1291,7 +1301,7 @@ Fixed: Reduced designs where not all data are covered by the contrast
 
 
 ------------------------------------------------------------------------
-r117 | gaser | 2017-03-30 14:41:31 +0200 (Thu, 30 Mar 2017) | 6 lines
+r117 | gaser | 2017-03-30 14:41:31 +0200 (Do, 30 Mär 2017) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1300,7 +1310,7 @@ M       tbx_cfg_tfce_estimate.m
 Changed: Use Draper-Stoneman permutation as default.
 
 ------------------------------------------------------------------------
-r116 | gaser | 2017-03-30 14:40:00 +0200 (Thu, 30 Mar 2017) | 6 lines
+r116 | gaser | 2017-03-30 14:40:00 +0200 (Do, 30 Mär 2017) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1309,7 +1319,7 @@ M       cg_tfce_estimate.m
 Changed: Deselected z-transformation by default.
 
 ------------------------------------------------------------------------
-r115 | gaser | 2017-03-29 13:34:38 +0200 (Wed, 29 Mar 2017) | 10 lines
+r115 | gaser | 2017-03-29 13:34:38 +0200 (Mi, 29 Mär 2017) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1322,7 +1332,7 @@ M       tbx_cfg_tfce_estimate.m
 (4) Fixed: Incorrect permutations for repeated measurement ANOVAs
 
 ------------------------------------------------------------------------
-r114 | gaser | 2017-03-27 00:17:26 +0200 (Mon, 27 Mar 2017) | 8 lines
+r114 | gaser | 2017-03-27 00:17:26 +0200 (Mo, 27 Mär 2017) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1333,7 +1343,7 @@ M       tbx_cfg_tfce_estimate.m
 (2) Fixed: Corrected Freeman-Lane permutation where Pset was not transposed.
 
 ------------------------------------------------------------------------
-r113 | gaser | 2017-03-24 20:08:00 +0100 (Fri, 24 Mar 2017) | 9 lines
+r113 | gaser | 2017-03-24 20:08:00 +0100 (Fr, 24 Mär 2017) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1345,7 +1355,7 @@ M       cg_tfce_results.m
 (2) Changed: Added z-transformation and Freeman-Lane shuffling
 
 ------------------------------------------------------------------------
-r112 | gaser | 2017-02-17 11:44:01 +0100 (Fri, 17 Feb 2017) | 13 lines
+r112 | gaser | 2017-02-17 11:44:01 +0100 (Fr, 17 Feb 2017) | 13 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1361,7 +1371,7 @@ M       cg_tfce_estimate.m
 (5) Added: Palm function for F-to-z transformation are now added.
 
 ------------------------------------------------------------------------
-r111 | gaser | 2017-01-25 19:35:39 +0100 (Wed, 25 Jan 2017) | 6 lines
+r111 | gaser | 2017-01-25 19:35:39 +0100 (Mi, 25 Jan 2017) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1370,7 +1380,7 @@ M       cg_tfce_estimate.m
 Fixed: Check for contrasts for columns with subject effects in repeated anovas.
 
 ------------------------------------------------------------------------
-r110 | gaser | 2016-11-11 16:58:05 +0100 (Fri, 11 Nov 2016) | 7 lines
+r110 | gaser | 2016-11-11 16:58:05 +0100 (Fr, 11 Nov 2016) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1380,7 +1390,7 @@ Fixed: Forgot to define W in cg_tfce_estimate.m
 
 
 ------------------------------------------------------------------------
-r109 | gaser | 2016-11-11 16:40:53 +0100 (Fri, 11 Nov 2016) | 7 lines
+r109 | gaser | 2016-11-11 16:40:53 +0100 (Fr, 11 Nov 2016) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1390,7 +1400,7 @@ Changed: Whitening of design matrix is changed (although still not sure
 about the permutation of the whitening matrix).
 
 ------------------------------------------------------------------------
-r108 | gaser | 2016-11-11 11:40:26 +0100 (Fri, 11 Nov 2016) | 8 lines
+r108 | gaser | 2016-11-11 11:40:26 +0100 (Fr, 11 Nov 2016) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1401,7 +1411,7 @@ M       cg_tfce_results.m
 Changed: Added IDs and some help text to functions.
 
 ------------------------------------------------------------------------
-r107 | gaser | 2016-11-09 08:09:04 +0100 (Wed, 09 Nov 2016) | 6 lines
+r107 | gaser | 2016-11-09 08:09:04 +0100 (Mi, 09 Nov 2016) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1410,7 +1420,7 @@ M       cg_tfce_estimate.m
 Changed: rand initialization is now using "twister".
 
 ------------------------------------------------------------------------
-r106 | gaser | 2016-11-08 14:49:07 +0100 (Tue, 08 Nov 2016) | 6 lines
+r106 | gaser | 2016-11-08 14:49:07 +0100 (Di, 08 Nov 2016) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1419,7 +1429,7 @@ M       cg_tfce_estimate.m
 Fixed: Interaction contrasts were not correctly accepted.
 
 ------------------------------------------------------------------------
-r105 | gaser | 2016-11-03 14:41:00 +0100 (Thu, 03 Nov 2016) | 6 lines
+r105 | gaser | 2016-11-03 14:41:00 +0100 (Do, 03 Nov 2016) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1428,7 +1438,7 @@ M       cg_tfce_estimate.m
 Fixed: Exchangeability blocks were redundant for interaction designs.
 
 ------------------------------------------------------------------------
-r104 | gaser | 2016-09-22 16:12:12 +0200 (Thu, 22 Sep 2016) | 8 lines
+r104 | gaser | 2016-09-22 16:12:12 +0200 (Do, 22 Sep 2016) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -1439,7 +1449,7 @@ D       trunk
 Changed: Moved back from trunk...
 
 ------------------------------------------------------------------------
-r103 | gaser | 2016-09-22 16:10:38 +0200 (Thu, 22 Sep 2016) | 224 lines
+r103 | gaser | 2016-09-22 16:10:38 +0200 (Do, 22 Sep 2016) | 224 lines
 
 Changed paths:
 A  +    CHANGES.txt
@@ -1666,7 +1676,7 @@ D       trunk/todo
 Changed: Moved back from trunk...
 
 ------------------------------------------------------------------------
-r102 | gaser | 2016-09-22 15:23:39 +0200 (Thu, 22 Sep 2016) | 10 lines
+r102 | gaser | 2016-09-22 15:23:39 +0200 (Do, 22 Sep 2016) | 10 lines
 
 Changed paths:
 D       branch
@@ -1679,7 +1689,7 @@ Fixed: Corrected branch name.
 
 
 ------------------------------------------------------------------------
-r101 | gaser | 2016-09-22 03:22:18 +0200 (Thu, 22 Sep 2016) | 10 lines
+r101 | gaser | 2016-09-22 03:22:18 +0200 (Do, 22 Sep 2016) | 10 lines
 
 Changed paths:
 A  +    branch
@@ -1692,7 +1702,7 @@ Fixed: Corrected branch name.
 
 
 ------------------------------------------------------------------------
-r100 | gaser | 2016-09-22 03:18:31 +0200 (Thu, 22 Sep 2016) | 7 lines
+r100 | gaser | 2016-09-22 03:18:31 +0200 (Do, 22 Sep 2016) | 7 lines
 
 Changed paths:
 M       trunk/CHANGES.txt
@@ -1702,7 +1712,7 @@ Fixed: Corrected svn_ci_log to work with subfolders.
 
 
 ------------------------------------------------------------------------
-r99 | gaser | 2016-09-22 03:17:20 +0200 (Thu, 22 Sep 2016) | 7 lines
+r99 | gaser | 2016-09-22 03:17:20 +0200 (Do, 22 Sep 2016) | 7 lines
 
 Changed paths:
 M       trunk/CHANGES.txt
@@ -1712,7 +1722,7 @@ Fixed: Corrected svn_ci_log to work with subfolders.
 
 
 ------------------------------------------------------------------------
-r98 | gaser | 2016-09-22 03:16:58 +0200 (Thu, 22 Sep 2016) | 44 lines
+r98 | gaser | 2016-09-22 03:16:58 +0200 (Do, 22 Sep 2016) | 44 lines
 
 Changed paths:
 M       trunk/CHANGES.txt
@@ -1759,7 +1769,7 @@ Fixed: Corrected svn_ci_log to work with subfolders.
 
 
 ------------------------------------------------------------------------
-r97 | gaser | 2016-09-22 03:15:03 +0200 (Thu, 22 Sep 2016) | 6 lines
+r97 | gaser | 2016-09-22 03:15:03 +0200 (Do, 22 Sep 2016) | 6 lines
 
 Changed paths:
 M       trunk/CHANGES.txt
@@ -1768,7 +1778,7 @@ M       trunk/svn_ci_log
 Fixed: Corrected svn_ci_log to work with subfolders.
 
 ------------------------------------------------------------------------
-r96 | gaser | 2016-09-22 03:14:18 +0200 (Thu, 22 Sep 2016) | 227 lines
+r96 | gaser | 2016-09-22 03:14:18 +0200 (Do, 22 Sep 2016) | 227 lines
 
 Changed paths:
 D       CHANGES.txt
@@ -1998,7 +2008,7 @@ A  +    trunk/todo
 
 
 ------------------------------------------------------------------------
-r95 | gaser | 2016-09-12 10:16:51 +0200 (Mon, 12 Sep 2016) | 9 lines
+r95 | gaser | 2016-09-12 10:16:51 +0200 (Mo, 12 Sep 2016) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2010,7 +2020,7 @@ according to newer spm_results_ui.m.
 
 
 ------------------------------------------------------------------------
-r94 | gaser | 2016-09-12 02:58:14 +0200 (Mon, 12 Sep 2016) | 9 lines
+r94 | gaser | 2016-09-12 02:58:14 +0200 (Mo, 12 Sep 2016) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2022,7 +2032,7 @@ D       Makefile.var
 Changed: Makefile and installation routine updated.
 
 ------------------------------------------------------------------------
-r93 | gaser | 2016-08-24 14:38:31 +0200 (Wed, 24 Aug 2016) | 96 lines
+r93 | gaser | 2016-08-24 14:38:31 +0200 (Mi, 24 Aug 2016) | 96 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2121,7 +2131,7 @@ D       spm_vol_utils.c
 (3) Changed: Added support for inverse contrasts.
 
 ------------------------------------------------------------------------
-r92 | gaser | 2016-08-23 17:16:57 +0200 (Tue, 23 Aug 2016) | 18 lines
+r92 | gaser | 2016-08-23 17:16:57 +0200 (Di, 23 Aug 2016) | 18 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2142,7 +2152,7 @@ M       tfce_mesh.m
 (5) Changed: Removed variance smoothing.
 
 ------------------------------------------------------------------------
-r91 | gaser | 2016-08-12 15:16:17 +0200 (Fri, 12 Aug 2016) | 6 lines
+r91 | gaser | 2016-08-12 15:16:17 +0200 (Fr, 12 Aug 2016) | 6 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2151,7 +2161,7 @@ M       tfceMex_pthread.c
 Changed: Data type of dims is now int.
 
 ------------------------------------------------------------------------
-r90 | gaser | 2016-08-01 20:05:57 +0200 (Mon, 01 Aug 2016) | 25 lines
+r90 | gaser | 2016-08-01 20:05:57 +0200 (Mo, 01 Aug 2016) | 25 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2179,7 +2189,7 @@ M       tfce_mesh.m
 
 
 ------------------------------------------------------------------------
-r89 | gaser | 2016-06-22 17:21:42 +0200 (Wed, 22 Jun 2016) | 9 lines
+r89 | gaser | 2016-06-22 17:21:42 +0200 (Mi, 22 Jun 2016) | 9 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2191,7 +2201,7 @@ Changed: Added atlas function to results.
 
 
 ------------------------------------------------------------------------
-r88 | gaser | 2016-04-11 11:53:27 +0200 (Mon, 11 Apr 2016) | 7 lines
+r88 | gaser | 2016-04-11 11:53:27 +0200 (Mo, 11 Apr 2016) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2201,7 +2211,7 @@ Changed: Added gifit functionality for saving thresholded results.
 
 
 ------------------------------------------------------------------------
-r87 | gaser | 2016-01-19 00:49:27 +0100 (Tue, 19 Jan 2016) | 7 lines
+r87 | gaser | 2016-01-19 00:49:27 +0100 (Di, 19 Jan 2016) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2211,7 +2221,7 @@ New: todo file
 
 
 ------------------------------------------------------------------------
-r86 | gaser | 2015-12-08 11:35:21 +0100 (Tue, 08 Dec 2015) | 12 lines
+r86 | gaser | 2015-12-08 11:35:21 +0100 (Di, 08 Dez 2015) | 12 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2226,7 +2236,7 @@ M       tfceMex_noopenmp.mexmaci64
 (2) Changed: recompiled mexmaci64 code
 
 ------------------------------------------------------------------------
-r85 | gaser | 2015-12-01 11:55:55 +0100 (Tue, 01 Dec 2015) | 15 lines
+r85 | gaser | 2015-12-01 11:55:55 +0100 (Di, 01 Dez 2015) | 15 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2244,7 +2254,7 @@ Fixed: Solved issue with newer matlab version regarding the check for Fgraph
 in cg_tfce_list.m. Thanks to Joshua Balsters for pointing to this issue.
 
 ------------------------------------------------------------------------
-r84 | gaser | 2015-11-25 11:31:34 +0100 (Wed, 25 Nov 2015) | 10 lines
+r84 | gaser | 2015-11-25 11:31:34 +0100 (Mi, 25 Nov 2015) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2257,7 +2267,7 @@ M       cg_tfce_estimate.m
 (3) Corrected some inconsistencies for longitudinal designs.
 
 ------------------------------------------------------------------------
-r83 | gaser | 2015-11-24 13:26:22 +0100 (Tue, 24 Nov 2015) | 11 lines
+r83 | gaser | 2015-11-24 13:26:22 +0100 (Di, 24 Nov 2015) | 11 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2271,7 +2281,7 @@ A       cg_glm_get_Beta_ResSS_noopenmp.mexw64
 Added cg_glm_get_Beta_ResSS_noopenmp.mex* files.
 
 ------------------------------------------------------------------------
-r82 | gaser | 2015-11-04 14:07:20 +0100 (Wed, 04 Nov 2015) | 11 lines
+r82 | gaser | 2015-11-04 14:07:20 +0100 (Mi, 04 Nov 2015) | 11 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2285,7 +2295,7 @@ M       tbx_cfg_tfce_estimate.m
 (3) Added check whether size of mask image and data fit.
 
 ------------------------------------------------------------------------
-r81 | gaser | 2015-11-02 22:29:43 +0100 (Mon, 02 Nov 2015) | 8 lines
+r81 | gaser | 2015-11-02 22:29:43 +0100 (Mo, 02 Nov 2015) | 8 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2296,7 +2306,7 @@ M       cg_tfce_estimate.m
 (2) Updated table.
 
 ------------------------------------------------------------------------
-r80 | gaser | 2015-11-02 22:22:14 +0100 (Mon, 02 Nov 2015) | 10 lines
+r80 | gaser | 2015-11-02 22:22:14 +0100 (Mo, 02 Nov 2015) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2309,7 +2319,7 @@ M       tbx_cfg_tfce_estimate.m
 (2) Updated table.
 
 ------------------------------------------------------------------------
-r79 | gaser | 2015-10-29 09:19:18 +0100 (Thu, 29 Oct 2015) | 10 lines
+r79 | gaser | 2015-10-29 09:19:18 +0100 (Do, 29 Okt 2015) | 10 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -2322,7 +2332,7 @@ M       svn_ci_log
 (2) Use try-commands to allow batch mode without graphical output.
 
 ------------------------------------------------------------------------
-r78 | gaser | 2015-09-10 12:23:01 +0200 (Thu, 10 Sep 2015) | 24 lines
+r78 | gaser | 2015-09-10 12:23:01 +0200 (Do, 10 Sep 2015) | 24 lines
 
 Changed paths:
  M      SPM-Designs-Permutation.doc
@@ -2349,7 +2359,7 @@ M       tfce_mesh.m
 
 
 ------------------------------------------------------------------------
-r77 | gaser | 2015-06-26 15:32:07 +0200 (Fri, 26 Jun 2015) | 7 lines
+r77 | gaser | 2015-06-26 15:32:07 +0200 (Fr, 26 Jun 2015) | 7 lines
 
 Changed paths:
 M       cg_tfce_estimate.m
@@ -2359,7 +2369,7 @@ Zwiers).
 
 
 ------------------------------------------------------------------------
-r76 | gaser | 2015-06-17 11:00:05 +0200 (Wed, 17 Jun 2015) | 8 lines
+r76 | gaser | 2015-06-17 11:00:05 +0200 (Mi, 17 Jun 2015) | 8 lines
 
 Changed paths:
 A       SPM-Designs-Permutation.doc
@@ -2370,7 +2380,7 @@ M       cg_tfce_estimate.m
 
 
 ------------------------------------------------------------------------
-r75 | gaser | 2015-06-15 11:03:42 +0200 (Mon, 15 Jun 2015) | 8 lines
+r75 | gaser | 2015-06-15 11:03:42 +0200 (Mo, 15 Jun 2015) | 8 lines
 
 Changed paths:
 M       cg_tfce_estimate.m
@@ -2381,7 +2391,7 @@ Corrected bug with exch_blocks in cg_tfce_estimate.m for repeated measurements.
 
 
 ------------------------------------------------------------------------
-r74 | gaser | 2015-02-09 09:05:42 +0100 (Mon, 09 Feb 2015) | 9 lines
+r74 | gaser | 2015-02-09 09:05:42 +0100 (Mo, 09 Feb 2015) | 9 lines
 
 Changed paths:
 M       cg_tfce_estimate.m
@@ -2393,7 +2403,7 @@ Corrected bug with exch_blocks in cg_tfce_estimate.m.
 
 
 ------------------------------------------------------------------------
-r73 | gaser | 2014-12-01 13:27:00 +0100 (Mon, 01 Dec 2014) | 9 lines
+r73 | gaser | 2014-12-01 13:27:00 +0100 (Mo, 01 Dez 2014) | 9 lines
 
 Changed paths:
 M       cg_tfce_estimate.m
@@ -2405,7 +2415,7 @@ M       cg_tfce_estimate.m
 
 
 ------------------------------------------------------------------------
-r72 | gaser | 2014-11-28 17:28:54 +0100 (Fri, 28 Nov 2014) | 9 lines
+r72 | gaser | 2014-11-28 17:28:54 +0100 (Fr, 28 Nov 2014) | 9 lines
 
 Changed paths:
 M       cg_tfce_estimate.m
@@ -2417,7 +2427,7 @@ M       cg_tfce_estimate.m
 
 
 ------------------------------------------------------------------------
-r71 | gaser | 2014-11-14 10:41:31 +0100 (Fri, 14 Nov 2014) | 10 lines
+r71 | gaser | 2014-11-14 10:41:31 +0100 (Fr, 14 Nov 2014) | 10 lines
 
 Changed paths:
 M       cg_progress.m
@@ -2430,7 +2440,7 @@ MM      tfce_mesh.m
 
 
 ------------------------------------------------------------------------
-r70 | gaser | 2014-11-13 11:44:52 +0100 (Thu, 13 Nov 2014) | 8 lines
+r70 | gaser | 2014-11-13 11:44:52 +0100 (Do, 13 Nov 2014) | 8 lines
 
 Changed paths:
 M       cg_get_tfce_results.m
@@ -2441,7 +2451,7 @@ previous analysis will be used.
 
 
 ------------------------------------------------------------------------
-r69 | gaser | 2014-11-12 15:08:52 +0100 (Wed, 12 Nov 2014) | 30 lines
+r69 | gaser | 2014-11-12 15:08:52 +0100 (Mi, 12 Nov 2014) | 30 lines
 
 Changed paths:
 M       Makefile.tfce
@@ -2474,7 +2484,7 @@ A       tfce_mesh.m
 
 
 ------------------------------------------------------------------------
-r68 | gaser | 2014-07-28 14:34:27 +0200 (Mon, 28 Jul 2014) | 6 lines
+r68 | gaser | 2014-07-28 14:34:27 +0200 (Mo, 28 Jul 2014) | 6 lines
 
 Changed paths:
 M       cg_tfce_estimate.m
@@ -2483,7 +2493,7 @@ M       compile.m
 Handle all multiple regression designs.
 
 ------------------------------------------------------------------------
-r67 | gaser | 2014-04-15 14:27:56 +0200 (Tue, 15 Apr 2014) | 25 lines
+r67 | gaser | 2014-04-15 14:27:56 +0200 (Di, 15 Apr 2014) | 25 lines
 
 Changed paths:
 M       cg_glm_get_Beta_ResSS.c
@@ -2511,7 +2521,7 @@ M       tfceMex_noopenmp.mexw64
 (2) Recompiled windows versions.
 
 ------------------------------------------------------------------------
-r66 | gaser | 2014-01-24 16:36:58 +0100 (Fri, 24 Jan 2014) | 9 lines
+r66 | gaser | 2014-01-24 16:36:58 +0100 (Fr, 24 Jan 2014) | 9 lines
 
 Changed paths:
 M       cg_glm_get_Beta_ResSS.mexmaci
@@ -2523,7 +2533,7 @@ M       tfceMex_noopenmp.mexmaci
 (2) Compiled for mexmaci.
 
 ------------------------------------------------------------------------
-r65 | gaser | 2013-10-11 08:40:21 +0200 (Fri, 11 Oct 2013) | 7 lines
+r65 | gaser | 2013-10-11 08:40:21 +0200 (Fr, 11 Okt 2013) | 7 lines
 
 Changed paths:
 M       cg_tfce_estimate.m
@@ -2533,7 +2543,7 @@ M       cg_tfce_estimate.m
 (2) Debug mode now shows color-coded exchangeability blocks).
 
 ------------------------------------------------------------------------
-r64 | gaser | 2013-10-01 17:09:01 +0200 (Tue, 01 Oct 2013) | 6 lines
+r64 | gaser | 2013-10-01 17:09:01 +0200 (Di, 01 Okt 2013) | 6 lines
 
 Changed paths:
 M       spm_TFCE.m
@@ -2542,7 +2552,7 @@ M       cg_get_tfce_results.m
 Removed some minor bugs.
 
 ------------------------------------------------------------------------
-r63 | gaser | 2013-10-01 16:45:40 +0200 (Tue, 01 Oct 2013) | 6 lines
+r63 | gaser | 2013-10-01 16:45:40 +0200 (Di, 01 Okt 2013) | 6 lines
 
 Changed paths:
 M       Makefile.tfce
@@ -2551,7 +2561,7 @@ M       CHANGES.txt
 Added update to install function in Makefile.tfce.
 
 ------------------------------------------------------------------------
-r62 | gaser | 2013-10-01 16:29:17 +0200 (Tue, 01 Oct 2013) | 16 lines
+r62 | gaser | 2013-10-01 16:29:17 +0200 (Di, 01 Okt 2013) | 16 lines
 
 Changed paths:
 M       cg_tfce_estimate.m
@@ -2570,7 +2580,7 @@ M       cg_tfce_results.m
 (2) Changed GUI back to file menu.
 
 ------------------------------------------------------------------------
-r61 | gaser | 2013-05-14 10:46:09 +0200 (Tue, 14 May 2013) | 17 lines
+r61 | gaser | 2013-05-14 10:46:09 +0200 (Di, 14 Mai 2013) | 17 lines
 
 Changed paths:
 A  +    cg_tfce_estimate.m
@@ -2590,7 +2600,7 @@ D       cg_run_tfce_estimate.m
 (2) Renamed cg_run_tfce_estimate to cg_tfce_estimate.m.
 
 ------------------------------------------------------------------------
-r60 | gaser | 2013-03-12 18:11:04 +0100 (Tue, 12 Mar 2013) | 8 lines
+r60 | gaser | 2013-03-12 18:11:04 +0100 (Di, 12 Mär 2013) | 8 lines
 
 Changed paths:
 M       tbx_cfg_tfce_estimate.m
@@ -2601,7 +2611,7 @@ M       cg_run_tfce_estimate.m
 (2) Figure now also prints analysis path and processing time.
 
 ------------------------------------------------------------------------
-r59 | gaser | 2013-01-29 16:45:20 +0100 (Tue, 29 Jan 2013) | 6 lines
+r59 | gaser | 2013-01-29 16:45:20 +0100 (Di, 29 Jan 2013) | 6 lines
 
 Changed paths:
 M       cg_run_tfce_estimate.m
@@ -2610,7 +2620,7 @@ Corrected calculation of # of permutations for large n's and designs with
 just one subject in cg_run_tfce_estimate.m
 
 ------------------------------------------------------------------------
-r58 | gaser | 2013-01-29 10:55:47 +0100 (Tue, 29 Jan 2013) | 5 lines
+r58 | gaser | 2013-01-29 10:55:47 +0100 (Di, 29 Jan 2013) | 5 lines
 
 Changed paths:
 M       cg_run_tfce_estimate.m
@@ -2618,7 +2628,7 @@ M       cg_run_tfce_estimate.m
 Removed two typos in cg_run_tfce_estimate.m
 
 ------------------------------------------------------------------------
-r57 | gaser | 2012-07-25 10:51:09 +0200 (Wed, 25 Jul 2012) | 6 lines
+r57 | gaser | 2012-07-25 10:51:09 +0200 (Mi, 25 Jul 2012) | 6 lines
 
 Changed paths:
 M       tfceMex.c
@@ -2627,7 +2637,7 @@ M       cg_run_tfce_estimate.m
 Removed 2nd warning for not yet supported whitening.
 
 ------------------------------------------------------------------------
-r56 | gaser | 2012-02-10 14:48:57 +0100 (Fri, 10 Feb 2012) | 32 lines
+r56 | gaser | 2012-02-10 14:48:57 +0100 (Fr, 10 Feb 2012) | 32 lines
 
 Changed paths:
 M       cg_glm_get_Beta_ResSS.c
@@ -2662,7 +2672,7 @@ M       tfceMex.mexmaci
 (3) Many small changes in cg_run_tfce_estimate.m
 
 ------------------------------------------------------------------------
-r55 | gaser | 2012-02-10 01:08:57 +0100 (Fri, 10 Feb 2012) | 5 lines
+r55 | gaser | 2012-02-10 01:08:57 +0100 (Fr, 10 Feb 2012) | 5 lines
 
 Changed paths:
 M       cg_run_tfce_estimate.m
@@ -2670,7 +2680,7 @@ M       cg_run_tfce_estimate.m
 Solved issues with Anovas with > 2 groups and contrasts for > 2 columns.
 
 ------------------------------------------------------------------------
-r54 | gaser | 2011-11-18 21:48:44 +0100 (Fri, 18 Nov 2011) | 6 lines
+r54 | gaser | 2011-11-18 21:48:44 +0100 (Fr, 18 Nov 2011) | 6 lines
 
 Changed paths:
 MM      tfce.fig
@@ -2679,7 +2689,7 @@ MM      tfce.fig
 Corrected size of figure.
 
 ------------------------------------------------------------------------
-r53 | gaser | 2011-11-18 21:02:04 +0100 (Fri, 18 Nov 2011) | 7 lines
+r53 | gaser | 2011-11-18 21:02:04 +0100 (Fr, 18 Nov 2011) | 7 lines
 
 Changed paths:
 M       Makefile.tfce
@@ -2689,7 +2699,7 @@ M       CHANGES.txt
 Removed cg_tfce_estimate from Makefile.
 
 ------------------------------------------------------------------------
-r52 | gaser | 2011-07-27 10:38:45 +0200 (Wed, 27 Jul 2011) | 7 lines
+r52 | gaser | 2011-07-27 10:38:45 +0200 (Mi, 27 Jul 2011) | 7 lines
 
 Changed paths:
 A      tfce.fig
@@ -2699,7 +2709,7 @@ A      tfce.m
 Changed GUI style from menubar to additional window.
 
 ------------------------------------------------------------------------
-r51 | gaser | 2011-07-25 12:45:19 +0200 (Mon, 25 Jul 2011) | 6 lines
+r51 | gaser | 2011-07-25 12:45:19 +0200 (Mo, 25 Jul 2011) | 6 lines
 
 Changed paths:
 M      cg_getTFCE.m
@@ -2708,7 +2718,7 @@ Removed bug in cg_getTFCE.m that caused, that also values below threshold were
 reported.
 
 ------------------------------------------------------------------------
-r50 | gaser | 2011-06-21 17:01:54 +0200 (Tue, 21 Jun 2011) | 54 lines
+r50 | gaser | 2011-06-21 17:01:54 +0200 (Di, 21 Jun 2011) | 54 lines
 
 Changed paths:
 MM     cg_tfce_list.m
@@ -2765,7 +2775,7 @@ MM     spm_make_lookup.h
 Updated svn_ci_log to set svn properties.
 
 ------------------------------------------------------------------------
-r49 | gaser | 2011-03-31 11:33:45 +0200 (Thu, 31 Mar 2011) | 5 lines
+r49 | gaser | 2011-03-31 11:33:45 +0200 (Do, 31 Mär 2011) | 5 lines
 
 Changed paths:
 M      cg_run_tfce_estimate.m
@@ -2773,7 +2783,7 @@ M      cg_run_tfce_estimate.m
 Removed debug code from cg_run_tfce_estimate.m.
 
 ------------------------------------------------------------------------
-r48 | gaser | 2011-03-31 08:39:43 +0200 (Thu, 31 Mar 2011) | 6 lines
+r48 | gaser | 2011-03-31 08:39:43 +0200 (Do, 31 Mär 2011) | 6 lines
 
 Changed paths:
 M      cg_tfce_list.m
@@ -2782,7 +2792,7 @@ M      cg_getTFCE.m
 Corrected name of ascii-file, where number of permutations is saved.
 
 ------------------------------------------------------------------------
-r47 | gaser | 2011-03-30 12:16:31 +0200 (Wed, 30 Mar 2011) | 5 lines
+r47 | gaser | 2011-03-30 12:16:31 +0200 (Mi, 30 Mär 2011) | 5 lines
 
 Changed paths:
 M      cg_run_tfce_estimate.m
@@ -2790,7 +2800,7 @@ M      cg_run_tfce_estimate.m
 Corrected path of mask-image in cg_run_tfce_estimate.m if folder was changed.
 
 ------------------------------------------------------------------------
-r46 | gaser | 2011-03-30 10:38:32 +0200 (Wed, 30 Mar 2011) | 10 lines
+r46 | gaser | 2011-03-30 10:38:32 +0200 (Mi, 30 Mär 2011) | 10 lines
 
 Changed paths:
 D      cg_tfce_estimate.m
@@ -2803,7 +2813,7 @@ A      cg_run_tfce_estimate.m
 Added batch mode for TFCE estimate.
 
 ------------------------------------------------------------------------
-r45 | gaser | 2011-03-03 16:23:05 +0100 (Thu, 03 Mar 2011) | 7 lines
+r45 | gaser | 2011-03-03 16:23:05 +0100 (Do, 03 Mär 2011) | 7 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -2813,7 +2823,7 @@ M      cg_tfce_estimate.m
 (2) Graphical output of histograms slightly changed.
 
 ------------------------------------------------------------------------
-r44 | gaser | 2011-03-01 22:54:28 +0100 (Tue, 01 Mar 2011) | 5 lines
+r44 | gaser | 2011-03-01 22:54:28 +0100 (Di, 01 Mär 2011) | 5 lines
 
 Changed paths:
 M       cg_tfce_estimate.m
@@ -2821,7 +2831,7 @@ M       cg_tfce_estimate.m
 Corrected estimation for interaction designs.
 
 ------------------------------------------------------------------------
-r43 | gaser | 2011-03-01 17:27:46 +0100 (Tue, 01 Mar 2011) | 5 lines
+r43 | gaser | 2011-03-01 17:27:46 +0100 (Di, 01 Mär 2011) | 5 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -2829,7 +2839,7 @@ M      cg_tfce_estimate.m
 Removed some debug code.
 
 ------------------------------------------------------------------------
-r42 | gaser | 2011-03-01 16:48:46 +0100 (Tue, 01 Mar 2011) | 25 lines
+r42 | gaser | 2011-03-01 16:48:46 +0100 (Di, 01 Mär 2011) | 25 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -2857,7 +2867,7 @@ M      tfceMex.mexmaci
 (3) Allow to use half of permutations for equally sized samples.
 
 ------------------------------------------------------------------------
-r41 | gaser | 2011-03-01 11:56:07 +0100 (Tue, 01 Mar 2011) | 6 lines
+r41 | gaser | 2011-03-01 11:56:07 +0100 (Di, 01 Mär 2011) | 6 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -2866,7 +2876,7 @@ M      questions.txt
 Removed debug entries.
 
 ------------------------------------------------------------------------
-r40 | gaser | 2011-02-28 17:04:22 +0100 (Mon, 28 Feb 2011) | 11 lines
+r40 | gaser | 2011-02-28 17:04:22 +0100 (Mo, 28 Feb 2011) | 11 lines
 
 Changed paths:
 M      cg_tfce_list.m
@@ -2880,7 +2890,7 @@ Rather use old estimation of uncorrected p-values, because SnPM and
 randomize cause uncorrect p-values.
 
 ------------------------------------------------------------------------
-r39 | gaser | 2011-02-28 01:03:44 +0100 (Mon, 28 Feb 2011) | 7 lines
+r39 | gaser | 2011-02-28 01:03:44 +0100 (Mo, 28 Feb 2011) | 7 lines
 
 Changed paths:
 M       cg_tfce_list.m
@@ -2890,7 +2900,7 @@ M       cg_getTFCE.m
 Corrected list of p-values.
 
 ------------------------------------------------------------------------
-r38 | gaser | 2011-02-25 17:12:37 +0100 (Fri, 25 Feb 2011) | 14 lines
+r38 | gaser | 2011-02-25 17:12:37 +0100 (Fr, 25 Feb 2011) | 14 lines
 
 Changed paths:
 M      cg_tfce_list.m
@@ -2907,7 +2917,7 @@ M      tfceMex_noopenmp.mexw32
 New claculation of p-values based on snpm8b.
 
 ------------------------------------------------------------------------
-r37 | gaser | 2010-12-13 15:01:13 +0100 (Mon, 13 Dec 2010) | 5 lines
+r37 | gaser | 2010-12-13 15:01:13 +0100 (Mo, 13 Dez 2010) | 5 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -2915,7 +2925,7 @@ M      cg_tfce_estimate.m
 Corrected typo in cg_tfce_estimate.m.
 
 ------------------------------------------------------------------------
-r36 | gaser | 2010-12-13 10:34:42 +0100 (Mon, 13 Dec 2010) | 5 lines
+r36 | gaser | 2010-12-13 10:34:42 +0100 (Mo, 13 Dez 2010) | 5 lines
 
 Changed paths:
 M      Makefile.tfce
@@ -2923,7 +2933,7 @@ M      Makefile.tfce
 Updated Makefile.tfce to consider new files tfceMex_noopen.mex*
 
 ------------------------------------------------------------------------
-r35 | gaser | 2010-12-13 10:32:51 +0100 (Mon, 13 Dec 2010) | 5 lines
+r35 | gaser | 2010-12-13 10:32:51 +0100 (Mo, 13 Dez 2010) | 5 lines
 
 Changed paths:
 M      Makefile.tfce
@@ -2931,7 +2941,7 @@ M      Makefile.tfce
 Updated Makefile.tfce to consider new files tfceMex_noopen.mex*
 
 ------------------------------------------------------------------------
-r34 | gaser | 2010-12-13 10:20:12 +0100 (Mon, 13 Dec 2010) | 21 lines
+r34 | gaser | 2010-12-13 10:20:12 +0100 (Mo, 13 Dez 2010) | 21 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -2955,7 +2965,7 @@ M      tfceMex.mexmaci
 Additionally provide tfceMex without multi-threading.
 
 ------------------------------------------------------------------------
-r33 | gaser | 2010-11-09 23:56:52 +0100 (Tue, 09 Nov 2010) | 8 lines
+r33 | gaser | 2010-11-09 23:56:52 +0100 (Di, 09 Nov 2010) | 8 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -2966,7 +2976,7 @@ level analysis with temporal autocorrelations.
 
 
 ------------------------------------------------------------------------
-r32 | gaser | 2010-11-09 23:55:57 +0100 (Tue, 09 Nov 2010) | 8 lines
+r32 | gaser | 2010-11-09 23:55:57 +0100 (Di, 09 Nov 2010) | 8 lines
 
 Changed paths:
 M      Makefile.tfce
@@ -2977,7 +2987,7 @@ level analysis with temporal autocorrelations.
 
 
 ------------------------------------------------------------------------
-r31 | gaser | 2010-10-13 17:23:23 +0200 (Wed, 13 Oct 2010) | 8 lines
+r31 | gaser | 2010-10-13 17:23:23 +0200 (Mi, 13 Okt 2010) | 8 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -2988,7 +2998,7 @@ M      tfceMex.mexmaci64
 Disabled whitening because of weird effects.
 
 ------------------------------------------------------------------------
-r30 | gaser | 2010-09-24 23:41:23 +0200 (Fri, 24 Sep 2010) | 8 lines
+r30 | gaser | 2010-09-24 23:41:23 +0200 (Fr, 24 Sep 2010) | 8 lines
 
 Changed paths:
 M       cg_tfce_estimate.m
@@ -2999,7 +3009,7 @@ D       make.m
 Updated compile.m to additionally provide a single-threaded version of ifceMex.
 
 ------------------------------------------------------------------------
-r29 | gaser | 2010-09-16 22:07:12 +0200 (Thu, 16 Sep 2010) | 11 lines
+r29 | gaser | 2010-09-16 22:07:12 +0200 (Do, 16 Sep 2010) | 11 lines
 
 Changed paths:
 M      tfceMex.mexw64
@@ -3013,7 +3023,7 @@ Replaced fprintf by printf in tfceMex.c for correct windows output.
 
 
 ------------------------------------------------------------------------
-r28 | gaser | 2010-08-25 10:34:05 +0200 (Wed, 25 Aug 2010) | 5 lines
+r28 | gaser | 2010-08-25 10:34:05 +0200 (Mi, 25 Aug 2010) | 5 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -3021,7 +3031,7 @@ M      cg_tfce_estimate.m
 Some cosmetic changes to cg_tfce_estimate.m.
 
 ------------------------------------------------------------------------
-r27 | gaser | 2010-08-23 01:35:42 +0200 (Mon, 23 Aug 2010) | 8 lines
+r27 | gaser | 2010-08-23 01:35:42 +0200 (Mo, 23 Aug 2010) | 8 lines
 
 Changed paths:
 M       tfceMex.c
@@ -3032,7 +3042,7 @@ M       make.m
 Updated OPENMP-flags in tfceMex.c
 
 ------------------------------------------------------------------------
-r26 | gaser | 2010-08-13 12:39:27 +0200 (Fri, 13 Aug 2010) | 5 lines
+r26 | gaser | 2010-08-13 12:39:27 +0200 (Fr, 13 Aug 2010) | 5 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -3040,7 +3050,7 @@ M      cg_tfce_estimate.m
 Use try-command for calling tfceMex because compilations are not yet ready.
 
 ------------------------------------------------------------------------
-r25 | gaser | 2010-08-13 12:37:18 +0200 (Fri, 13 Aug 2010) | 8 lines
+r25 | gaser | 2010-08-13 12:37:18 +0200 (Fr, 13 Aug 2010) | 8 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -3051,7 +3061,7 @@ M      tfceMex.mexmaci64
 Added option to print # of processors in tfceMex.c
 
 ------------------------------------------------------------------------
-r24 | gaser | 2010-08-11 17:24:51 +0200 (Wed, 11 Aug 2010) | 18 lines
+r24 | gaser | 2010-08-11 17:24:51 +0200 (Mi, 11 Aug 2010) | 18 lines
 
 Changed paths:
 M      tfceMex.mexw64
@@ -3072,7 +3082,7 @@ M      tfceMex.mexmaci
 (2) Updated make.m to provide compilations for different systems.
 
 ------------------------------------------------------------------------
-r23 | gaser | 2010-08-11 11:15:10 +0200 (Wed, 11 Aug 2010) | 8 lines
+r23 | gaser | 2010-08-11 11:15:10 +0200 (Mi, 11 Aug 2010) | 8 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -3083,7 +3093,7 @@ A      cg_progress.m
 (2) Updated cg_tfce_estimate.m for use of cg_progress.m.
 
 ------------------------------------------------------------------------
-r22 | gaser | 2010-08-10 14:08:38 +0200 (Tue, 10 Aug 2010) | 9 lines
+r22 | gaser | 2010-08-10 14:08:38 +0200 (Di, 10 Aug 2010) | 9 lines
 
 Changed paths:
 M      Contents_info.txt
@@ -3095,7 +3105,7 @@ M      Makefile.tfce
 (2) Updated Contents_info.txt
 
 ------------------------------------------------------------------------
-r21 | gaser | 2010-08-10 10:47:45 +0200 (Tue, 10 Aug 2010) | 8 lines
+r21 | gaser | 2010-08-10 10:47:45 +0200 (Di, 10 Aug 2010) | 8 lines
 
 Changed paths:
 M      cg_tfce_list.m
@@ -3106,7 +3116,7 @@ M      cg_getTFCE.m
 (2) Numbers of permutations are saved in spmTFCE_000x.txt file.
 
 ------------------------------------------------------------------------
-r20 | gaser | 2010-08-09 09:32:44 +0200 (Mon, 09 Aug 2010) | 11 lines
+r20 | gaser | 2010-08-09 09:32:44 +0200 (Mo, 09 Aug 2010) | 11 lines
 
 Changed paths:
 M      cg_glm_get_Beta_ResSS.c
@@ -3120,7 +3130,7 @@ M      cg_glm_get_Beta_ResSS.mexw64
 (2) Renamed TFCE.man to tfce.man.
 
 ------------------------------------------------------------------------
-r19 | gaser | 2010-07-30 15:58:59 +0200 (Fri, 30 Jul 2010) | 11 lines
+r19 | gaser | 2010-07-30 15:58:59 +0200 (Fr, 30 Jul 2010) | 11 lines
 
 Changed paths:
 M      cg_tfce_list.m
@@ -3134,7 +3144,7 @@ M      Makefile.tfce
     does not comprises all subjects.
 
 ------------------------------------------------------------------------
-r18 | gaser | 2010-07-28 16:34:33 +0200 (Wed, 28 Jul 2010) | 5 lines
+r18 | gaser | 2010-07-28 16:34:33 +0200 (Mi, 28 Jul 2010) | 5 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -3142,7 +3152,7 @@ M      cg_tfce_estimate.m
 Added checks for empty index of in cg_tfce_estimate.m
 
 ------------------------------------------------------------------------
-r17 | gaser | 2010-07-26 09:08:30 +0200 (Mon, 26 Jul 2010) | 6 lines
+r17 | gaser | 2010-07-26 09:08:30 +0200 (Mo, 26 Jul 2010) | 6 lines
 
 Changed paths:
 M      cg_tfce_list.m
@@ -3151,7 +3161,7 @@ M      cg_getTFCE.m
 Considered spm8 updates 4010.
 
 ------------------------------------------------------------------------
-r16 | gaser | 2010-07-23 17:21:52 +0200 (Fri, 23 Jul 2010) | 7 lines
+r16 | gaser | 2010-07-23 17:21:52 +0200 (Fr, 23 Jul 2010) | 7 lines
 
 Changed paths:
 A      cg_glm_get_Beta_ResSS.mexmaci
@@ -3161,7 +3171,7 @@ A      tfceMex.mexmaci
 Now really added mexmaci files.
 
 ------------------------------------------------------------------------
-r15 | gaser | 2010-07-23 13:20:18 +0200 (Fri, 23 Jul 2010) | 8 lines
+r15 | gaser | 2010-07-23 13:20:18 +0200 (Fr, 23 Jul 2010) | 8 lines
 
 Changed paths:
 M      Makefile.tfce
@@ -3172,7 +3182,7 @@ A      make.m
 (2) Added mexmaci files.
 
 ------------------------------------------------------------------------
-r14 | gaser | 2010-07-23 12:43:49 +0200 (Fri, 23 Jul 2010) | 10 lines
+r14 | gaser | 2010-07-23 12:43:49 +0200 (Fr, 23 Jul 2010) | 10 lines
 
 Changed paths:
 M      cg_tfce_list.m
@@ -3185,7 +3195,7 @@ M      cg_getTFCE.m
 (2) Added some additional information for result table in to cg_tfce_list.m.
 
 ------------------------------------------------------------------------
-r13 | gaser | 2010-07-23 11:46:27 +0200 (Fri, 23 Jul 2010) | 11 lines
+r13 | gaser | 2010-07-23 11:46:27 +0200 (Fr, 23 Jul 2010) | 11 lines
 
 Changed paths:
 M      Contents_info.txt
@@ -3199,7 +3209,7 @@ M      Makefile
 (3) Added compilation for w64.
 
 ------------------------------------------------------------------------
-r12 | gaser | 2010-07-22 18:00:32 +0200 (Thu, 22 Jul 2010) | 8 lines
+r12 | gaser | 2010-07-22 18:00:32 +0200 (Do, 22 Jul 2010) | 8 lines
 
 Changed paths:
 M       cg_glm_get_Beta_ResSS.c
@@ -3210,7 +3220,7 @@ A       tfceMex.mexw32
 (2) Added *.mexw32 
 
 ------------------------------------------------------------------------
-r11 | gaser | 2010-07-22 17:11:11 +0200 (Thu, 22 Jul 2010) | 7 lines
+r11 | gaser | 2010-07-22 17:11:11 +0200 (Do, 22 Jul 2010) | 7 lines
 
 Changed paths:
 A      tfceMex.mexw64
@@ -3220,7 +3230,7 @@ M      cg_getTFCE.m
 (2) Added warning for FDR.
 
 ------------------------------------------------------------------------
-r10 | gaser | 2010-07-22 16:32:17 +0200 (Thu, 22 Jul 2010) | 7 lines
+r10 | gaser | 2010-07-22 16:32:17 +0200 (Do, 22 Jul 2010) | 7 lines
 
 Changed paths:
 D      spm_vol_utils.mexmaci64.a
@@ -3230,7 +3240,7 @@ D      spm_vol_utils.mexglx.a
 Removed *.a files.
 
 ------------------------------------------------------------------------
-r9 | gaser | 2010-07-22 16:26:39 +0200 (Thu, 22 Jul 2010) | 17 lines
+r9 | gaser | 2010-07-22 16:26:39 +0200 (Do, 22 Jul 2010) | 17 lines
 
 Changed paths:
 D      tfce8.txt
@@ -3250,7 +3260,7 @@ A      tfceMex.mexa64
 (2) Compiled for linux
 
 ------------------------------------------------------------------------
-r8 | gaser | 2010-07-22 15:26:39 +0200 (Thu, 22 Jul 2010) | 14 lines
+r8 | gaser | 2010-07-22 15:26:39 +0200 (Do, 22 Jul 2010) | 14 lines
 
 Changed paths:
 M      cg_tfce_estimate.m
@@ -3267,7 +3277,7 @@ M      Makefile
 (2) Many changes to get listing of p-values working.
 
 ------------------------------------------------------------------------
-r7 | gaser | 2010-07-22 06:37:00 +0200 (Thu, 22 Jul 2010) | 8 lines
+r7 | gaser | 2010-07-22 06:37:00 +0200 (Do, 22 Jul 2010) | 8 lines
 
 Changed paths:
 A       cg_tfce_list.m
@@ -3278,7 +3288,7 @@ M       cg_tfce_results.m
 Preliminary version for listing of results.
 
 ------------------------------------------------------------------------
-r6 | gaser | 2010-07-21 18:20:30 +0200 (Wed, 21 Jul 2010) | 10 lines
+r6 | gaser | 2010-07-21 18:20:30 +0200 (Mi, 21 Jul 2010) | 10 lines
 
 Changed paths:
 A  +   cg_tfce_estimate.m
@@ -3291,7 +3301,7 @@ D      cg_tfce8.m
 
 
 ------------------------------------------------------------------------
-r5 | gaser | 2010-07-21 07:40:41 +0200 (Wed, 21 Jul 2010) | 5 lines
+r5 | gaser | 2010-07-21 07:40:41 +0200 (Mi, 21 Jul 2010) | 5 lines
 
 Changed paths:
 M       cg_tfce8.m
@@ -3299,7 +3309,7 @@ M       cg_tfce8.m
 New version with corrected p-maps.
 
 ------------------------------------------------------------------------
-r4 | gaser | 2010-07-21 07:39:42 +0200 (Wed, 21 Jul 2010) | 6 lines
+r4 | gaser | 2010-07-21 07:39:42 +0200 (Mi, 21 Jul 2010) | 6 lines
 
 Changed paths:
 A      CHANGES.txt
@@ -3308,7 +3318,7 @@ Added CHANGES.txt.
 
 
 ------------------------------------------------------------------------
-r3 | gaser | 2010-07-20 18:18:42 +0200 (Tue, 20 Jul 2010) | 5 lines
+r3 | gaser | 2010-07-20 18:18:42 +0200 (Di, 20 Jul 2010) | 5 lines
 
 Changed paths:
 M      cg_tfce8.m
@@ -3316,7 +3326,7 @@ M      cg_tfce8.m
 Added preliminary version for uncorrected p-values.
 
 ------------------------------------------------------------------------
-r2 | gaser | 2010-07-20 15:12:14 +0200 (Tue, 20 Jul 2010) | 5 lines
+r2 | gaser | 2010-07-20 15:12:14 +0200 (Di, 20 Jul 2010) | 5 lines
 
 Changed paths:
 M      Makefile.tfce
@@ -3324,7 +3334,7 @@ M      Makefile.tfce
 Added cg_glm_get_Beta_ResSS.m tfceMex.m to Makefile.tfce.
 
 ------------------------------------------------------------------------
-r1 | gaser | 2010-07-20 14:29:01 +0200 (Tue, 20 Jul 2010) | 1 line
+r1 | gaser | 2010-07-20 14:29:01 +0200 (Di, 20 Jul 2010) | 1 line
 
 Initial import
 ------------------------------------------------------------------------

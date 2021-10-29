@@ -8,7 +8,7 @@ function tfce_estimate_stat(job)
 % Christian Gaser
 % $Id$
 
-global old_method_stat
+global old_method_stat save_null_distribution
 
 % disable parallel processing for only one SPM.mat file
 if numel(job.data) == 1
@@ -49,14 +49,23 @@ filter_bilateral = false;
 % only inside pos./neg. effects and not both
 if isfield(job,'old_method_stat')
   old_method_stat = job.old_method_stat;
-elseif exist('old_method_stat')
-  old_method_stat = old_method_stat;
-else
+elseif ~exist('old_method_stat')
   old_method_stat = 0;
 end
 
 if old_method_stat
   fprintf('Use old method from r184 to estimate maximum statistics which might be too liberal.\n');
+end
+
+% save null distribution
+if isfield(job,'save_null_distribution')
+  save_null_distribution = job.save_null_distribution;
+elseif ~exist('save_null_distribution')
+  save_null_distribution = 0;
+end
+
+if save_null_distribution
+  fprintf('Save null distribution.\n');
 end
 
 % variance smoothing (experimental, only for 3D images)
@@ -753,16 +762,7 @@ for con = 1:length(Ic0)
     else
       [t0, df2, SmMask] = calc_GLM_voxelwise(Y,xX,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,[],ind_X);
     end
-    mask_0   = (t0 == 0);
-    mask_1   = (t0 ~= 0);
-    mask_P   = (t0 > 0);
-    mask_N   = (t0 < 0);
-    mask_NaN = (mask == 0);
-    found_P  = sum(mask_P(:)) > 0;
-    found_N  = sum(mask_N(:)) > 0;
-  
-    df1 = size(xCon.c,2);
-  
+
     % transform to z statistic
     if convert_to_z
       % use faster z-transformation of SPM for T-statistics
@@ -773,6 +773,16 @@ for con = 1:length(Ic0)
       end
     end
     
+    mask_0   = (t0 == 0);
+    mask_1   = (t0 ~= 0);
+    mask_P   = (t0 > 0);
+    mask_N   = (t0 < 0);
+    mask_NaN = (mask == 0);
+    found_P  = sum(mask_P(:)) > 0;
+    found_N  = sum(mask_N(:)) > 0;
+    
+    df1 = size(xCon.c,2);
+  
     % remove all NaN and Inf's
     t0(isinf(t0) | isnan(t0)) = 0;
   
@@ -1127,6 +1137,12 @@ for con = 1:length(Ic0)
       if perm==1
         t    = t0;
         tfce = tfce0;
+        if save_null_distribution
+          % use maximum absolute value to define range
+          maxt = max(abs(t(mask_1)));
+          xt = linspace(-maxt,maxt,1000);
+          null_distribution = zeros(1,numel(xt));
+        end
       else
         xXperm   = xX;
         xXperm.X = Xperm;        
@@ -1155,7 +1171,13 @@ for con = 1:length(Ic0)
             t(mask_1) = palm_gtoz(t(mask_1),df1,df2);
           end
         end
-      
+
+        % obtain histogram with 500 bins for null-distribution
+        if save_null_distribution
+          % update null-distribution
+          null_distribution = null_distribution + hist(t(mask_1),xt);
+        end
+        
         % remove all NaN and Inf's
         t(isinf(t) | isnan(t)) = 0;
         
@@ -1182,7 +1204,7 @@ for con = 1:length(Ic0)
           
           % if multi-threading takes 1.5x longer then force single-threading
           % because for some unknown reason multi-threading is not working properly
-          if perm==1 & ~singlethreaded
+          if perm==1 && ~singlethreaded
             telapsed2 = toc(tstart);
             if (telapsed2 > 1.5*telapsed)
               fprintf('Warning: Multi-threading disabled because of run-time issues.\n');
@@ -1362,6 +1384,19 @@ for con = 1:length(Ic0)
     n_perm = length(tfce_max);
   
     %---------------------------------------------------------------
+    % save null distribution
+    %---------------------------------------------------------------
+    if save_null_distribution
+      null_distribution = null_distribution/(n_perm - 1);
+      name = sprintf('Null_%04d',Ic);
+      fid = fopen(fullfile(cwd,[name '.txt']),'w');
+      for i=1:numel(xt)
+        fprintf(fid,'%g %g\n',xt(i),null_distribution(i));    
+      end
+      fclose(fid);
+    end
+      
+    %---------------------------------------------------------------
     % corrected threshold based on permutation distribution
     %---------------------------------------------------------------
   
@@ -1369,7 +1404,7 @@ for con = 1:length(Ic0)
     Vt = VY(1);
     Vt.dt(1)    = 16;
     Vt.pinfo(1) = 1;
-  
+
     %---------------------------------------------------------------
     % save unpermuted t map
     %---------------------------------------------------------------

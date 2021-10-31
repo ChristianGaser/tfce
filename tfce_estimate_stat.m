@@ -64,10 +64,6 @@ elseif ~exist('save_null_distribution')
   save_null_distribution = 0;
 end
 
-if save_null_distribution
-  fprintf('Save null distribution.\n');
-end
-
 % variance smoothing (experimental, only for 3D images)
 vFWHM = 0;
 
@@ -1134,14 +1130,12 @@ for con = 1:length(Ic0)
     
     if ~test_mode
       % calculate permuted t-map
-      if perm==1
+      if perm == 1
         t    = t0;
         tfce = tfce0;
+        % prepare null distribution
         if save_null_distribution
-          % use maximum absolute value to define range
-          maxt = max(abs(t(mask_1)));
-          xt = linspace(-maxt,maxt,1000);
-          null_distribution = zeros(1,numel(xt));
+          null_distribution = zeros(size(t));
         end
       else
         xXperm   = xX;
@@ -1172,10 +1166,9 @@ for con = 1:length(Ic0)
           end
         end
 
-        % obtain histogram with 500 bins for null-distribution
+        % update null-distribution
         if save_null_distribution
-          % update null-distribution
-          null_distribution = null_distribution + hist(t(mask_1),xt);
+          null_distribution(mask_1) = null_distribution(mask_1) + t(mask_1);
         end
         
         % remove all NaN and Inf's
@@ -1383,19 +1376,6 @@ for con = 1:length(Ic0)
     % get correct number of permutations in case that process was stopped
     n_perm = length(tfce_max);
   
-    %---------------------------------------------------------------
-    % save null distribution
-    %---------------------------------------------------------------
-    if save_null_distribution
-      null_distribution = null_distribution/(n_perm - 1);
-      name = sprintf('Null_%04d',Ic);
-      fid = fopen(fullfile(cwd,[name '.txt']),'w');
-      for i=1:numel(xt)
-        fprintf(fid,'%g %g\n',xt(i),null_distribution(i));    
-      end
-      fclose(fid);
-    end
-      
     %---------------------------------------------------------------
     % corrected threshold based on permutation distribution
     %---------------------------------------------------------------
@@ -1699,6 +1679,20 @@ for con = 1:length(Ic0)
   
     Vt = spm_data_hdr_write(Vt);
     spm_data_write(Vt,corrPfdrlog10);
+
+    %---------------------------------------------------------------
+    % save null distribution
+    %---------------------------------------------------------------
+    if save_null_distribution
+      fprintf('Save null distribution.\n');
+      null_distribution = null_distribution/sqrt(n_perm - 1);
+      name = sprintf('Null%s_%04d',xCon.STAT,Ic);
+      Vt.fname = fullfile(cwd,[name file_ext]);
+      Vt.descrip = sprintf('Null%s %04d %s',xCon.STAT,Ic, str_permutation_method);
+      Vt = spm_data_hdr_write(Vt);
+      spm_data_write(Vt,null_distribution);
+    end
+      
   end % test_mode
     
 end

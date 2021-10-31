@@ -1,5 +1,13 @@
 ------------------------------------------------------------------------
-r226 | gaser | 2021-10-30 00:23:27
+r227 | gaser | 2021-10-31 22:40:33
+
+Changed paths:
+M       CHANGES.txt
+M       tfce_estimate_stat.m
+
+Changed: Updated option to save null distribution as image.
+------------------------------------------------------------------------
+r226 | gaser | 2021-10-30 00:23:38 +0200 (Sa, 30 Okt 2021) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +15,7 @@ M       html/tfce.html
 M       tfce_estimate_stat.m
 
 Changed: Added hidden option to save null distribution.
+
 ------------------------------------------------------------------------
 r225 | gaser | 2021-10-25 09:09:26 +0200 (Mo, 25 Okt 2021) | 11 lines
 

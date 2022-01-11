@@ -1684,7 +1684,7 @@ for con = 1:length(Ic0)
     if save_null_distribution
       fprintf('Save null distribution.\n');
       null_distribution = null_distribution/sqrt(n_perm - 1);
-      name = sprintf('Null%s_%04d',xCon.STAT,Ic);
+      name = sprintf('nullT%s_%04d',xCon.STAT,Ic);
       Vt.fname = fullfile(cwd,[name file_ext]);
       Vt.descrip = sprintf('Null%s %04d %s',xCon.STAT,Ic, str_permutation_method);
       Vt = spm_data_hdr_write(Vt);

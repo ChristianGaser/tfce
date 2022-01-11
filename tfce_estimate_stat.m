@@ -8,7 +8,7 @@ function tfce_estimate_stat(job)
 % Christian Gaser
 % $Id$
 
-global old_method_stat save_null_distribution
+global old_method_stat
 
 % disable parallel processing for only one SPM.mat file
 if numel(job.data) == 1
@@ -49,8 +49,8 @@ filter_bilateral = false;
 % only inside pos./neg. effects and not both
 if isfield(job,'old_method_stat')
   old_method_stat = job.old_method_stat;
-elseif ~exist('old_method_stat')
-  old_method_stat = 0;
+elseif exist('old_method_stat') && isempty(old_method_stat)
+  old_method_stat = false;
 end
 
 if old_method_stat
@@ -58,14 +58,10 @@ if old_method_stat
 end
 
 % save null distribution
-if isfield(job,'save_null_distribution')
-  save_null_distribution = job.save_null_distribution;
-elseif ~exist('save_null_distribution')
-  save_null_distribution = 0;
-end
+save_null_distribution = true;
 
 % variance smoothing (experimental, only for 3D images)
-vFWHM = 0;
+vFWHM = false;
 
 % method to deal with nuisance variables
 % 0 - Draper-Stoneman
@@ -74,7 +70,7 @@ vFWHM = 0;
 nuisance_method = job.nuisance_method;
 
 % display permuted design matrix (otherwise show t distribution)
-show_permuted_designmatrix = 1;
+show_permuted_designmatrix = true;
 
 % allow to test permutations without analyzing data
 % test mode is automatically chosen if only a SPM.mat is available
@@ -124,16 +120,18 @@ end
     
 Ic0 = job.conspec.contrasts;
 
-% if just one contrast s defined use this and skip interactive selection
-if ~isfinite(Ic0) && isfield(SPM,'xCon') && numel(SPM.xCon) == 1
+% if just one contrast is defined use this and skip interactive selection
+if (numel(Ic0) == 1) && ~isfinite(Ic0) && isfield(SPM,'xCon') && (numel(SPM.xCon) == 1)
   Ic0 = 1;
 end
 
 % check whether contrast are defined
-if ~isfinite(Ic0) || ~isfield(SPM,'xCon') || (isfield(SPM,'xCon') && isempty(SPM.xCon))
-  [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
-        '  Select contrast(s)...',' ',1);
-  SPM.xCon = xCon;
+if (numel(Ic0) == 1)
+    if ~isfinite(Ic0) || ~isfield(SPM,'xCon') || (isfield(SPM,'xCon') && isempty(SPM.xCon))
+    [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
+          '  Select contrast(s)...',' ',1);
+    SPM.xCon = xCon;
+  end
 end
 
 % for default SPM.mat results has to be called first
@@ -368,11 +366,11 @@ if ~test_mode
   end
   
   if voxel_covariate
-    resample = false;
+    do_resample = false;
     if sum(sum((Vmask.mat-VC(1).mat).^2)) > 1e-6 || any(Vmask.dim(dim_index) ~= VC(1).dim(dim_index))
       fprintf('Covariate data has different dimensions and orientation as the other data. Thus, your covariate data will be resampled.\n');
       fprintf('Please check that your covariate data are co-registered to your other data!\n');
-      resample = true;
+      do_resample = true;
     end
   end
 
@@ -400,7 +398,7 @@ if ~test_mode
       if voxel_covariate
         
         % we need to resample voxel-wise covariate
-        if resample
+        if do_resample
           tmp = zeros(Vmask.dim);
           for z=1:Vmask.dim(3)
             M = spm_matrix([0 0 z]);

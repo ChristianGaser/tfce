@@ -49,7 +49,7 @@ filter_bilateral = false;
 % only inside pos./neg. effects and not both
 if isfield(job,'old_method_stat')
   old_method_stat = job.old_method_stat;
-elseif exist('old_method_stat') && isempty(old_method_stat)
+elseif exist('old_method_stat','var') && isempty(old_method_stat)
   old_method_stat = false;
 end
 
@@ -211,11 +211,11 @@ if ~test_mode
   end
 
   % check for mask image that should exist for any analysis
-  if exist(fullfile(cwd, 'mask.img'))
+  if exist(fullfile(cwd, 'mask.img'),'file')
     file_ext = '.img';
-  elseif exist(fullfile(cwd, 'mask.nii'))
+  elseif exist(fullfile(cwd, 'mask.nii'),'file')
     file_ext = '.nii';
-  elseif exist(fullfile(cwd, 'mask.gii'))
+  elseif exist(fullfile(cwd, 'mask.gii'),'file')
     file_ext = '.gii';
   else
 %    spm('alert!',sprintf('WARNING: No mask file found. Switch to test mode.\n\n'),'',spm('CmdLine'),1);
@@ -229,7 +229,7 @@ end
 
 % check whether 3D filters were selected for surfaces meshes or whether CAT12 is installed
 if mesh_detected
-  if ~exist('spm_cat12')
+  if ~exist('spm_cat12','file')
     error('For using surface analysis you need to install CAT12.');
   end
 
@@ -269,7 +269,7 @@ if ~test_mode
   end
     
   % if first image was not found you have to select all files again
-  if ~exist(VY(1).fname);
+  if ~exist(VY(1).fname,'file')
   
     fprintf('Data not found. Please select data in the order defined in the design matrix.\n');
     n = size(SPM.xY.VY,1);
@@ -313,7 +313,7 @@ if ~test_mode
         
   if voxel_covariate
     % if first image of voxel-wise covariate was not found you have to select all files again
-    if ~exist(SPM.xC(voxel_covariate).VC(1).fname);
+    if ~exist(SPM.xC(voxel_covariate).VC(1).fname,'file')
   
       fprintf('Covariate data not found. Please select covariate data in the order defined in the design matrix.\n');
       n = numel(SPM.xC(voxel_covariate).P);
@@ -518,7 +518,7 @@ for con = 1:length(Ic0)
     % for F-contrast with multiple rows n_cond is always n_exch_blocks
     if F_contrast_multiple_rows && length(xX.iH) > 1
       n_cond = n_exch_blocks;
-    elseif F_contrast_multiple_rows & length(xX.iH) == 1
+    elseif F_contrast_multiple_rows && length(xX.iH) == 1
       n_cond = 0;
     else
       for j=1:n_exch_blocks
@@ -538,7 +538,7 @@ for con = 1:length(Ic0)
       % repated Anova or F-test don't allow to use only half of the permutions
       if repeated_anova || strcmp(xCon.STAT,'F')
         use_half_permutations = 0;
-      elseif sum(n_data_cond(find(c0==exch_blocks(1)))) == sum(n_data_cond(find(c0==exch_blocks(2))))
+      elseif sum(n_data_cond(c0==exch_blocks(1))) == sum(n_data_cond(c0==exch_blocks(2)))
         use_half_permutations = 1;
       end
     end
@@ -592,7 +592,7 @@ for con = 1:length(Ic0)
     label = zeros(1,n_data);
     for j=1:n_exch_blocks
       for k=1:length(ind_exch_blocks{j})
-        label(find(xX.X(:,ind_exch_blocks{j}(k))~=0)) = j;
+        label(xX.X(:,ind_exch_blocks{j}(k))~=0) = j;
       end
     end
   otherwise  % Anova with at least 2 groups
@@ -606,7 +606,7 @@ for con = 1:length(Ic0)
     label = zeros(1,n_data);
     for j=1:n_exch_blocks
       for k=1:length(ind_exch_blocks{j})
-        label(find(xX.X(:,ind_exch_blocks{j}(k))~=0)) = j;
+        label(xX.X(:,ind_exch_blocks{j}(k))~=0) = j;
       end
     end
   end
@@ -634,7 +634,7 @@ for con = 1:length(Ic0)
     
     if isnan(n_perm_full)
       % correct number of permutations for large samples when factorial is not working
-      if (n_cond == 2) & (single_subject == 1)
+      if (n_cond == 2) && (single_subject == 1)
         n_perm_full = n_data_with_contrast;
       else
         n_perm_full = realmax;
@@ -642,7 +642,7 @@ for con = 1:length(Ic0)
     end
 
     % find where data are defined for that contrast
-    if ~isempty(find(xX.iH == ind_X(1)))
+    if ~isempty(find(xX.iH == ind_X(1), 1))
       % first checking whether contrasts are defined for iH
       ind_data_defined = find(any(xX.X(:,xX.iH(ind_X)),2));
     else
@@ -660,7 +660,7 @@ for con = 1:length(Ic0)
     % for a full model where each condition is defined for all subjects the easier
     % estimation is: n_perm = (n_cond!)^n_subj
     % check that no regression analysis inside repeated anova is used
-    if repeated_anova & n_cond~=0
+    if repeated_anova && n_cond~=0
       n_subj = max(exch_block_labels_data_defined);
       n_perm_full = 1;
       for k=1:n_subj
@@ -710,23 +710,23 @@ for con = 1:length(Ic0)
 
   % if Hz is zero or Ic is empty then no confounds were found and we can skip the time-consuming
   % Freedman-Lane permutation
-  if (all(~any(Hz)) | isempty(xX.iC)) | all(~any(diff(Hz))) | (interaction_design & numel(xX.iC) == numel(ind_X))
+  if (all(~any(Hz)) || isempty(xX.iC)) || all(~any(diff(Hz))) || (interaction_design && numel(xX.iC) == numel(ind_X))
     exist_nuisance = false;
   else
     exist_nuisance = true;
   end
   
-  if ~exist_nuisance & nuisance_method > 0
+  if ~exist_nuisance && nuisance_method > 0
     fprintf('No nuisance variables were found: Use Draper-Stoneman permutation.\n\n');
     nuisance_method = 0;
   end
 
-  if nuisance_method > 0 & repeated_anova
+  if nuisance_method > 0 && repeated_anova
     fprintf('Use Draper-Stoneman permutation for repeated measures Anova.\n\n');
     nuisance_method = 0;
   end
 
-  if nuisance_method == 1 & voxel_covariate
+  if nuisance_method == 1 && voxel_covariate
     fprintf('Use Draper-Stoneman permutation for voxel-wise covariates.\n\n');
     nuisance_method = 0;
   end
@@ -782,7 +782,7 @@ for con = 1:length(Ic0)
   
     % sometimes z-transformation produces neg. values even for F-statistics
     if strcmp(xCon.STAT,'F')
-      t0(find(t0 < 0)) = 0;
+      t0(t0 < 0) = 0;
     end
   
     % get dh for unpermuted map
@@ -792,7 +792,7 @@ for con = 1:length(Ic0)
     if mesh_detected
       if ~isstruct(SPM.xVol.G)
         % check whether path is correct and file exist
-        if ~exist(SPM.xVol.G)
+        if ~exist(SPM.xVol.G,'var')
           [pathG,nameG,extG] = spm_fileparts(SPM.xVol.G);
           % use new path
           if ~isempty(strfind(pathG,'_32k'))
@@ -812,12 +812,13 @@ for con = 1:length(Ic0)
       end
       
       % measure computation time to test whether multi-threading causes issues
+      % start with single-threading for unpermuted data
       tstart = tic;
       % only estimate neg. tfce values for non-positive t-values
       if found_N
-        tfce0 = tfceMex_pthread(t0,dh,E,H,1,0)*dh;
+        tfce0 = tfceMex_pthread(t0,dh,E,H,1,1)*dh;
       else
-        tfce0 = tfceMex_pthread(t0,dh,E,H,0,0)*dh;
+        tfce0 = tfceMex_pthread(t0,dh,E,H,0,1)*dh;
       end
       telapsed = toc(tstart);
     end
@@ -834,11 +835,9 @@ for con = 1:length(Ic0)
     t_min        = [];
     t_max        = [];
     t_max_th     = [];
-    t_th         = [];
     tfce_min     = [];
     tfce_max     = [];
     tfce_max_th  = [];
-    tfce_th      = [];
   
   end % test_mode
 
@@ -876,7 +875,7 @@ for con = 1:length(Ic0)
   progress_step = max([1 round(n_perm/100)]);
 
   % Regression design found where contrast is defined for covariate?
-  if ~isempty(xX.iC) & all(ismember(ind_X,SPM.xX.iC))
+  if ~isempty(xX.iC) && all(ismember(ind_X,SPM.xX.iC))
     ind_label_gt0 = find(label(ind_data_defined) > 0);
   else
     ind_label_gt0 = find(label > 0);
@@ -899,7 +898,6 @@ for con = 1:length(Ic0)
         rand_order_sorted = rand_order;
         label_matrix = rand_order;
       end
-      label_matrix0 = label_matrix;
     else
       % init permutation and
       % check that each permutation is used only once
@@ -1003,7 +1001,7 @@ for con = 1:length(Ic0)
     
     % correct interaction designs
     % # exch_blocks >1 & # cond == 0 & differential contrast
-    if n_exch_blocks >= 2 & n_cond==0 & ~all(exch_blocks(:))
+    if n_exch_blocks >= 2 && n_cond==0 && ~all(exch_blocks(:))
       Xperm2 = Xperm;
       Xperm2(:,ind_X) = 0;
       for j=1:n_exch_blocks
@@ -1036,7 +1034,7 @@ for con = 1:length(Ic0)
         val = 0.8 + 0.2*(val-mn)./(mx-mn);
         Xperm_debug(:,xX.iG) = val;
       end
-      if ~isempty(xX.iH) & n_cond==1 % one-sample t-test
+      if ~isempty(xX.iH) && n_cond==1 % one-sample t-test
         val = Xperm_debug(:,xX.iH);
         mn = repmat(min(val),length(val),1); mx = repmat(max(val),length(val),1);
         val = 0.8 + 0.2*(val-mn)./(mx-mn);
@@ -1060,7 +1058,7 @@ for con = 1:length(Ic0)
       else % correlation or Anova
         % scale exchangeability blocks also to values 0.8..1
         val = Xperm_debug(:,ind_X);
-        ind0 = find(val==0);
+        ind0 = (val==0);
         mn = repmat(min(val),length(val),1); mx = repmat(max(val),length(val),1);
         val = 0.8 + 0.2*(val-mn)./(mx-mn);
       
@@ -1085,7 +1083,7 @@ for con = 1:length(Ic0)
 
     % display permuted design matrix
     try
-      if show_permuted_designmatrix & show_plot
+      if show_permuted_designmatrix && show_plot
         figure(Fgraph);
         subplot(2,2,3);
         image(Xperm_debug); axis off
@@ -1184,7 +1182,7 @@ for con = 1:length(Ic0)
           end
           
           % measure computation time for 1st permutation to test whether multi-threading causes issues
-          if perm==1 & ~singlethreaded, tstart = tic; end
+          if perm==3 && ~singlethreaded, tstart = tic; end
           
           % only estimate neg. tfce values for non-positive t-values
           if min(t(:)) < 0
@@ -1195,9 +1193,9 @@ for con = 1:length(Ic0)
           
           % if multi-threading takes 1.5x longer then force single-threading
           % because for some unknown reason multi-threading is not working properly
-          if perm==1 && ~singlethreaded
-            telapsed2 = toc(tstart);
-            if (telapsed2 > 1.5*telapsed)
+          if perm==3 && ~singlethreaded
+            telapsed_multi = toc(tstart)
+            if (telapsed_multi > 1.5*telapsed)
               fprintf('Warning: Multi-threading disabled because of run-time issues.\n');
               singlethreaded = 1;
             end
@@ -1221,7 +1219,7 @@ for con = 1:length(Ic0)
     
     % update label_matrix to check for unique permutations
     if use_half_permutations
-      label_matrix = [label_matrix; rand_order_sorted; [rand_order_sorted(find(label(ind_label) == 2)) rand_order_sorted(find(label(ind_label) == 1))]];
+      label_matrix = [label_matrix; rand_order_sorted; [rand_order_sorted(label(ind_label) == 2) rand_order_sorted(label(ind_label) == 1)]];
 
       if ~test_mode
         % maximum statistic
@@ -1260,8 +1258,6 @@ for con = 1:length(Ic0)
       % use cummulated sum to find threshold
       stfce_max = sort(tfce_max);
       st_max    = sort(t_max);
-      stfce_min = sort(tfce_min,2,'descend');
-      st_min    = sort(t_min,2,'descend');
   
       % find corrected thresholds
       ind_max  = ceil((1-alpha).*length(st_max));
@@ -1280,7 +1276,7 @@ for con = 1:length(Ic0)
       try
         if show_plot
           figure(Fgraph);
-          h1 = axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
+          axes('position',[0 0 1 0.95],'Parent',Fgraph,'Visible','off');
           plot_distribution(stfce_max, tfce_max_th, 'tfce', alpha, col, 1, tfce0_max, tfce0_min);
           if ~show_permuted_designmatrix
             plot_distribution(st_max, t_max_th, 't-value', alpha, col, 2, t0_max, t0_min);
@@ -1290,7 +1286,7 @@ for con = 1:length(Ic0)
     
       if numel(job.conspec.n_perm) > 1
         if perm > n_perm_break
-          if isempty(find(tfce0_max > tfce_max_th(50:end,1)))
+          if isempty(find(tfce0_max > tfce_max_th(50:end,1), 1))
             fprintf('No FWE-corrected suprathreshold value after %d permutations found\n', n_perm_break);
             perm = n_perm;
           end
@@ -1325,9 +1321,9 @@ for con = 1:length(Ic0)
         % check correlation between parametric and non-parametric p-values
         % exclude Pt==0.5 values that can distort masked analysis values
         if found_P
-          [cc, Pcc] = corrcoef(nPt(mask_P & Pt ~=0.5),Pt(mask_P & Pt ~=0.5));
+          cc = corrcoef(nPt(mask_P & Pt ~=0.5),Pt(mask_P & Pt ~=0.5));
         else
-          [cc, Pcc] = corrcoef(nPt(mask_N & Pt ~=0.5),Pt(mask_N & Pt ~=0.5));
+          cc = corrcoef(nPt(mask_N & Pt ~=0.5),Pt(mask_N & Pt ~=0.5));
         end
 
         % check for low correlation between non-parametric and permutation test
@@ -1684,7 +1680,7 @@ for con = 1:length(Ic0)
     if save_null_distribution
       fprintf('Save null distribution.\n');
       null_distribution = null_distribution/sqrt(n_perm - 1);
-      name = sprintf('nullT%s_%04d',xCon.STAT,Ic);
+      name = sprintf('null%s_%04d',xCon.STAT,Ic);
       Vt.fname = fullfile(cwd,[name file_ext]);
       Vt.descrip = sprintf('Null%s %04d %s',xCon.STAT,Ic, str_permutation_method);
       Vt = spm_data_hdr_write(Vt);
@@ -1722,7 +1718,6 @@ if sz_val_max >= 20
   h = bar(xmax,hmax);
   set(h,'FaceColor',[.5 .5 .5],'EdgeColor',[.5 .5 .5]);
 
-  avg_h = mean(hmax);
   max_h = max(hmax);
   lim_x = xlim;
 
@@ -1877,7 +1872,7 @@ T0 = zeros(size(ind_mask));
 if ~isempty(Pset)
   found_ind_X = false;
   for j=1:numel(xC.cols)
-    if ~isempty(find(ind_X==xC.cols(j)))
+    if ~isempty(find(ind_X==xC.cols(j), 1))
       found_ind_X = true;
     else
       found_ind_X = false;
@@ -1933,7 +1928,6 @@ function xX = correct_xX(xX)
 
 % vector of covariates and nuisance variables
 iCG = [xX.iC xX.iG];
-iHB = [xX.iH xX.iB];
 
 % set columns with covariates and nuisance variables to zero
 X = xX.X;
@@ -1946,7 +1940,7 @@ ncol = size(X,2);
 Xsum = zeros(size(X));
 for i=1:ncol
   % only sum up columns without covariates and nuisance variables
-  if isempty(find(iCG==i))
+  if isempty(find(iCG==i, 1))
     Xsum(:,i) = sum(X(:,1:i),2);
   end
 end
@@ -2066,7 +2060,7 @@ function varargout = palm_moments(varargin)
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if nargin == 1,
+if nargin == 1
     
     % For a set of values of the random variable G, return the
     % first 4 moments.
@@ -2088,7 +2082,7 @@ if nargin == 1,
     gamm1 = gamm1 * sqrt((n-1)/n)*n/(n-2); % unbiased skewness
 
     % Kurtosis (normal dist = 3)
-    if nargout == 4,
+    if nargout == 4
         m4    = sum(G0.^4,1)/n;
         gamm2 = (m4./s2.^2);
         gamm2 = ((n+1)* gamm2 -3*(n-1))*(n-1)/((n-2)*(n-3))+3; % unbiased kurtosis
@@ -2096,7 +2090,7 @@ if nargin == 1,
         gamm2 = [];
     end
     
-elseif nargin == 3,
+elseif nargin == 3
     
     % Compute the first three moments of the permutation distribution of
     % the statistic G = trace(AW), for n subjects, using the method in
@@ -2111,7 +2105,7 @@ elseif nargin == 3,
     % If A and W are truly multivariate (i.e., square matrices), do as in
     % the original paper. Otherwise, make simplifications as these are all
     % scalars.
-    if size(A,1) == size(A,2),
+    if size(A,1) == size(A,2)
         
         % Some auxiliary variables for ET2:
         T    = trace(A);
@@ -2274,7 +2268,7 @@ function pvals = palm_gamma(G,mu,sigsq,gamm1,rev,prepl)
 % sizes of all inputs need to be the same, or the moments need to
 % be all scalars.
 
-if gamm1 == 0,
+if gamm1 == 0
     
     % If not skewed, use a normal approximation.
     G     = (G - mu)./sigsq.^.5;
@@ -2292,14 +2286,14 @@ else
      
     % Actual p-value. If there are negatives here, the probability can
     % have an imaginary part, which is dealt with later.
-    if rev,
-        if gamm1 > 0,
+    if rev
+        if gamm1 > 0
             tail = 'lower';
         else
             tail = 'upper';
         end
     else
-        if gamm1 > 0,
+        if gamm1 > 0
             tail = 'upper';
         else
             tail = 'lower';
@@ -2308,16 +2302,16 @@ else
     pvals = gammainc((G-cpar)./tpar,kpar,tail);
     
     % Deal with imaginary parts.
-    if ~ isreal(pvals),
+    if ~ isreal(pvals)
         iidx = imag(pvals) ~= 0;
-        if rev,
-            if gamm1 > 0,
+        if rev
+            if gamm1 > 0
                 pvals(iidx) = prepl;
             else
                 pvals(iidx) = 1;
             end
         else
-            if gamm1 > 0,
+            if gamm1 > 0
                 pvals(iidx) = 1;
             else
                 pvals(iidx) = prepl;
@@ -2372,21 +2366,21 @@ function Z = palm_gtoz(G,df1,df2)
 % Note that for speed, there's no argument checking.
 
 % If df2 is NaN, this is r, R^2, or z already
-if isnan(df2(1)),
+if isnan(df2(1))
     
-  if df1 == 0,
+  if df1 == 0
       
     % If df1 is zero, this is already a z-stat (this is here more for
     % compatibility).
     Z = G;
       
-  elseif df1 == 1,
+  elseif df1 == 1
       
     % If rank(C) = 1, i.e., df1 = 1, this is r, so
     % do a Fisher's r-to-z stransformation
     Z = atanh(G);
       
-  elseif df1 > 1,
+  elseif df1 > 1
       
     % If rank(C) > 1, i.e., df1 > 1, this is R^2, so
     % use a probit transformation.
@@ -2406,7 +2400,7 @@ else
     Z( idx) =  erfcinv(2*palm_gcdf(-G( idx),1,df2( idx)))*sqrt(2);
     Z(~idx) = -erfcinv(2*palm_gcdf( G(~idx),1,df2(~idx)))*sqrt(2);
     
-  elseif df1 == 0,
+  elseif df1 == 0
     
     % If df1 is zero, this is already a z-stat (this is here more for
     % compatibility).
@@ -2589,14 +2583,14 @@ function gcdf = palm_gcdf(G,df1,df2)
 % Note that for speed, there's no argument checking,
 % and some lines are repeated inside the conditions.
 
-if df1 > 1,
+if df1 > 1
   
   % G or F
   df2 = bsxfun(@times,ones(size(G)),df2);
   B = (df1.*G./df2)./(1+df1.*G./df2);
   gcdf = betainc(B,df1/2,df2/2);
 
-elseif df1 == 1,
+elseif df1 == 1
   
   % Student's t, Aspin's v
   df2 = bsxfun(@times,ones(size(G)),df2);
@@ -2604,24 +2598,24 @@ elseif df1 == 1,
   in = df2 > 1e7;
   ig = ~(ic|in);
   gcdf = zeros(size(G));
-  if any(ig(:)),
+  if any(ig(:))
     gcdf(ig) = betainc(1./(1+G(ig).^2./df2(ig)),df2(ig)/2,.5)/2;
   end
   ig = G > 0 & ig;
   gcdf(ig) = 1 - gcdf(ig);
-  if any(ic(:)),
+  if any(ic(:))
     gcdf(ic) = .5 + atan(G(ic))/pi;
   end
-  if any(in(:)),
+  if any(in(:))
     gcdf(ic) = palm_gcdf(G(in),0);
   end
 
-elseif df1 == 0,
+elseif df1 == 0
   
   % Normal distribution
   gcdf = erfc(-G/sqrt(2))/2;
   
-elseif df1 < 0,
+elseif df1 < 0
   
   % Chi^2, via lower Gamma incomplete for precision and speed
   %df2 = bsxfun(@times,ones(size(G)),df2);
@@ -2676,7 +2670,7 @@ if (iscomplex (x) || iscomplex (a) || iscomplex (b))
   error ('betapdf: X, A, and B must not be complex');
 end
 
-if (isa (x, 'single') || isa (a, 'single') || isa (b, 'single'));
+if (isa (x, 'single') || isa (a, 'single') || isa (b, 'single'))
   pdf = zeros (size (x), 'single');
 else
   pdf = zeros (size (x));

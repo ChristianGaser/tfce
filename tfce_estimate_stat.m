@@ -439,8 +439,8 @@ if ~test_mode
   
 end % if ~test_mode
 
-% if just one contrast s defined use this and skip interactive selection
-if ~isfinite(Ic0) && isfield(SPM,'xCon') && numel(SPM.xCon) == 1
+% if just one contrast is defined, use this contrast and skip interactive selection
+if isfield(SPM,'xCon') && numel(SPM.xCon) == 1 && ~isfinite(Ic0)
   Ic0 = 1;
 end
 
@@ -1194,7 +1194,7 @@ for con = 1:length(Ic0)
           % if multi-threading takes 1.5x longer then force single-threading
           % because for some unknown reason multi-threading is not working properly
           if perm==3 && ~singlethreaded
-            telapsed_multi = toc(tstart)
+            telapsed_multi = toc(tstart);
             if (telapsed_multi > 1.5*telapsed)
               fprintf('Warning: Multi-threading disabled because of run-time issues.\n');
               singlethreaded = 1;

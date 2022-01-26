@@ -945,7 +945,7 @@ for con = 1:length(Ic0)
     Pset = sparse(n_data,n_data);
     if n_cond == 1 % one-sample t-test
       for k=1:n_data_with_contrast
-        Pset(k,k) = rand_label(k);
+        Pset(ind_label(k),ind_label(k)) = rand_label(k);
       end
     else % correlation or Anova
       for k=1:n_data_with_contrast
@@ -1219,8 +1219,9 @@ for con = 1:length(Ic0)
     
     % update label_matrix to check for unique permutations
     if use_half_permutations
-      label_matrix = [label_matrix; rand_order_sorted; [rand_order_sorted(label(ind_label) == 2) rand_order_sorted(label(ind_label) == 1)]];
-
+      if perm>1
+        label_matrix = [label_matrix; rand_order_sorted; [rand_order_sorted(label(ind_label) == 2) rand_order_sorted(label(ind_label) == 1)]];
+        end
       if ~test_mode
         % maximum statistic
         t_max    = [t_max    max(t(mask_stat_P))    -min(t(mask_stat_N))];
@@ -1234,12 +1235,13 @@ for con = 1:length(Ic0)
         
       end
     else
-      if n_cond == 1 % one-sample t-test
-        label_matrix = [label_matrix; rand_label];
-      else
-        label_matrix = [label_matrix; rand_order_sorted];
+      if perm>1
+        if n_cond == 1 % one-sample t-test
+          label_matrix = [label_matrix; rand_label];
+        else
+          label_matrix = [label_matrix; rand_order_sorted];
+        end
       end
-
       if ~test_mode
         % maximum statistic
         t_max    = [t_max    max(t(mask_stat_P))];

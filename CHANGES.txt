@@ -1,5 +1,15 @@
 ------------------------------------------------------------------------
-r231 | gaser | 2022-01-25 17:13:08
+r232 | gaser | 2022-01-26 14:54:53
+
+Changed paths:
+M       CHANGES.txt
+M       html/tfce.html
+M       tfce_estimate_stat.m
+
+Fixed: Corrected bug for one-sample t-tests which lead to poor correlation to
+       parametric statistics, but occured quite rarely.
+------------------------------------------------------------------------
+r231 | gaser | 2022-01-25 17:13:14 +0100 (Tue, 25 Jan 2022) | 7 lines
 
 Changed paths:
 M       CHANGES.txt
@@ -7,6 +17,7 @@ M       html/tfce.html
 M       tfce_estimate_stat.m
 
 Fixed: Corrected handling of multiple defined contrasts.
+
 ------------------------------------------------------------------------
 r230 | gaser | 2022-01-13 15:55:12 +0100 (Thu, 13 Jan 2022) | 8 lines
 

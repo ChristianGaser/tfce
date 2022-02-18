@@ -3,7 +3,37 @@ function tfce_estimate_stat(job)
 %
 % FORMAT tfce_estimate_stat(job)
 % job        - job from tbx_cfg_tfce
+%
+% job fields:
+%   data
+%
+%   nproc
+%     0 - no multi-threading
+%     x - number of processors for multi-threading
+%
+%   nuisance_method 
+%     method to deal with nuisance variables
+%     0 - Draper-Stoneman
+%     1 - Freedman-Lane
+%     2 - Smith
 % 
+%   single-threaded
+%     0 - multi-threaded TFCE estimation
+%     1 - single-threaded TFCE estimation
+%
+%   conspec.contrasts
+%     Inf - interactive selection of contrast
+%     x   - index of contrast(s)
+%
+%   mask
+%     mask for restricitng TFCE estimation (SVC)
+%
+%   tbss
+%     TBSS weighting
+%
+%   E_weight
+%     E weighting
+%
 %_______________________________________________________________________
 % Christian Gaser
 % $Id$
@@ -171,10 +201,6 @@ end
 % find exchangeability block labels for longitudinal designs (paired t-test, flexible factorial)
 repeated_anova = ~isempty(xX.iB);
 if repeated_anova
-  if voxel_covariate
-    fprintf('Warning: Voxelwise covariate not yet supported for repeated Anova designs\n');
-%    return
-  end
   [rw,cl] = find(xX.I == length(xX.iB)); % find column which codes subject factor (length(xX.iB) -> n_subj)
   exch_block_labels = xX.I(:,cl(1));     % column from above contains the subject factor
 
@@ -691,9 +717,11 @@ for con = 1:length(Ic0)
   n_perm = min([n_perm n_perm_full]);
 
   fprintf('Number of permutations: %d\n',n_perm);
+  
   if use_half_permutations
     fprintf('Equal sample sizes: Use half the number of permutations.\n');
   end
+  
   fprintf('Exchangeability block/variable: ');
   fprintf('%d ',unique(cell2mat(ind_exch_blocks)));
   fprintf('\n');
@@ -726,11 +754,6 @@ for con = 1:length(Ic0)
     nuisance_method = 0;
   end
 
-  if nuisance_method == 1 && voxel_covariate
-    fprintf('Use Draper-Stoneman permutation for voxel-wise covariates.\n\n');
-    nuisance_method = 0;
-  end
-
   switch nuisance_method 
   case 0
     str_permutation_method = 'Draper-Stoneman';
@@ -751,10 +774,10 @@ for con = 1:length(Ic0)
 
   if ~test_mode
     % compute unpermuted t/F-map
-    if ~voxel_covariate
-      [t0, df2, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim,vFWHM);
-    else
+    if voxel_covariate
       [t0, df2, SmMask] = calc_GLM_voxelwise(Y,xX,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,[],ind_X);
+    else
+      [t0, df2, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim,vFWHM);
     end
 
     % transform to z statistic
@@ -1142,14 +1165,14 @@ for con = 1:length(Ic0)
         if nuisance_method == 1
           t = calc_GLM(Y*(Pset'*Rz),xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
         else
-          if ~voxel_covariate
+          if voxel_covariate
+          % we assume that the null distribution will not change with voxel-wise covariate
+          % and can therefore use the common design matrix without voxel-wise covariates
+          % which is not that unbelievable slow
             t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
+%            t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset,ind_X);
           else
-            if nuisance_method == 2
-              t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset*Rz,ind_X);
-            else
-              t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset,ind_X);
-            end
+            t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
           end
         end
 
@@ -1770,7 +1793,7 @@ if sz_val_max >= 20
   end
   
   if corr
-    title(['Corr. threshold of ' name],'FontWeight','bold')
+    title(['Corrected threshold of ' name],'FontWeight','bold')
   else
     title(['Uncorr. threshold of ' name],'FontWeight','bold')
   end
@@ -1801,7 +1824,7 @@ n_data = size(X,1);
 
 Beta = Y*pKX';
 res0 = Beta*(single(X'));
-res0 = res0 - Y; %-Residuals
+res0 = Y - res0; %-Residuals
 res0 = res0.^2;
 ResSS = double(sum(res0,2));
 clear res0
@@ -1810,6 +1833,7 @@ trRV = n_data - rank(xX.X);
 ResMS = ResSS/trRV;
 
 if nargin < 6, vFWHM = 0; end
+if nargin < 7, SmMask = []; end
 
 % variance smoothing for volumes
 if vFWHM > 0

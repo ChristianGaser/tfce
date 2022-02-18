@@ -846,6 +846,29 @@ for con = 1:length(Ic0)
       telapsed = toc(tstart);
     end
 
+    % prepare output files
+    Vt = VY(1);
+    Vt.dt(1)    = 16;
+    Vt.pinfo(1) = 1;
+
+    %---------------------------------------------------------------
+    % save unpermuted t map
+    %---------------------------------------------------------------
+    name = sprintf('%s_%04d',xCon.STAT,Ic);
+    Vt.fname = fullfile(cwd,[name file_ext]);
+    Vt.descrip = sprintf('%s %04d %s',xCon.STAT,Ic, str_permutation_method);
+    Vt = spm_data_hdr_write(Vt);
+    spm_data_write(Vt,t0);
+  
+    %---------------------------------------------------------------
+    % save unpermuted TFCE map
+    %---------------------------------------------------------------
+    name = sprintf('TFCE_%04d',Ic);
+    Vt.fname = fullfile(cwd,[name file_ext]);
+    Vt.descrip = sprintf('TFCE %04d %s',Ic, str_permutation_method);
+    Vt = spm_data_hdr_write(Vt);
+    spm_data_write(Vt,tfce0);
+  
     % get largest tfce
     tfce0_max = max(tfce0(:));
     t0_max    = max(t0(:));
@@ -1403,24 +1426,6 @@ for con = 1:length(Ic0)
     Vt = VY(1);
     Vt.dt(1)    = 16;
     Vt.pinfo(1) = 1;
-
-    %---------------------------------------------------------------
-    % save unpermuted t map
-    %---------------------------------------------------------------
-    name = sprintf('%s_%04d',xCon.STAT,Ic);
-    Vt.fname = fullfile(cwd,[name file_ext]);
-    Vt.descrip = sprintf('%s %04d %s',xCon.STAT,Ic, str_permutation_method);
-    Vt = spm_data_hdr_write(Vt);
-    spm_data_write(Vt,t0);
-  
-    %---------------------------------------------------------------
-    % save unpermuted TFCE map
-    %---------------------------------------------------------------
-    name = sprintf('TFCE_%04d',Ic);
-    Vt.fname = fullfile(cwd,[name file_ext]);
-    Vt.descrip = sprintf('TFCE %04d %s',Ic, str_permutation_method);
-    Vt = spm_data_hdr_write(Vt);
-    spm_data_write(Vt,tfce0);
   
     % save ascii file with number of permutations
     name = sprintf('%s_%04d',xCon.STAT,Ic);

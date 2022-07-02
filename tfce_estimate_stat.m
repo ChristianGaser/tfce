@@ -36,7 +36,7 @@ function tfce_estimate_stat(job)
 %
 %_______________________________________________________________________
 % Christian Gaser
-% $Id$
+% $Id: tfce_estimate_stat.m 234 2022-02-18 23:32:16Z gaser $
 
 global old_method_stat
 
@@ -524,7 +524,7 @@ for con = 1:length(Ic0)
   n_exch_blocks = length(ind_X);
   
   % recognize effects of interest contrast for F-tests
-  if F_contrast_multiple_rows
+  if F_contrast_multiple_rows && size(exch_blocks,2) == n_exch_blocks
     is_eoi = all(all(exch_blocks == eye(n_exch_blocks)));
     if is_eoi
       n_exch_blocks = 1;
@@ -813,9 +813,9 @@ for con = 1:length(Ic0)
   
     % calculate tfce of unpermuted t-map
     if mesh_detected
-      if ~isstruct(SPM.xVol.G)
+      if ~isa(SPM.xVol.G,'gifti')
         % check whether path is correct and file exist
-        if ~exist(SPM.xVol.G,'var')
+        if ~exist(SPM.xVol.G,'file')
           [pathG,nameG,extG] = spm_fileparts(SPM.xVol.G);
           % use new path
           if ~isempty(strfind(pathG,'_32k'))

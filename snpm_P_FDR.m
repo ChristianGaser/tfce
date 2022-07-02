@@ -74,7 +74,7 @@ function [P] = snpm_P_FDR(Z,df,STAT,n,Ps)
 %___________________________________________________________________________
 % Based on FIL spm_P_FDR.m     2.6 Thomas Nichols 04/07/02
 % @(#)snpm_P_FDR.m	3.2 05/02/23
-%	$Id$	
+%	$Id: snpm_P_FDR.m 103 2016-09-22 14:10:38Z gaser $	
 
 
 if n>0

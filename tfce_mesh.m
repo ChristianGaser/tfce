@@ -8,7 +8,7 @@ function tfce = tfce_mesh(faces, t, dh, E, H)
 % H         - TFCE parameter for height
 %
 % Christian Gaser
-% $Id$
+% $Id: tfce_mesh.m 125 2017-08-23 14:59:44Z gaser $
 
 tfce = zeros(size(t));
 t_max = max(abs(t(:)));

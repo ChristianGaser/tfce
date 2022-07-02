@@ -1,9 +1,9 @@
 function spm_TFCE
 % TFCE Toolbox wrapper to call TFCE functions
 %_______________________________________________________________________
-% $Id$
+% $Id: spm_TFCE.m 210 2020-11-24 14:00:29Z gaser $
 
-rev = '$Rev$';
+rev = '$Rev: 210 $';
 
 SPMid = spm('FnBanner',mfilename,rev);
 [Finter,Fgraph] = spm('FnUIsetup','TFCE 1.0');

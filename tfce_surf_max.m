@@ -20,7 +20,7 @@ function [N,Z,M,A,XYZ] = tfce_surf_max(X,L,G)
 % maximum was returned
 % Guillaume Flandin
 %
-% $Id$
+% $Id: tfce_surf_max.m 189 2020-04-08 00:19:15Z gaser $
 
 %-Get connected components
 %--------------------------------------------------------------------------

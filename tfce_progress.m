@@ -10,7 +10,7 @@ function tfce_progress(action,varargin)
 % Clears the progress output and prints processing time.
 %_______________________________________________________________________
 % Christian Gaser
-% $Id$
+% $Id: tfce_progress.m 189 2020-04-08 00:19:15Z gaser $
 
 global sum_time time_new time_old iter_old n_iterations arg2 arg3
 

@@ -116,8 +116,8 @@ function varargout = tfce_list(varargin)
 %
 % modified version of
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id$
-% $Id$
+% $Id: tfce_list.m 195 2020-04-09 23:22:07Z gaser $
+% $Id: tfce_list.m 195 2020-04-09 23:22:07Z gaser $
 
 
 %==========================================================================

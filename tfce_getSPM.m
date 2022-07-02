@@ -183,9 +183,9 @@ function [SPM,xSPM] = tfce_getSPM(varargin)
 %
 % modified version of
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id$
+% $Id: tfce_getSPM.m 198 2020-04-12 23:50:47Z gaser $
 %
-% $Id$
+% $Id: tfce_getSPM.m 198 2020-04-12 23:50:47Z gaser $
 
 
 %-GUI setup

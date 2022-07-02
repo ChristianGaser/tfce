@@ -9,16 +9,26 @@ tfce = tfceMex_pthread(t, dh, E, H, calc_neg, single_threaded)
 % single_threaded - use single thread only
 %
 % Christian Gaser
-% $Id$
+% $Id: tfceMex_pthread.m 125 2017-08-23 14:59:44Z gaser $
 
-rev = '$Rev$';
+rev = '$Rev: 125 $';
 
 disp('Compiling tfceMex_pthread.c')
 
 pth = fileparts(which(mfilename));
 p_path = pwd;
 cd(pth);
-mex -O tfceMex_pthread.c
+
+if strcmpi(spm_check_version,'octave')
+  mexcmd = 'mkoctfile --mex';
+  mexflag=' -O -DOCTAVE ';
+else
+  mexcmd = 'mex';
+  mexflag=' -O -largeArrayDims COPTIMFLAGS=''-O3 -fwrapv -DNDEBUG'' CFLAGS=''$CFLAGS -pthread -Wall -ansi -pedantic -Wextra'' ';
+end
+
+eval([mexcmd ' ' mexflag ' tfceMex_pthread.c'])
+
 cd(p_path);
 
 tfce = tfceMex_pthread(t, dh, E, H, calc_neg, single_threaded);

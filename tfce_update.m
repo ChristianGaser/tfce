@@ -9,9 +9,9 @@ function tfce_update(update)
 % currently in the MATLAB path and will display the outcome.
 %_______________________________________________________________________
 % Christian Gaser
-% $Id$
+% $Id: tfce_update.m 189 2020-04-08 00:19:15Z gaser $
 
-rev = '$Rev$';
+rev = '$Rev: 189 $';
 
 if nargin == 0
   update = 0;

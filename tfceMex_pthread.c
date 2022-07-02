@@ -8,13 +8,14 @@
  * single_threaded - use single thread only (default 0)
  *
  * Christian Gaser
- * $Id$ 
+ * $Id: tfceMex_pthread.c 210 2020-11-24 14:00:29Z gaser $ 
  *
  */
 
 #include "math.h"
 #include "mex.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifndef MAX
 #define MAX(A,B) ((A) > (B) ? (A) : (B))

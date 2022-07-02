@@ -130,7 +130,7 @@ function varargout = cat_spm_results_ui(varargin)
 % Departments of Neurology and Psychiatry
 % Jena University Hospital
 % ______________________________________________________________________
-% $Id$
+% $Id: cat_spm_results_ui.m 1951 2022-02-23 08:45:57Z gaser $
  
  
 %==========================================================================
@@ -246,7 +246,7 @@ function varargout = cat_spm_results_ui(varargin)
 % spm_results_ui.m r7388
 %__________________________________________________________________________
  
-SVNid = '$Rev$'; 
+SVNid = '$Rev: 1951 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -301,7 +301,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         warning on
 
         [Ic,xCon] = spm_conman(SPM,'T&F',Inf,'    Select contrast(s)...','',1);
-        if ~isempty(xCon(Ic).Vspm)
+        if ~isempty(xCon(Ic).Vspm) && exist(SPM.swd,'dir')
           xCon(Ic).Vspm = spm_data_hdr_read(fullfile(SPM.swd,xCon(Ic).Vspm.fname));
         end
         SPM.Ic = Ic; SPM.xCon = xCon;
@@ -844,7 +844,7 @@ switch lower(Action), case 'setup'                         %-Set up results
 
         %-SPM area - used for Volume of Interest analyses
         %------------------------------------------------------------------
-        if spm_mesh_detect(xSPM.Vspm) | use_tfce
+        if spm_mesh_detect(xSPM.Vspm)
             Enable = 'off';
         else
             Enable = 'on';
@@ -1905,7 +1905,7 @@ function out = cat_spm_run_results(job)
 % Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id$
+% $Id: cat_spm_results_ui.m 1951 2022-02-23 08:45:57Z gaser $
 
 
 cspec = job.conspec;

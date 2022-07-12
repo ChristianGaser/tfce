@@ -126,11 +126,11 @@ function varargout = cat_spm_results_ui(varargin)
 % ______________________________________________________________________
 %
 % Christian Gaser, Robert Dahnke
-% Structural Brain Mapping Group (http://www.neuro.uni-jena.de)
+% Structural Brain Mapping Group (https://neuro-jena.github.io)
 % Departments of Neurology and Psychiatry
 % Jena University Hospital
 % ______________________________________________________________________
-% $Id: cat_spm_results_ui.m 1951 2022-02-23 08:45:57Z gaser $
+% $Id$
  
  
 %==========================================================================
@@ -246,7 +246,7 @@ function varargout = cat_spm_results_ui(varargin)
 % spm_results_ui.m r7388
 %__________________________________________________________________________
  
-SVNid = '$Rev: 1951 $'; 
+SVNid = '$Rev$'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -1905,7 +1905,7 @@ function out = cat_spm_run_results(job)
 % Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: cat_spm_results_ui.m 1951 2022-02-23 08:45:57Z gaser $
+% $Id$
 
 
 cspec = job.conspec;

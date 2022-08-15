@@ -244,7 +244,7 @@ if ~test_mode
   elseif exist(fullfile(cwd, 'mask.gii'),'file')
     file_ext = '.gii';
   else
-%    spm('alert!',sprintf('WARNING: No mask file found. Switch to test mode.\n\n'),'',spm('CmdLine'),1);
+    fprintf('WARNING: No mask file found. Switch to test mode.\n');
     test_mode = true;
   end
 
@@ -1379,10 +1379,10 @@ for con = 1:length(Ic0)
         if cc(1,2) < 0.85
           % check correlation between parametric and non-parametric statistic ofr Smith or Freedman-Lane correction
           if nuisance_method > 0 
-            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric statistic found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),1);
+            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric statistic found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),0);
             fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g)! Please try a different method to deal with nuisance parameters.\n',cc(1,2));
           else
-            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric statistic found! Probably your design was not correctly recognized.\n'),'',spm('CmdLine'),1);
+            spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric statistic found! Probably your design was not correctly recognized.\n'),'',spm('CmdLine'),0);
             fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g)! Probably your design was not correctly recognized.\n',cc(1,2));
           end
         else

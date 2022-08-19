@@ -131,7 +131,8 @@ if ~strcmp(spm('ver'),'SPM12')
 end
 
 % indicate if voxel-wise covariates were modeled
-is_vSPM = strfind(job.data{1},'vSPM') > 0;
+[pt,nm] = fileparts(job.data{1});
+is_vSPM = strcmp(nm,'vSPM');
 
 load(job.data{1});
 cwd = fileparts(job.data{1});

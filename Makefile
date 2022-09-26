@@ -4,8 +4,10 @@
 
 OLDVERSION="0.9"
 NEWVERSION="1.0"
-REVISION=`svn info |grep Revision|sed -e 's/Revision: //g'`
-DATE=`svn info |grep 'Last Changed Date: '|sed -e 's/Last Changed Date: //g'|cut -f1 -d' '`
+REVISION=`git rev-list --count HEAD`
+DATE=`git log --date short |grep "Date:"|head -1|cut -f2 -d':'|sed -e s'/ //g'`
+
+ZIPFOLDER=/Users/gaser/matlab/tfce8
 
 TARGET=/Users/gaser/spm/spm12/toolbox/TFCE
 TARGET2=/Volumes/UltraMax/spm12/toolbox/TFCE
@@ -49,7 +51,7 @@ doc:
 	-@cat html/tfce.txt | sed -e 's/VERSION/'${NEWVERSION}'/g' -e 's/RELNUMBER/r'${REVISION}'/g' -e 's/DATE/'${DATE}'/g' > html/tfce.html
 
 update: doc
-	-@svn update
+	-@git fetch
 	-@echo '% TFCE Toolbox' > Contents.m
 	-@echo '% Version ' ${REVISION} ' (version '${NEWVERSION}')' ${DATE} >> Contents.m
 	-@cat Contents_info.txt >> Contents.m
@@ -63,10 +65,10 @@ zip: update
 	-@test ! -d TFCE || rm -r TFCE
 	-@mkdir TFCE
 	-@cp -rp ${FILES} TFCE
-	-@zip ${ZIPFILE} -rm TFCE
+	-@zip ${ZIPFOLDER}/${ZIPFILE} -rm TFCE
 
 scp: zip
 	-@echo scp to http://${STARGET_HOST}/tfce/${ZIPFILE}
-	-@scp -P 2222 CHANGES.txt ${ZIPFILE} ${STARGET}
+	-@scp -P 2222 CHANGES.txt ${ZIPFOLDER}/${ZIPFILE} ${STARGET}
 	-@bash -c "ssh -p 2222 ${STARGET_HOST} ln -fs ${STARGET_FOLDER}/${ZIPFILE} ${STARGET_FOLDER}/tfce_latest.zip"
 	

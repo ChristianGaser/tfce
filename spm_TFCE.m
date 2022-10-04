@@ -7,7 +7,7 @@ rev = '$Rev: 210 $';
 
 SPMid = spm('FnBanner',mfilename,rev);
 [Finter,Fgraph] = spm('FnUIsetup','TFCE 1.0');
-url = fullfile(spm('Dir'),'toolbox','TFCE','html','tfce.html');
+url = fullfile(fileparts(mfilename('fullpath')),'html','tfce.html');
 spm_help('!Disp',url,'',Fgraph,'Threshold-Free Cluster Enhancement Toolbox');
 
 fig = spm_figure('GetWin','Interactive');

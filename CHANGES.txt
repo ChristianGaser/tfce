@@ -1,3 +1,15 @@
+------------------------------------------------------------------------
+r248 | gaser | 2022-10-05 00:48:15
+
+Changed paths:
+ M CHANGES.txt
+ M Contents.m
+ M INSTALL.txt
+ M cat_spm_results_ui.m
+ M html/tfce.html
+ M spm_TFCE.m
+
+Changed: Updated remaining hardcoded toolbox paths for TFCE.
 -----------------------------------------------------------------------
 r246 | gaser | 2022-08-19 16:29:30
 

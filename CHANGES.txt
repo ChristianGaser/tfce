@@ -1,4 +1,44 @@
 ------------------------------------------------------------------------
+r250 | gaser | 2022-11-07 22:55:04
+
+Changed paths:
+ M CHANGES.txt
+M  Makefile
+M  tfce_estimate_stat.m
+M  tfce_getSPM.m
+M  tfce_update.m
+
+Changed: Updated toolbox paths.
+Changed: Updated update function.
+Added:   Created shell script to update revision number.
+------------------------------------------------------------------------
+r250 | gaser | 2022-11-07 22:54:02
+
+Changed paths:
+ M CHANGES.txt
+ M Makefile
+ M tfce_estimate_stat.m
+ M tfce_getSPM.m
+ M tfce_update.m
+
+Changed: Updated toolbox paths.
+Changed: Updated update function.
+Added:   Created shell script to update revision number.
+------------------------------------------------------------------------
+r249 | gaser | 2022-11-07 22:53:15
+
+Changed paths:
+ M CHANGES.txt
+ M Makefile
+ M tfce_estimate_stat.m
+ M tfce_getSPM.m
+ M tfce_update.m
+A  update_revision.sh
+
+Changed: Updated toolbox paths.
+Changed: Updated update function.
+Added:   Created shell script to update revision number.
+------------------------------------------------------------------------
 r248 | gaser | 2022-10-05 00:48:15
 
 Changed paths:

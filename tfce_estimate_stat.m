@@ -820,9 +820,9 @@ for con = 1:length(Ic0)
           [pathG,nameG,extG] = spm_fileparts(SPM.xVol.G);
           % use new path
           if ~isempty(strfind(pathG,'_32k'))
-            SPM.xVol.G = fullfile(spm('dir'),'toolbox','cat12','templates_surfaces_32k',[nameG extG]);
+            SPM.xVol.G = fullfile(which('cat12'),'templates_surfaces_32k',[nameG extG]);
           else
-            SPM.xVol.G = fullfile(spm('dir'),'toolbox','cat12','templates_surfaces',[nameG extG]);
+            SPM.xVol.G = fullfile(which('cat12'),'templates_surfaces',[nameG extG]);
           end
         end
         SPM.xVol.G = gifti(SPM.xVol.G);

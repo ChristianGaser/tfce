@@ -1,11 +1,17 @@
-function tfce_update(update)
+function varargout = tfce_update(update)
 % check for new updates
 %
-% FORMAT tfce_update(update)
+% FORMAT [sts, msg] = tfce_update(update)
+% sts    - status code:
+%        NaN - server not accessible
+%        Inf - no updates available
+%        0   - TFCE installation up-to-date
+%        n   - new revision <n> is available for download
+% msg    - string describing outcome, that would otherwise be displayed.
 % update - allow installation of update
 % 
 % This function will connect itself to the SBM server, compare the
-% version number of the updates with the one of the VBM8 installation 
+% version number of the updates with the one of the TFCE installation 
 % currently in the MATLAB path and will display the outcome.
 %_______________________________________________________________________
 % Christian Gaser
@@ -13,8 +19,18 @@ function tfce_update(update)
 
 rev = '$Rev: 189 $';
 
-if nargin == 0
-  update = 0;
+if isdeployed
+  sts= Inf;
+  msg = 'Update function is not working for compiled TFCE. Please check for a new compiled TFCE version.';
+  if ~nargout, fprintf([blanks(9) msg '\n']);
+  else varargout = {sts, msg}; end
+  return;
+end
+
+if ~nargin
+    update = false;
+else
+    update = true;
 end
 
 r = 0;
@@ -27,10 +43,15 @@ for i=1:length(A)
   end
 end
 
-url = 'http://141.35.69.218/tfce/';
+url = 'http://www.neuro.uni-jena.de/tfce/';
 
 % get new release numbers
-[s,sts] = urlread(url);
+try
+  [s,sts] = urlread(url,'Timeout',2);
+catch
+  [s,sts] = urlread(url);
+end
+
 if ~sts
   sts = NaN;
   msg = sprintf('Cannot access %s. Please check your proxy and/or firewall to allow access.\nYou can download your update at %s\n',url,url); 
@@ -40,7 +61,10 @@ end
 
 n = regexp(s,'tfce_r(\d.*?)\.zip','tokens');
 if isempty(n)
-  fprintf('There are no new releases available yet.\n');
+  sts= Inf;
+  msg = 'There are no updates available yet.';
+  if ~nargout, fprintf([blanks(9) msg '\n']);
+  else varargout = {sts, msg}; end
   return;
 else
   % get largest release number
@@ -58,39 +82,50 @@ if rnew > r
   msg = [msg sprintf('        (Your version: %d - New version: %d)\n',r,rnew)];
   if ~nargout, fprintf(msg); else varargout = {sts, msg}; end
 else
-    sts = 0;
-    msg = sprintf('Your version of TFCE is up to date.');
-    if ~nargout, fprintf([blanks(9) msg '\n']);
-    else varargout = {sts, msg}; end
-    return
+  sts = 0;
+  msg = sprintf('Your version of TFCE is up to date.');
+  if ~nargout, fprintf([blanks(9) msg '\n']);
+  else varargout = {sts, msg}; end
+  return
 end
 
 if update
-  d = fullfile(spm('Dir'),'toolbox'); 
   overwrite = spm_input('Update',1,'m','Do not update|Download zip-file only|Overwrite old TFCE installation',[-1 0 1],3);
-  switch overwrite
-  case 1
+  d0 = spm('Dir');
+  d  = fileparts(which('spm_TFCE'));
+  
+  if overwrite
     try
       % list mex-files and delete these files to prevent that old
       % compiled files are used
-      mexfiles = dir(fullfile(d,'tfce','*.mex*'));
+      mexfiles = dir(fullfile(fileparts(mfilename('fullpath')),'*.mex*'));
       for i=1:length(mexfiles)
-        name = fullfile(d,'tfce',mexfiles(i).name);
+        name = fullfile(fileparts(mfilename('fullpath')),mexfiles(i).name);
         spm_unlink(name);
       end
-      fprintf('Download TFCE\n');
+
+
+      lastwarn('');
+      warning off
+      delete(get(0,'Children')); spm('clean'); evalc('spm_rmpath'); drawnow
+      m = '          Download and install TFCE...\n';
+      if ~nargout, fprintf(m); else varargout = {sts, [msg m]}; end
       s = unzip([url sprintf('tfce_r%d.zip',rnew)], d);
-      fprintf('%d files have been updated.\nSPM will be restarted.\n',numel(s));
-      rehash
+      m = sprintf('         Success: %d files have been updated.\n',numel(s));
+      if ~nargout, fprintf(m); else varargout = {sts, [msg m]}; end
+      addpath(d0);
+      rehash;
       rehash toolboxcache;
-      toolbox_path_cache
-      eval(['spm fmri; spm_TFCE']);
+      if exist('toolbox_path_cache','file'), toolbox_path_cache; end
+      spm fmri; spm_TFCE
+      warning on
+
     catch
       fprintf('Update failed: check file permissions. Download zip-file only.\n');
       web([url sprintf('tfce_r%d.zip',rnew)],'-browser');
       fprintf('Unzip file to %s\n',d);
     end
-  case 0
+  else
     web([url sprintf('tfce_r%d.zip',rnew)],'-browser');
     fprintf('Unzip file to %s\n',d);
   end

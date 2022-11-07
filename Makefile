@@ -65,6 +65,7 @@ zip: update
 	-@test ! -d TFCE || rm -r TFCE
 	-@mkdir TFCE
 	-@cp -rp ${FILES} TFCE
+	-@bash update_revision.sh
 	-@zip ${ZIPFOLDER}/${ZIPFILE} -rm TFCE
 
 scp: zip

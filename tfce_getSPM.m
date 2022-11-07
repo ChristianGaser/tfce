@@ -475,9 +475,9 @@ if  spm_mesh_detect(xCon(Ic(1)).Vspm)
         if ischar(SPM.xVol.G) && ~exist(SPM.xVol.G,'file')
             % check for 32k meshes
             if SPM.xY.VY(1).dim(1) == 32492 || SPM.xY.VY(1).dim(1) == 64984
-                fsavgDir = fullfile(spm('dir'),'toolbox','cat12','templates_surfaces_32k');
+                fsavgDir = fullfile(which('cat12'),'templates_surfaces_32k');
             else
-                fsavgDir = fullfile(spm('dir'),'toolbox','cat12','templates_surfaces');
+                fsavgDir = fullfile(which('cat12'),'templates_surfaces');
             end
             [SPMpth,SPMname,SPMext] = spm_fileparts(SPM.xVol.G);
             SPM.xVol.G = fullfile(fsavgDir,[SPMname SPMext]);

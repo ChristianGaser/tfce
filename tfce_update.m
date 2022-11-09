@@ -92,7 +92,7 @@ end
 if update
   overwrite = spm_input('Update',1,'m','Do not update|Download zip-file only|Overwrite old TFCE installation',[-1 0 1],3);
   d0 = spm('Dir');
-  d  = fileparts(which('spm_TFCE'));
+  d  = fileparts(fileparts(which('spm_TFCE')));
   
   if overwrite
     try

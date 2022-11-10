@@ -774,6 +774,7 @@ for con = 1:length(Ic0)
   end
 
   if ~test_mode
+            
     % compute unpermuted t/F-map
     if voxel_covariate
       [t0, df2, SmMask] = calc_GLM_voxelwise(Y,xX,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,[],ind_X);
@@ -781,6 +782,8 @@ for con = 1:length(Ic0)
       [t0, df2, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim,vFWHM);
     end
 
+    df1 = size(xCon.c,2);
+    
     % transform to z statistic
     if convert_to_z
       % use faster z-transformation of SPM for T-statistics
@@ -798,9 +801,7 @@ for con = 1:length(Ic0)
     mask_NaN = (mask == 0);
     found_P  = sum(mask_P(:)) > 0;
     found_N  = sum(mask_N(:)) > 0;
-    
-    df1 = size(xCon.c,2);
-  
+      
     % remove all NaN and Inf's
     t0(isinf(t0) | isnan(t0)) = 0;
   
@@ -809,6 +810,43 @@ for con = 1:length(Ic0)
       t0(t0 < 0) = 0;
     end
   
+    % get parametric p-values for comparison
+    tname = sprintf('spm%s_%04d',xCon.STAT,Ic);
+    tname = fullfile(cwd,[tname file_ext]);
+
+    if ~exist(tname,'file')
+      spm_contrasts(SPM,Ic);
+    end
+
+    Z0 = spm_data_read(tname);
+
+    Pt = zeros(size(Z0));
+    if strcmp(xCon.STAT,'T')
+      if found_P
+        Pt(mask_P) = 1-spm_Tcdf(Z0(mask_P),df2);
+      else
+        Pt(mask_N) = spm_Tcdf(Z0(mask_N),df2)-1;
+      end
+    else
+      if found_P
+        Pt(mask_P) = 1-spm_Tcdf(Z0(mask_P),[df1, df2]);
+      else
+        Pt(mask_N) = spm_Tcdf(Z0(mask_N),[df1, df2])-1;
+      end
+    end
+        
+    % Check correlation between parametric and non-parametric T/F-values.
+    % Low correlation points to issues with image mask and we have to use a
+    % shared mask and give a warning except if an additional mask was used
+    cc = corrcoef(Z0(:),t0(:));
+    if cc(1,2) < 0.85 && isempty(job.mask)
+      spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric statistic found which either points to different image masks or to missing absolute threshold for VBM analysis.\n'),'',spm('CmdLine'),0);
+      fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g) which either points to different image masks or to missing absolute threshold for VBM analysis.\n',cc(1,2));
+      mask_shared = Z0 ~= 0 & t0 ~=0;
+    else
+      mask_shared = ones(size(t0));
+    end
+    
     % get dh for unpermuted map
     dh = max(abs(t0(:)))/n_steps_tfce;
   
@@ -1341,8 +1379,8 @@ for con = 1:length(Ic0)
           end
         end  
       end
-      
-      % after 500 permutations or at n_perm compare uncorrected p-values with permutations with parametric 
+              
+      % after 500 permutations or at n_perm compare uncorrected p-values with permutations with parametric
       % p-values to check wheter something went wrong    
       % use odd numbers to consider parameter use_half_permutations
       % skip that check for voxel-wise covariates
@@ -1351,28 +1389,13 @@ for con = 1:length(Ic0)
 
         % estimate p-values
         nPt = tperm/perm;
-
-        % get parametric p-values
-        tname = sprintf('spm%s_%04d',xCon.STAT,Ic);
-        tname = fullfile(cwd,[tname file_ext]);
-
-        if ~exist(tname,'file')
-          spm_contrasts(SPM,Ic);
-        end
-        
-        Z = spm_data_read(tname);
-        if strcmp(xCon.STAT,'T')
-          Pt = 1-spm_Tcdf(Z,df2);
-        else
-          Pt = 1-spm_Fcdf(Z,[df1, df2]);
-        end
-
+    
         % check correlation between parametric and non-parametric p-values
         % exclude Pt==0.5 values that can distort masked analysis values
         if found_P
-          cc = corrcoef(nPt(mask_P & Pt ~=0.5),Pt(mask_P & Pt ~=0.5));
+          cc = corrcoef(nPt(mask_P & Pt ~=0.5 & mask_shared),Pt(mask_P & Pt ~=0.5 & mask_shared));
         else
-          cc = corrcoef(nPt(mask_N & Pt ~=0.5),Pt(mask_N & Pt ~=0.5));
+          cc = corrcoef(nPt(mask_N & Pt ~=0.5 & mask_shared),Pt(mask_N & Pt ~=0.5 & mask_shared));
         end
 
         % check for low correlation between non-parametric and permutation test
@@ -1837,6 +1860,8 @@ clear res0
 
 trRV = n_data - rank(xX.X);
 ResMS = ResSS/trRV;
+%-Modify ResMS (a form of shrinkage) to avoid problems of very low variance
+ResMS  = ResMS + 1e-3 * max(ResMS(isfinite(ResMS)));
 
 if nargin < 6, vFWHM = 0; end
 if nargin < 7, SmMask = []; end
@@ -1933,6 +1958,8 @@ for i=1:size(Y,1)
   ResSS = double(sum(res0,2));
   
   ResMS = ResSS/trRV;
+  %-Modify ResMS (a form of shrinkage) to avoid problems of very low variance
+  ResMS  = ResMS + 1e-3 * max(ResMS(isfinite(ResMS)));
   
   if strcmp(xCon.STAT,'T')
     Bcov = pKX*pKX';

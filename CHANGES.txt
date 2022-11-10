@@ -1,4 +1,15 @@
 ------------------------------------------------------------------------
+r254 | gaser | 2022-11-11 00:01:44
+
+Changed paths:
+ M CHANGES.txt
+ M tfce_estimate_stat.m
+
+Changed: Added check for different mask images or missing absolute threshold or
+         VBM analysis in tfce_estimate.m.
+Changed: Modified ResMS (a form of shrinkage) to avoid problems of very low 
+         variance as used in spm_spm.m
+------------------------------------------------------------------------
 r253 | gaser | 2022-11-09 21:56:55
 
 Changed paths:

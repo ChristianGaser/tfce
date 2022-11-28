@@ -829,9 +829,9 @@ for con = 1:length(Ic0)
       end
     else
       if found_P
-        Pt(mask_P) = 1-spm_Tcdf(Z0(mask_P),[df1, df2]);
+        Pt(mask_P) = 1-spm_Fcdf(Z0(mask_P),[df1, df2]);
       else
-        Pt(mask_N) = spm_Tcdf(Z0(mask_N),[df1, df2])-1;
+        Pt(mask_N) = spm_Fcdf(Z0(mask_N),[df1, df2])-1;
       end
     end
         
@@ -1391,11 +1391,11 @@ for con = 1:length(Ic0)
         nPt = tperm/perm;
     
         % check correlation between parametric and non-parametric p-values
-        % exclude Pt==0.5 values that can distort masked analysis values
+        % exclude Pt==0.5 and Pt==1 values that can distort masked analysis values
         if found_P
-          cc = corrcoef(nPt(mask_P & Pt ~=0.5 & mask_shared),Pt(mask_P & Pt ~=0.5 & mask_shared));
+          cc = corrcoef(nPt(mask_P & Pt ~=0.5 & Pt ~=1 & mask_shared),Pt(mask_P & Pt ~=0.5 & Pt ~=1 & mask_shared));
         else
-          cc = corrcoef(nPt(mask_N & Pt ~=0.5 & mask_shared),Pt(mask_N & Pt ~=0.5 & mask_shared));
+          cc = corrcoef(nPt(mask_N & Pt ~=0.5 & Pt ~=1 & mask_shared),Pt(mask_N & Pt ~=0.5 & Pt ~=1 & mask_shared));
         end
 
         % check for low correlation between non-parametric and permutation test

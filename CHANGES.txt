@@ -1,4 +1,39 @@
 ------------------------------------------------------------------------
+r256 | gaser | 2022-11-29 00:02:44
+
+Changed paths:
+ M CHANGES.txt
+ M Contents.m
+ M INSTALL.txt
+ M html/tfce.html
+ M tfce_estimate_stat.m
+
+Fixed: Corrected use of spm_Fcdf for F-statistic.
+Fixed: Corrected use of additional mask with F-statistic.
+------------------------------------------------------------------------
+r256 | gaser | 2022-11-29 00:02:25
+
+Changed paths:
+ M CHANGES.txt
+ M Contents.m
+ M INSTALL.txt
+ M html/tfce.html
+ M tfce_estimate_stat.m
+
+Fixed: Corrected use of spm_Fcdf for F-statistic.
+Fixed: Corrected use of additional mask with F-statistic.
+------------------------------------------------------------------------
+r255 | gaser | 2022-11-23 12:07:31
+
+Changed paths:
+ M CHANGES.txt
+ M Contents.m
+ M INSTALL.txt
+ M html/tfce.html
+A  tfceMex_pthread.mexmaca64
+
+Changed: Compiled mex-file for MACA64.
+------------------------------------------------------------------------
 r254 | gaser | 2022-11-11 00:01:44
 
 Changed paths:

@@ -1,4 +1,37 @@
 ------------------------------------------------------------------------
+r259 | gaser | 2022-12-02 16:32:00
+
+Changed paths:
+ M CHANGES.txt
+ M Contents.m
+ M INSTALL.txt
+ M html/tfce.html
+ M tfce_estimate_stat.m
+ M tfce_progress.m
+
+Changed: Again switched back to slower but more accuaret approach for voxel-wise 
+         covariates.
+Changed: Added pinv2 function that is much fast than Matlab builtin pinv.
+Changed: Many smaller changes to increase speed for voxel-wise covariate.         
+Deleted: Removed code from Chris Rordan that was not faster.
+------------------------------------------------------------------------
+r258 | gaser | 2022-12-02 16:31:16
+
+Changed paths:
+ M CHANGES.txt
+ M Contents.m
+ M INSTALL.txt
+ M html/tfce.html
+ M tfce_estimate_stat.m
+ M tfce_progress.m
+D  tfce_pthread_ChrisRordan.c
+
+Changed: Again switched back to slower but more accuaret approach for voxel-wise 
+         covariates.
+Changed: Added pinv2 function that is much fast than Matlab builtin pinv.
+Changed: Many smaller changes to increase speed for voxel-wise covariate.         
+Deleted: Removed code from Chris Rordan that was not faster.
+------------------------------------------------------------------------
 r256 | gaser | 2022-11-29 00:02:25
 
 Changed paths:

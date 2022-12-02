@@ -814,39 +814,46 @@ for con = 1:length(Ic0)
     tname = sprintf('spm%s_%04d',xCon.STAT,Ic);
     tname = fullfile(cwd,[tname file_ext]);
 
-    if ~exist(tname,'file')
+    if ~exist(tname,'file') && ~voxel_covariate
       spm_contrasts(SPM,Ic);
     end
 
-    Z0 = spm_data_read(tname);
+    if ~voxel_covariate
+      Z0 = spm_data_read(tname);
 
-    Pt = zeros(size(Z0));
-    if strcmp(xCon.STAT,'T')
-      if found_P
-        Pt(mask_P) = 1-spm_Tcdf(Z0(mask_P),df2);
+      Pt = zeros(size(Z0));
+      if strcmp(xCon.STAT,'T')
+        if found_P
+          Pt(mask_P) = 1-spm_Tcdf(Z0(mask_P),df2);
+        else
+          Pt(mask_N) = spm_Tcdf(Z0(mask_N),df2)-1;
+        end
       else
-        Pt(mask_N) = spm_Tcdf(Z0(mask_N),df2)-1;
+        if found_P
+          Pt(mask_P) = 1-spm_Fcdf(Z0(mask_P),[df1, df2]);
+        else
+          Pt(mask_N) = spm_Fcdf(Z0(mask_N),[df1, df2])-1;
+        end
       end
-    else
-      if found_P
-        Pt(mask_P) = 1-spm_Fcdf(Z0(mask_P),[df1, df2]);
-      else
-        Pt(mask_N) = spm_Fcdf(Z0(mask_N),[df1, df2])-1;
+          
+      % Check correlation between parametric and non-parametric T/F-values.
+      % Low correlation points to issues with image mask and we have to use a
+      cc = corrcoef(Z0(:),t0(:));
+      mask_shared = Z0 ~= 0;
+      if cc(1,2) < 0.85 && isempty(job.mask)
+        % check whether mask size differes and create a shared mask 
+        if sum(Z0(:) ~= 0) ~= sum(t0(:) ~= 0)
+          fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g) which either points to different image masks or to missing absolute threshold for VBM analysis.\n',cc(1,2));
+          mask_shared = Z0 ~= 0 & t0 ~=0;
+        else
+          fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g) which is likely due to creating parametric statistics in fMRI mode, which slightly handles noise differently.\n',cc(1,2));
+        end
       end
-    end
-        
-    % Check correlation between parametric and non-parametric T/F-values.
-    % Low correlation points to issues with image mask and we have to use a
-    % shared mask and give a warning except if an additional mask was used
-    cc = corrcoef(Z0(:),t0(:));
-    if cc(1,2) < 0.85 && isempty(job.mask)
-      spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric statistic found which either points to different image masks or to missing absolute threshold for VBM analysis.\n'),'',spm('CmdLine'),0);
-      fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g) which either points to different image masks or to missing absolute threshold for VBM analysis.\n',cc(1,2));
-      mask_shared = Z0 ~= 0 & t0 ~=0;
+          
     else
       mask_shared = ones(size(t0));
     end
-    
+
     % get dh for unpermuted map
     dh = max(abs(t0(:)))/n_steps_tfce;
   
@@ -1228,11 +1235,7 @@ for con = 1:length(Ic0)
           t = calc_GLM(Y*(Pset'*Rz),xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
         else
           if voxel_covariate
-          % we assume that the null distribution will not change with voxel-wise covariate
-          % and can therefore use the common design matrix without voxel-wise covariates
-          % which is not that unbelievable slow
-            t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
-%            t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset,ind_X);
+            t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset,ind_X);
           else
             t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
           end
@@ -1276,11 +1279,11 @@ for con = 1:length(Ic0)
             tfce = tfceMex_pthread(t,dh,E,H,0,singlethreaded)*dh;
           end
           
-          % if multi-threading takes 1.5x longer then force single-threading
+          % if multi-threading takes 2x longer then force single-threading
           % because for some unknown reason multi-threading is not working properly
           if perm==3 && ~singlethreaded
             telapsed_multi = toc(tstart);
-            if (telapsed_multi > 1.5*telapsed)
+            if (telapsed_multi > 2*telapsed)
               fprintf('Warning: Multi-threading disabled because of run-time issues.\n');
               singlethreaded = 1;
             end
@@ -1946,13 +1949,14 @@ for i=1:size(Y,1)
   % get X and replace defined columns with voxel-wise covariate
   Xi = X;
   for j=1:numel(xC.cols)
-    ind = find(X(:,xC.cols(j)) > 0);
+    ind = (X(:,xC.cols(j)) > 0);
     Xi(ind,xC.cols(j)) = C(i,ind)';
   end
-  pKX = pinv(Xi);
-  
-  Beta = Y(i,:)*pKX';
-  res0 = Beta*(single(Xi'));
+
+  pKX = pinv2(Xi);
+  Beta = pKX*Y(i,:)';
+
+  res0 = Beta'*single(Xi)';
   res0 = res0 - Y(i,:); %-Residuals
   res0 = res0.^2;
   ResSS = double(sum(res0,2));
@@ -1963,14 +1967,14 @@ for i=1:size(Y,1)
   
   if strcmp(xCon.STAT,'T')
     Bcov = pKX*pKX';
-    con = Beta*c;
+    con = Beta'*c;
   
     T0(i) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
   else
     error('F-test is not yet supported')
     %-Compute ESS
     h  = spm_FcUtil('Hsqr',xCon,xX.xKXs);
-    ess = sum((h*Beta').^2,1)';
+    ess = sum((h*Beta).^2,1)';
     MVM = ess/xCon.eidf;
     
     T(ind_mask) = MVM./ResMS;
@@ -2885,3 +2889,50 @@ a = ~isreal(X);
 function varargout = lgamma(varargin)
 varargout{1:nargout} = gammaln(varargin{:});
 
+%---------------------------------------------------------------
+function Y = pinv2(G)
+% Y = pinv2(G) produces a matrix Y of the same dimensions as G',
+% so that G*Y*G = G, Y*G*Y = Y and G*Y and Y*G are Hermitian.
+%    
+% In other words, pinv2 computes the Moore-Penrose generalized inverse 
+% of the matrix G.
+%
+% This function is expected to be faster than Matlab builtin function pinv,
+% although probably less robust than it.
+% 
+%
+% % Example of usage
+% k = 10;
+% n = 2^k;
+% m = 2*n;
+% G = randn(m,n) + rand(m,n);
+% disp('Time taken by Matlab builtin function pinv:');
+% tic; Y  = pinv(G);  toc  % for k = 11, the elapsed time is 4.803495 sec on my machine
+% disp('Time taken by this function, pinv2:');
+% tic; Y2 = pinv2(G); toc  % for k = 11, the elapsed time is 1.195070 sec on my machine
+%
+% % disp('To test the correctness of the result, uncomment next line');
+% % disp(norm(Y-Y2))
+%
+% See also pinv, chol, svd.
+% The method presented here is a slight modification of the one proposed in
+%    Pierre Courrieu, "Fast Comptuation of Moore-Penrose Inverse Matrices", 
+%    Neural Information Processing, Vol. 8, No. 2, 2005
+%
+% Author: Marco Cococcioni. Date: 2021-07-01
+[m,n] = size(G); 
+transpose = false;
+if m < n
+    transpose = true;
+    A = G*G';    
+else
+    A = G'*G;
+end
+% Computation of the generalized inverse of G
+L = chol(A,'lower');
+M = inv(L'*L);
+if transpose
+    Y = G'*L*M*M*L';
+else
+    Y = L*M*M*L'*G';
+end

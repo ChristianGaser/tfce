@@ -12,7 +12,7 @@ function tfce_progress(action,varargin)
 % Christian Gaser
 % $Id: tfce_progress.m 189 2020-04-08 00:19:15Z gaser $
 
-global sum_time time_new time_old iter_old n_iterations arg2 arg3
+global sum_time time_old iter_old n_iterations arg2 arg3
 
 if ~nargin, action = 'Init'; end
 

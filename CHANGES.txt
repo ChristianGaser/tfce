@@ -1,4 +1,28 @@
 ------------------------------------------------------------------------
+r260 | gaser | 2022-12-07 15:21:22
+
+Changed paths:
+ M CHANGES.txt
+ M tfce_estimate_stat.m
+
+Changed: Increased threshold when for disabling muli-threading.
+------------------------------------------------------------------------
+r259 | gaser | 2022-12-02 16:32:46
+
+Changed paths:
+MM CHANGES.txt
+M  Contents.m
+M  INSTALL.txt
+M  html/tfce.html
+M  tfce_estimate_stat.m
+M  tfce_progress.m
+
+Changed: Again switched back to slower but more accuaret approach for voxel-wise 
+         covariates.
+Changed: Added pinv2 function that is much fast than Matlab builtin pinv.
+Changed: Many smaller changes to increase speed for voxel-wise covariate.         
+Deleted: Removed code from Chris Rordan that was not faster.
+------------------------------------------------------------------------
 r259 | gaser | 2022-12-02 16:32:00
 
 Changed paths:

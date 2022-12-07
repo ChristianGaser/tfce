@@ -1279,11 +1279,11 @@ for con = 1:length(Ic0)
             tfce = tfceMex_pthread(t,dh,E,H,0,singlethreaded)*dh;
           end
           
-          % if multi-threading takes 2x longer then force single-threading
+          % if multi-threading takes 3x longer then force single-threading
           % because for some unknown reason multi-threading is not working properly
           if perm==3 && ~singlethreaded
             telapsed_multi = toc(tstart);
-            if (telapsed_multi > 2*telapsed)
+            if (telapsed_multi > 3*telapsed)
               fprintf('Warning: Multi-threading disabled because of run-time issues.\n');
               singlethreaded = 1;
             end

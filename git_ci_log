@@ -23,7 +23,7 @@ if [ -f log ]; then
   echo  >> log2
   cat log >> log2
   echo  >> log2
-  git commit -F log2
+  git commit -a -F log2
   git push
   git fetch
 else

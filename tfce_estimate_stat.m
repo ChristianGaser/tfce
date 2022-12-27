@@ -178,6 +178,8 @@ if isstruct(SPM.xX.K)
   return
 end
 
+fprintf('Use contrast #%d of %s\n',Ic0,job.data{1})
+
 % correct variance smoothing filter by voxel size    
 vx = sqrt(sum(SPM.xY.VY(1).mat(1:3,1:3).^2));
 vFWHM = vFWHM./vx;
@@ -777,7 +779,26 @@ for con = 1:length(Ic0)
             
     % compute unpermuted t/F-map
     if voxel_covariate
-      [t0, df2, SmMask] = calc_GLM_voxelwise(Y,xX,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,[],ind_X);
+
+      % check which pinv-method is faster and use that one for all permutations   
+      X = xX.W*xX.X;
+  
+      tstart1 = tic;
+      for i=1:20, pX = pinv(X); end
+      telapsed1 = toc(tstart1);
+
+      tstart2 = tic;
+      for i=1:20, pX = pinv2(X); end
+      telapsed2 = toc(tstart2);
+
+      if 1.1*telapsed2 < telapsed1
+        pinv_method = 2;
+        fprintf('Use faster pinv2 function\n');
+      else
+        pinv_method = 1;
+      end
+      
+      [t0, df2, SmMask] = calc_GLM_voxelwise(Y,xX,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,[],ind_X,pinv_method);
     else
       [t0, df2, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim,vFWHM);
     end
@@ -1235,7 +1256,7 @@ for con = 1:length(Ic0)
           t = calc_GLM(Y*(Pset'*Rz),xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
         else
           if voxel_covariate
-            t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset,ind_X);
+            t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset,ind_X,pinv_method);
           else
             t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
           end
@@ -1413,7 +1434,7 @@ for con = 1:length(Ic0)
             fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g)! Probably your design was not correctly recognized.\n',cc(1,2));
           end
         else
-          fprintf('\nCorrelation between between parametric and non-parametric statistic is cc=%g.\n',cc(1,2));
+          fprintf('\nCorrelation between between parametric and non-parametric statistic is cc=%g, which means that your design and optionally your nuisance paramters were correctly recognized.\n',cc(1,2));
         end
         check_validity = true;
       end
@@ -1842,6 +1863,8 @@ function [T, trRV, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,dim,vFWHM,SmMask)
 % xCon     - contrast structure
 % ind_mask - index of mask image
 % dim      - image dimension
+% vFWHM    - variance smooting size (3D only)
+% SmMask   - optional mask for variance smoothing (3D only)
 %
 % Output:
 % T        - T/F-values
@@ -1855,6 +1878,7 @@ pKX = pinv(X);
 n_data = size(X,1);
 
 Beta = Y*pKX';
+
 res0 = Beta*(single(X'));
 res0 = Y - res0; %-Residuals
 res0 = res0.^2;
@@ -1906,11 +1930,12 @@ else
 end
 
 %---------------------------------------------------------------
-function [T, trRV, SmMask] = calc_GLM_voxelwise(Y,xX,xC,xCon,ind_mask,dim,C,Pset,ind_X)
+function [T, trRV, SmMask] = calc_GLM_voxelwise(Y,xX,xC,xCon,ind_mask,dim,C,Pset,ind_X,pinv_method)
 % compute T- or F-statistic using GLM
 %
 % Y        - masked data as vector
 % xX       - design structure
+% xC       - covariate structure
 % xCon     - contrast structure
 % ind_mask - index of mask image
 % dim      - image dimension
@@ -1918,6 +1943,9 @@ function [T, trRV, SmMask] = calc_GLM_voxelwise(Y,xX,xC,xCon,ind_mask,dim,C,Pset
 % Output:
 % T        - T/F-values
 % trRV     - df
+
+% use Matlab pinv by default
+if nargin < 10, pinv_method = 1; end
 
 c = xCon.c;
 X = xX.W*xX.X;
@@ -1943,6 +1971,13 @@ if ~isempty(Pset)
   end
 end
 
+% use pinv2 if it was faster
+if pinv_method == 2
+    pinvx  = @(x) pinv2(x); 
+else
+    pinvx  = @(x) pinv(x); 
+end
+
 % go through all voxels inside mask
 for i=1:size(Y,1)
 
@@ -1953,7 +1988,8 @@ for i=1:size(Y,1)
     Xi(ind,xC.cols(j)) = C(i,ind)';
   end
 
-  pKX = pinv2(Xi);
+  pKX = pinvx(Xi);
+
   Beta = pKX*Y(i,:)';
 
   res0 = Beta'*single(Xi)';
@@ -2890,49 +2926,70 @@ function varargout = lgamma(varargin)
 varargout{1:nargout} = gammaln(varargin{:});
 
 %---------------------------------------------------------------
-function Y = pinv2(G)
-% Y = pinv2(G) produces a matrix Y of the same dimensions as G',
-% so that G*Y*G = G, Y*G*Y = Y and G*Y and Y*G are Hermitian.
-%    
-% In other words, pinv2 computes the Moore-Penrose generalized inverse 
-% of the matrix G.
+function X = pinv2(A,tol)
+%PINV2   Pseudoinverse.
+%   X = PINV2(A) produces a matrix X of the same dimensions
+%   as A' so that A*X*A = A, X*A*X = X and A*X and X*A
+%   are Hermitian. The computation is based on SVD(A) and any
+%   singular values less than a tolerance are treated as zero.
 %
-% This function is expected to be faster than Matlab builtin function pinv,
-% although probably less robust than it.
-% 
+%   PINV2(A,TOL) treats all singular values of A that are less than TOL as
+%   zero. By default, TOL = max(size(A)) * eps(norm(A)).
 %
-% % Example of usage
-% k = 10;
-% n = 2^k;
-% m = 2*n;
-% G = randn(m,n) + rand(m,n);
-% disp('Time taken by Matlab builtin function pinv:');
-% tic; Y  = pinv(G);  toc  % for k = 11, the elapsed time is 4.803495 sec on my machine
-% disp('Time taken by this function, pinv2:');
-% tic; Y2 = pinv2(G); toc  % for k = 11, the elapsed time is 1.195070 sec on my machine
-%
-% % disp('To test the correctness of the result, uncomment next line');
-% % disp(norm(Y-Y2))
-%
-% See also pinv, chol, svd.
-% The method presented here is a slight modification of the one proposed in
-%    Pierre Courrieu, "Fast Comptuation of Moore-Penrose Inverse Matrices", 
-%    Neural Information Processing, Vol. 8, No. 2, 2005
-%
-% Author: Marco Cococcioni. Date: 2021-07-01
-[m,n] = size(G); 
-transpose = false;
-if m < n
-    transpose = true;
-    A = G*G';    
-else
-    A = G'*G;
+% This function is a modified version of pinv from Matlab but uses a faster
+% svdecon function from Vipin Vijayan.
+
+[U,S,V] = svdecon(A);
+s = diag(S);
+if nargin < 2 
+    tol = max(size(A)) * eps(norm(s,inf));
 end
-% Computation of the generalized inverse of G
-L = chol(A,'lower');
-M = inv(L'*L);
-if transpose
-    Y = G'*L*M*M*L';
+r1 = sum(s > tol)+1;
+V(:,r1:end) = [];
+U(:,r1:end) = [];
+s(r1:end) = [];
+s = 1./s(:);
+X = (V.*s.')*U';
+
+
+function [U,S,V] = svdecon(X)
+% Input:
+% X : m x n matrix
+%
+% Output:
+% X = U*S*V'
+%
+% Description:
+% Does equivalent to svd(X,'econ') but faster
+%
+% Vipin Vijayan (2014)
+
+[m,n] = size(X);
+if  m <= n
+    C = X*X';
+    [U,D] = eig(C);
+    clear C;
+    
+    [d,ix] = sort(abs(diag(D)),'descend');
+    U = U(:,ix);    
+    
+    if nargout > 2
+        V = X'*U;
+        s = sqrt(d);
+        V = bsxfun(@(x,c)x./c, V, s');
+        S = diag(s);
+    end
 else
-    Y = L*M*M*L'*G';
+    C = X'*X; 
+    [V,D] = eig(C);
+    clear C;
+    
+    [d,ix] = sort(abs(diag(D)),'descend');
+    V = V(:,ix);    
+    
+    U = X*V; % convert evecs from X'*X to X*X'. the evals are the same.
+    %s = sqrt(sum(U.^2,1))';
+    s = sqrt(d);
+    U = bsxfun(@(x,c)x./c, U, s');
+    S = diag(s);
 end

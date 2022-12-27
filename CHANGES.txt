@@ -1,17 +1,4 @@
 ------------------------------------------------------------------------
-r261 | gaser | 2022-12-27 16:19:44
-
-Changed paths:
- M CHANGES.txt
- M git_ci_log
- M tfce_estimate_stat.m
-
-Changed: Added new and hopefully faster pinv2 method that is lso stables to
-         tfce_estimate_stats.m. This method is based on faster svd function by
-         Vipin Vijayan.
-Changed: Added check for voxel-wise covariate which pinv methid is faster in
-         tfce_estimate_stats.m.
-------------------------------------------------------------------------
 r261 | gaser | 2022-12-27 16:17:23
 
 Changed paths:

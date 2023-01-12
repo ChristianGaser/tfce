@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r263 | gaser | 2023-01-12 17:57:57
+
+Changed paths:
+ M CHANGES.txt
+ M tfce_estimate_stat.m
+
+Changed: Added interrupr for check whether permutation was already used because
+         for some designs number of maximal prmutations might bdifer.
+------------------------------------------------------------------------
 r261 | gaser | 2022-12-27 16:17:23
 
 Changed paths:

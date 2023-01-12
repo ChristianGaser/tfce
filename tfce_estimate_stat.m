@@ -178,8 +178,6 @@ if isstruct(SPM.xX.K)
   return
 end
 
-fprintf('Use contrast #%d of %s\n',Ic0,job.data{1})
-
 % correct variance smoothing filter by voxel size    
 vx = sqrt(sum(SPM.xY.VY(1).mat(1:3,1:3).^2));
 vFWHM = vFWHM./vx;
@@ -219,7 +217,7 @@ if repeated_anova
     end
   end
   
-  fprintf('\nPlease note that permutation is only done within subjects for repeated Anova.\n',i);
+  fprintf('\nPlease note that permutation is only done within subjects for repeated Anova.\n');
 else
   exch_block_labels = ones(1,n_data);
 end
@@ -496,6 +494,8 @@ for con = 1:length(Ic0)
     return
   end
   
+  fprintf('Use contrast #%d of %s\n',Ic,job.data{1})
+
   % get contrast and name
   c0 = xCon.c;  
   F_contrast_multiple_rows = 0;
@@ -1037,7 +1037,19 @@ for con = 1:length(Ic0)
         end
 
         % check whether this permutation was already used
+        count_trials = 0;
         while any(ismember(label_matrix,rand_order_sorted,'rows'))
+          count_trials = count_trials + 1;
+          
+          % stop the permutation loop for too many successless trials for finding 
+          % new permutations
+          if count_trials > 100000
+            fprintf('Stopped after %d permutations because there were too many successless trials for finding new permutations.\n',perm);
+            fprintf('Probably there are some missing values for some subjects and the number of maximal permutations was too high.\n');
+            n_perm = perm; % stop the permutation loop
+            break
+          end
+          
           for k = 1:max(exch_block_labels_data_defined)
             ind_block   = find(exch_block_labels_data_defined == k);
             n_per_block = length(ind_block);

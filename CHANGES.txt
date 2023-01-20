@@ -1,12 +1,23 @@
 ------------------------------------------------------------------------
+r264 | gaser | 2023-01-20 10:35:10
+
+Changed paths:
+ M CHANGES.txt
+ M tfceMex_pthread.c
+ M tfce_getSPM.m
+
+Changed: Reformatted tfceMex_pthread.c
+Changed: Added warning if SPM12 estimate function was used instead of CAT12
+         Estimate Surface Models.
+------------------------------------------------------------------------
 r263 | gaser | 2023-01-12 17:57:57
 
 Changed paths:
  M CHANGES.txt
  M tfce_estimate_stat.m
 
-Changed: Added interrupr for check whether permutation was already used because
-         for some designs number of maximal prmutations might bdifer.
+Changed: Added check whether permutation was already used because
+         for some designs number of maximal permutations might differ.
 ------------------------------------------------------------------------
 r261 | gaser | 2022-12-27 16:17:23
 

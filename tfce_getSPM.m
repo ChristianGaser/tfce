@@ -481,6 +481,11 @@ if  spm_mesh_detect(xCon(Ic(1)).Vspm)
             end
             [SPMpth,SPMname,SPMext] = spm_fileparts(SPM.xVol.G);
             SPM.xVol.G = fullfile(fsavgDir,[SPMname SPMext]);
+            
+            % if file does not exist then probably the wrong estimation function was used
+            if ~exist(SPM.xVol.G,'file')
+                error('Cannot find %s\n. Probably you have not used the Estimate Surface Models function to estimate the model, but rather the Estimate function from SPM12, which does not work.', SPM.xVol.G);
+            end
         end
     end
     G = export(gifti(SPM.xVol.G),'patch');

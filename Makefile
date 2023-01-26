@@ -19,7 +19,7 @@ STARGET_FOLDER=/volume1/web/tfce
 
 STARGET=${STARGET_HOST}:${STARGET_FOLDER}
 
-MATLAB_FILES=Contents.m tfce_*.m spm_TFCE.m snpm_P_FDR.m tbx_cfg_tfce.m cat_spm_results_ui.m
+MATLAB_FILES=Contents.* tfce_*.m spm_TFCE.m snpm_P_FDR.m tbx_cfg_tfce.m cat_spm_results_ui.m
 C_FILES=tfceMex_pthread.* 
 MISC_FILES=html
 
@@ -70,6 +70,6 @@ zip: update
 
 scp: zip
 	-@echo scp to http://${STARGET_HOST}/tfce/${ZIPFILE}
-	-@scp -P 2222 CHANGES.txt ${ZIPFOLDER}/${ZIPFILE} ${STARGET}
+	-@scp -O -P 2222 CHANGES.txt ${ZIPFOLDER}/${ZIPFILE} ${STARGET}
 	-@bash -c "ssh -p 2222 ${STARGET_HOST} ln -fs ${STARGET_FOLDER}/${ZIPFILE} ${STARGET_FOLDER}/tfce_latest.zip"
 	

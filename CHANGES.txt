@@ -1,4 +1,19 @@
 ------------------------------------------------------------------------
+r265 | gaser | 2023-01-27 00:48:19
+
+Changed paths:
+ M CHANGES.txt
+ M Contents.m
+ M INSTALL.txt
+ M Makefile
+ M cat_spm_results_ui.m
+ M html/tfce.html
+ M update_revision.sh
+
+Changed: Updated cat_spm_results_ui.m from CAT12.
+Changed: Removed unnecessary line in update_revision.sh.
+Fixed:   Added "-O" flag to scp command in Makefile. 
+------------------------------------------------------------------------
 r264 | gaser | 2023-01-20 10:35:10
 
 Changed paths:

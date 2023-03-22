@@ -1,4 +1,14 @@
 ------------------------------------------------------------------------
+r266 | gaser | 2023-03-22 17:52:50
+
+Changed paths:
+ M CHANGES.txt
+ M tfce_estimate_stat.m
+ M tfce_getSPM.m
+
+Fixed:   Corrected cat12-template path in tfce_estimate_stat.m and 
+         tfce_getSPM.m.
+------------------------------------------------------------------------
 r265 | gaser | 2023-01-27 00:48:19
 
 Changed paths:

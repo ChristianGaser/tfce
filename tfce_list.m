@@ -116,8 +116,14 @@ function varargout = tfce_list(varargin)
 %
 % modified version of
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: tfce_list.m 195 2020-04-09 23:22:07Z gaser $
-% $Id: tfce_list.m 195 2020-04-09 23:22:07Z gaser $
+% ______________________________________________________________________
+%
+% Christian Gaser
+% Structural Brain Mapping Group (https://neuro-jena.github.io)
+% Departments of Neurology and Psychiatry
+% Jena University Hospital
+% ______________________________________________________________________
+% $Id$
 
 
 %==========================================================================

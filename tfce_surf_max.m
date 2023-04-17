@@ -20,7 +20,14 @@ function [N,Z,M,A,XYZ] = tfce_surf_max(X,L,G)
 % maximum was returned
 % Guillaume Flandin
 %
-% $Id: tfce_surf_max.m 189 2020-04-08 00:19:15Z gaser $
+% ______________________________________________________________________
+%
+% Christian Gaser
+% Structural Brain Mapping Group (https://neuro-jena.github.io)
+% Departments of Neurology and Psychiatry
+% Jena University Hospital
+% ______________________________________________________________________
+% $Id$
 
 %-Get connected components
 %--------------------------------------------------------------------------

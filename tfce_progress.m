@@ -8,9 +8,14 @@ function tfce_progress(action,varargin)
 %
 % FORMAT tfce_progress('Clear')
 % Clears the progress output and prints processing time.
-%_______________________________________________________________________
+% ______________________________________________________________________
+%
 % Christian Gaser
-% $Id: tfce_progress.m 189 2020-04-08 00:19:15Z gaser $
+% Structural Brain Mapping Group (https://neuro-jena.github.io)
+% Departments of Neurology and Psychiatry
+% Jena University Hospital
+% ______________________________________________________________________
+% $Id$
 
 global sum_time time_old iter_old n_iterations arg2 arg3
 

@@ -1,4 +1,20 @@
 ------------------------------------------------------------------------
+r267 | gaser | 2023-04-17 10:21:02
+
+Changed paths:
+ M CHANGES.txt
+ M tfceMex_pthread.m
+ M tfceMex_pthread.mexmaca64
+ M tfceMex_pthread.mexmaci64
+ M tfce_estimate_stat.m
+ M tfce_list.m
+ M tfce_mesh.m
+ M tfce_progress.m
+ M tfce_surf_max.m
+ M tfce_update.m
+
+Changed: Modified header with author information.
+------------------------------------------------------------------------
 r266 | gaser | 2023-03-22 17:52:50
 
 Changed paths:
@@ -50,7 +66,7 @@ Changed paths:
  M CHANGES.txt
  M tfce_estimate_stat.m
 
-Changed: Added new and hopefully faster pinv2 method that is lso stables to
+Changed: Added new and hopefully faster pinv2 method that is also stable to
          tfce_estimate_stats.m. This method is based on faster svd function by
          Vipin Vijayan.
 Changed: Added check for voxel-wise covariate which pinv methid is faster in

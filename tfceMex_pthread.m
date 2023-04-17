@@ -8,8 +8,14 @@ tfce = tfceMex_pthread(t, dh, E, H, calc_neg, single_threaded)
 % calc_neg  - also calc neg. TFCE values (default)
 % single_threaded - use single thread only
 %
+% ______________________________________________________________________
+%
 % Christian Gaser
-% $Id: tfceMex_pthread.m 125 2017-08-23 14:59:44Z gaser $
+% Structural Brain Mapping Group (https://neuro-jena.github.io)
+% Departments of Neurology and Psychiatry
+% Jena University Hospital
+% ______________________________________________________________________
+% $Id$
 
 rev = '$Rev: 125 $';
 

@@ -13,9 +13,14 @@ function varargout = tfce_update(update)
 % This function will connect itself to the SBM server, compare the
 % version number of the updates with the one of the TFCE installation 
 % currently in the MATLAB path and will display the outcome.
-%_______________________________________________________________________
+% ______________________________________________________________________
+%
 % Christian Gaser
-% $Id: tfce_update.m 189 2020-04-08 00:19:15Z gaser $
+% Structural Brain Mapping Group (https://neuro-jena.github.io)
+% Departments of Neurology and Psychiatry
+% Jena University Hospital
+% ______________________________________________________________________
+% $Id$
 
 rev = '$Rev: 189 $';
 

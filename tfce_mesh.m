@@ -7,8 +7,14 @@ function tfce = tfce_mesh(faces, t, dh, E, H)
 % E         - TFCE parameter for extent
 % H         - TFCE parameter for height
 %
+% ______________________________________________________________________
+%
 % Christian Gaser
-% $Id: tfce_mesh.m 125 2017-08-23 14:59:44Z gaser $
+% Structural Brain Mapping Group (https://neuro-jena.github.io)
+% Departments of Neurology and Psychiatry
+% Jena University Hospital
+% ______________________________________________________________________
+% $Id$
 
 tfce = zeros(size(t));
 t_max = max(abs(t(:)));

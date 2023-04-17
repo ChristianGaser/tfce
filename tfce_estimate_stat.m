@@ -34,9 +34,14 @@ function tfce_estimate_stat(job)
 %   E_weight
 %     E weighting
 %
-%_______________________________________________________________________
+% ______________________________________________________________________
+%
 % Christian Gaser
-% $Id: tfce_estimate_stat.m 234 2022-02-18 23:32:16Z gaser $
+% Structural Brain Mapping Group (https://neuro-jena.github.io)
+% Departments of Neurology and Psychiatry
+% Jena University Hospital
+% ______________________________________________________________________
+% $Id$
 
 global old_method_stat
 

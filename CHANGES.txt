@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r268 | gaser | 2023-05-04 13:55:32
+
+Changed paths:
+ M CHANGES.txt
+ M cat_spm_results_ui.m
+ M tfceMex_pthread.m
+
+Fixed:   Corrected definition of contrast images when analysis folder was moved.
+------------------------------------------------------------------------
 r267 | gaser | 2023-04-17 10:21:02
 
 Changed paths:

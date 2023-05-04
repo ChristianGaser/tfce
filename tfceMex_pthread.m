@@ -1,4 +1,5 @@
 tfce = tfceMex_pthread(t, dh, E, H, calc_neg, single_threaded)
+% Apply threshold-free cluster enhancement (TFCE)
 % FORMAT tfce = tfceMex(t, dh, E, H, calc_neg, single_threaded)
 % Estimate TFCE
 % t         - T map 

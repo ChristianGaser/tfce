@@ -217,9 +217,21 @@ if repeated_anova
   
   for i = 1:max(exch_block_labels)
     if ~groupListed(i) 
-      fprintf('Error: block %d must be assigned to at least one design row in the blocks file.\n',i);
+      fprintf('\nError: block %d must be assigned to at least one design row in the blocks file.\n\n',i);
       return
     end
+  end
+  
+  % check whether ate least two time points are available
+  n_tp = sum(xX.X(:,xX.iB));
+  if any(n_tp == 1)
+    fprintf('\nError: You need at least two time points for a longitudinal design for every subjects.\n\n');
+    return
+  end
+  
+  if ~isempty(xX.iC)
+    fprintf('\Warning: Covariates are not recommended for repeated measures Anova and will not properly work.\n');
+    fprintf('Please remove any covariates from your longitudinal design.\n\n');
   end
   
   fprintf('\nPlease note that permutation is only done within subjects for repeated Anova.\n');

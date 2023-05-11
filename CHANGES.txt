@@ -1,4 +1,14 @@
 ------------------------------------------------------------------------
+r269 | gaser | 2023-05-11 15:14:21
+
+Changed paths:
+ M CHANGES.txt
+ M tfce_estimate_stat.m
+
+Changed: Added warning if covariates are found for longitudinal designs.
+Changed: Added check that at least two time points are found for longitudinal 
+         designs.
+------------------------------------------------------------------------
 r268 | gaser | 2023-05-04 13:55:32
 
 Changed paths:

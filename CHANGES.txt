@@ -1,4 +1,16 @@
 ------------------------------------------------------------------------
+r270 | gaser | 2023-05-12 08:37:15
+
+Changed paths:
+ M CHANGES.txt
+ M Contents.m
+ M INSTALL.txt
+ M html/tfce.html
+ M old_tfce_results_ui.m
+ M tfce_estimate_stat.m
+
+Changed: Some minor cosmetic edits.
+------------------------------------------------------------------------
 r269 | gaser | 2023-05-11 15:14:21
 
 Changed paths:

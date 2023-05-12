@@ -163,7 +163,7 @@ end
 
 % check whether contrast are defined
 if (numel(Ic0) == 1)
-    if ~isfinite(Ic0) || ~isfield(SPM,'xCon') || (isfield(SPM,'xCon') && isempty(SPM.xCon))
+  if ~isfinite(Ic0) || ~isfield(SPM,'xCon') || (isfield(SPM,'xCon') && isempty(SPM.xCon))
     [Ic0,xCon] = spm_conman(SPM,'T&F',Inf,...
           '  Select contrast(s)...',' ',1);
     SPM.xCon = xCon;
@@ -1109,8 +1109,8 @@ for con = 1:length(Ic0)
         stopStatus = get(hStopButton,'value');
       end
     
-    % check Stop status
-    if (stopStatus == true)
+      % check Stop status
+      if (stopStatus == true)
         fprintf('Stopped after %d iterations.\n',perm);
         break; % stop the permutation loop
       end
@@ -1359,7 +1359,7 @@ for con = 1:length(Ic0)
     if use_half_permutations
       if perm>1
         label_matrix = [label_matrix; rand_order_sorted; [rand_order_sorted(label(ind_label) == 2) rand_order_sorted(label(ind_label) == 1)]];
-        end
+      end
       if ~test_mode
         % maximum statistic
         t_max    = [t_max    max(t(mask_stat_P))    -min(t(mask_stat_N))];

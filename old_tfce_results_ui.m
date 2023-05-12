@@ -1,4 +1,4 @@
-function varargout = tfce_results_ui(varargin)
+function varargout = old_tfce_results_ui(varargin)
 % User interface for SPM/PPM results: Display and analysis of regional effects
 % FORMAT [hReg,xSPM,SPM] = tfce_results_ui('Setup',[xSPM])
 %

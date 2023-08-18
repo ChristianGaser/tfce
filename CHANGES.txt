@@ -1,4 +1,14 @@
 ------------------------------------------------------------------------
+r271 | gaser | 2023-08-18 18:38:19
+
+Changed paths:
+ M CHANGES.txt
+ M spm_TFCE.m
+ M tbx_cfg_tfce.m
+ M tfce_estimate_stat.m
+
+Changed: Updated function headers.
+------------------------------------------------------------------------
 r270 | gaser | 2023-05-12 08:37:15
 
 Changed paths:

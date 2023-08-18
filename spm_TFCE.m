@@ -1,11 +1,14 @@
 function spm_TFCE
 % TFCE Toolbox wrapper to call TFCE functions
-%_______________________________________________________________________
-% $Id: spm_TFCE.m 210 2020-11-24 14:00:29Z gaser $
+% ______________________________________________________________________
+%
+% Christian Gaser
+% Structural Brain Mapping Group (https://neuro-jena.github.io)
+% Departments of Neurology and Psychiatry
+% Jena University Hospital
+% ______________________________________________________________________
 
-rev = '$Rev: 210 $';
-
-SPMid = spm('FnBanner',mfilename,rev);
+SPMid = spm('FnBanner',mfilename);
 [Finter,Fgraph] = spm('FnUIsetup','TFCE 1.0');
 url = fullfile(fileparts(mfilename('fullpath')),'html','tfce.html');
 spm_help('!Disp',url,'',Fgraph,'Threshold-Free Cluster Enhancement Toolbox');

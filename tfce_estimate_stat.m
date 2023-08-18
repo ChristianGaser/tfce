@@ -26,7 +26,7 @@ function tfce_estimate_stat(job)
 %     x   - index of contrast(s)
 %
 %   mask
-%     mask for restricitng TFCE estimation (SVC)
+%     mask for restricting TFCE estimation (SVC)
 %
 %   tbss
 %     TBSS weighting

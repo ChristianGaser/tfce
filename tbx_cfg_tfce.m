@@ -1,11 +1,13 @@
 function tfce_estimate = tbx_cfg_tfce
 % SPM Configuration file for TFCE estimate
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% ______________________________________________________________________
+%
+% Christian Gaser
+% Structural Brain Mapping Group (https://neuro-jena.github.io)
+% Departments of Neurology and Psychiatry
+% Jena University Hospital
+% ______________________________________________________________________
 
-% $Id: tbx_cfg_tfce.m 215 2021-04-15 17:48:39Z gaser $
-
-rev = '$Rev: 215 $';
 
 addpath(fileparts(which(mfilename)));
 

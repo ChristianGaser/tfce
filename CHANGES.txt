@@ -1,4 +1,20 @@
 ------------------------------------------------------------------------
+r272 | gaser | 2024-04-03 12:19:39
+
+Changed paths:
+ M CHANGES.txt
+ M cat_spm_results_ui.m
+ M html/tfce.html
+ M html/tfce.txt
+ M tbx_cfg_tfce.m
+ M tfceMex_pthread.c
+ M tfce_estimate_stat.m
+
+Changed: Removed bilateral filter that showed no improvement.
+Changed: Removed option to change E_weight.
+Changed: Added memore allocation check.
+Changed: Use mat-format of SPM defaults for saving mat-files.
+------------------------------------------------------------------------
 r271 | gaser | 2023-08-18 18:38:19
 
 Changed paths:
@@ -135,7 +151,7 @@ Changed: Again switched back to slower but more accuaret approach for voxel-wise
          covariates.
 Changed: Added pinv2 function that is much fast than Matlab builtin pinv.
 Changed: Many smaller changes to increase speed for voxel-wise covariate.         
-Deleted: Removed code from Chris Rordan that was not faster.
+Deleted: Removed code from Chris Rorden that was not faster.
 ------------------------------------------------------------------------
 r258 | gaser | 2022-12-02 16:31:16
 
@@ -152,7 +168,7 @@ Changed: Again switched back to slower but more accuaret approach for voxel-wise
          covariates.
 Changed: Added pinv2 function that is much fast than Matlab builtin pinv.
 Changed: Many smaller changes to increase speed for voxel-wise covariate.         
-Deleted: Removed code from Chris Rordan that was not faster.
+Deleted: Removed code from Chris Rorden that was not faster.
 ------------------------------------------------------------------------
 r256 | gaser | 2022-11-29 00:02:25
 

@@ -31,9 +31,6 @@ function tfce_estimate_stat(job)
 %   tbss
 %     TBSS weighting
 %
-%   E_weight
-%     E weighting
-%
 % ______________________________________________________________________
 %
 % Christian Gaser
@@ -41,7 +38,6 @@ function tfce_estimate_stat(job)
 % Departments of Neurology and Psychiatry
 % Jena University Hospital
 % ______________________________________________________________________
-% $Id$
 
 global old_method_stat
 
@@ -76,8 +72,8 @@ singlethreaded = job.singlethreaded;
 % convert to z-statistic
 convert_to_z = false;
 
-% experimental, does not result in any improvement, only for 3D images
-filter_bilateral = false;
+% option to stop estimation if no FWE-corrected result was found after defined number of permutations
+stop_if_no_FWEeffects_found = Inf;
 
 % use (too liberal) method for estimating maximum statistic from old release 
 % r184 for compatibility purposes only that was estimating max/min statistics
@@ -251,7 +247,7 @@ if ~test_mode
   if job.tbss || mesh_detected
     E = 1.0; H = 2.0;
   else
-    E = job.E_weight; H = 2.0;
+    E = 0.5; H = 2.0;
   end
 
   % check for mask image that should exist for any analysis
@@ -275,11 +271,6 @@ end
 if mesh_detected
   if ~exist('spm_cat12','file')
     error('For using surface analysis you need to install CAT12.');
-  end
-
-  if filter_bilateral
-    fprintf('Warning: Bilateral filter is not supported for meshes.\n')
-    filter_bilateral = false;
   end
   
   if vFWHM > 0
@@ -912,11 +903,6 @@ for con = 1:length(Ic0)
       end
       tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, dh, E, H)*dh;
     else
-      % use bilateral filter of t-map to increase SNR, see LISA paper (Lohmann et al. 2018)
-      if filter_bilateral
-        var_t0 = var(t0(find(t0~=0 & ~isnan(t0) & ~isinf(t0))));
-        t0 = double(cat_vol_bilateral(single(t0),2,2,2,2,var_t0));
-      end
       
       % measure computation time to test whether multi-threading causes issues
       % start with single-threading for unpermuted data
@@ -1315,9 +1301,6 @@ for con = 1:length(Ic0)
         if mesh_detected
           tfce = tfce_mesh(SPM.xVol.G.faces, t, dh, E, H)*dh;
         else
-          if filter_bilateral
-            t = double(cat_vol_bilateral(single(t),2,2,2,2,var_t0));
-          end
           
           % measure computation time for 1st permutation to test whether multi-threading causes issues
           if perm==3 && ~singlethreaded, tstart = tic; end
@@ -1432,14 +1415,25 @@ for con = 1:length(Ic0)
           end
         end  
       end
-              
+      
+      save_results = 1;
+      % wait until 50 permutations are finished and skip that if voxel-wise covariate is used 
+      if ~voxel_covariate && (perm > 50) 
+        % after defined number of permutations check whether maximum value exceed 95% of threshold
+        if (perm >= stop_if_no_FWEeffects_found) && (tfce0_max < 0.95*stfce_max(ind_max(alpha==0.05)) && -tfce0_min < 0.95*stfce_max(ind_max(alpha==0.05)))
+          fprintf('Stop estimation because after %d permutations because threshold could not be exceeded.\n',perm);
+          save_results = 0;
+          break; % stop the permutation loop
+        end
+      end
+
       % after 500 permutations or at n_perm compare uncorrected p-values with permutations with parametric
       % p-values to check wheter something went wrong    
       % use odd numbers to consider parameter use_half_permutations
       % skip that check for voxel-wise covariates
       
       if ~voxel_covariate && ((perm == 501) || (perm >= n_perm-1)) && ~check_validity && (found_P || found_N)
-
+        
         % estimate p-values
         nPt = tperm/perm;
     
@@ -1491,7 +1485,7 @@ for con = 1:length(Ic0)
     spm_print;
   end
   
-  if ~test_mode
+  if ~test_mode && save_results
     % get correct number of permutations in case that process was stopped
     n_perm = length(tfce_max);
   

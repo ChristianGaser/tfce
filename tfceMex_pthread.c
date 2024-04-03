@@ -75,6 +75,12 @@ void *ThreadFunc(void *pArguments)
   flagUsed = (char *)malloc(numVoxels * sizeof(char));
   growing = (short *)malloc(numVoxels * 3 * sizeof(short));
 
+  /* check success of memory allocation */
+  if (!flagUsed || !growing) {
+    printf("Memory allocation error\n");
+    exit(EXIT_FAILURE);
+  }
+
   for (i = 0; i < numVoxels; ++i)
     flagUsed[i] = 0;
 

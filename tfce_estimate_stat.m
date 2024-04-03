@@ -1916,7 +1916,7 @@ else
 end
 
 %---------------------------------------------------------------
-function [T, trRV, SmMask] = calc_GLM_voxelwise(Y,xX,xC,xCon,ind_mask,dim,C,Pset,ind_X,pinv_method)
+function [T, trRV] = calc_GLM_voxelwise(Y,xX,xC,xCon,ind_mask,dim,C,Pset,ind_X,pinv_method)
 % compute T- or F-statistic using GLM
 %
 % Y        - masked data as vector
@@ -2004,8 +2004,6 @@ for i=1:size(Y,1)
 end
 
 T(ind_mask) = T0;
-
-SmMask = [];
 
 %---------------------------------------------------------------
 function xX = correct_xX(xX)
@@ -2477,7 +2475,7 @@ else
   siz = size(G);
   Z = zeros(siz);
   df2 = bsxfun(@times,ones(siz),df2);
-  if df1 == 1,
+  if df1 == 1
     
     % Deal with precision issues working on each
     % tail separately

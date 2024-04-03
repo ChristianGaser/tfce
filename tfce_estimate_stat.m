@@ -91,9 +91,6 @@ end
 % save null distribution
 save_null_distribution = true;
 
-% variance smoothing (experimental, only for 3D images)
-vFWHM = false;
-
 % method to deal with nuisance variables
 % 0 - Draper-Stoneman
 % 1 - Freedman-Lane
@@ -178,10 +175,6 @@ if isstruct(SPM.xX.K)
   fprintf('ERROR: No first level analysis with temporal correlations allowed.\n');
   return
 end
-
-% correct variance smoothing filter by voxel size    
-vx = sqrt(sum(SPM.xY.VY(1).mat(1:3,1:3).^2));
-vFWHM = vFWHM./vx;
 
 % get some parameters from SPM
 xX     = SPM.xX;
@@ -271,12 +264,7 @@ end
 if mesh_detected
   if ~exist('spm_cat12','file')
     error('For using surface analysis you need to install CAT12.');
-  end
-  
-  if vFWHM > 0
-    fprintf('Warning: Variance smoothing is not supported for meshes.\n')
-    vFWHM = 0;
-  end
+  end  
 end
 
 if ~test_mode
@@ -806,9 +794,9 @@ for con = 1:length(Ic0)
         pinv_method = 1;
       end
       
-      [t0, df2, SmMask] = calc_GLM_voxelwise(Y,xX,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,[],ind_X,pinv_method);
+      [t0, df2] = calc_GLM_voxelwise(Y,xX,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,[],ind_X,pinv_method);
     else
-      [t0, df2, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim,vFWHM);
+      [t0, df2] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim);
     end
 
     df1 = size(xCon.c,2);
@@ -1268,12 +1256,12 @@ for con = 1:length(Ic0)
 
         % Freedman-Lane permutation of data
         if nuisance_method == 1
-          t = calc_GLM(Y*(Pset'*Rz),xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
+          t = calc_GLM(Y*(Pset'*Rz),xXperm,xCon,ind_mask,VY(1).dim);
         else
           if voxel_covariate
             t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset,ind_X,pinv_method);
           else
-            t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim,vFWHM,SmMask);
+            t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
           end
         end
 
@@ -1878,7 +1866,7 @@ if sz_val_max >= 20
 end
 
 %---------------------------------------------------------------
-function [T, trRV, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,dim,vFWHM,SmMask)
+function [T, trRV] = calc_GLM(Y,xX,xCon,ind_mask,dim)
 % compute T- or F-statistic using GLM
 %
 % Y        - masked data as vector
@@ -1886,8 +1874,6 @@ function [T, trRV, SmMask] = calc_GLM(Y,xX,xCon,ind_mask,dim,vFWHM,SmMask)
 % xCon     - contrast structure
 % ind_mask - index of mask image
 % dim      - image dimension
-% vFWHM    - variance smooting size (3D only)
-% SmMask   - optional mask for variance smoothing (3D only)
 %
 % Output:
 % T        - T/F-values
@@ -1912,29 +1898,6 @@ trRV = n_data - rank(xX.X);
 ResMS = ResSS/trRV;
 %-Modify ResMS (a form of shrinkage) to avoid problems of very low variance
 ResMS  = ResMS + 1e-3 * max(ResMS(isfinite(ResMS)));
-
-if nargin < 6, vFWHM = 0; end
-if nargin < 7, SmMask = []; end
-
-% variance smoothing for volumes
-if vFWHM > 0
-  SmResMS   = zeros(dim);
-  TmpVol    = zeros(dim);
-  
-  % save time by using pre-calculated smoothed mask which is
-  % independent from permutations
-  if isempty(SmMask)
-    SmMask = zeros(dim);
-    TmpVol(ind_mask) = ones(size(ind_mask));
-    spm_smooth(TmpVol,SmMask,vFWHM);
-  end
-  
-  TmpVol(ind_mask) = ResMS;
-  spm_smooth(TmpVol,SmResMS,vFWHM);
-  ResMS  = SmResMS(ind_mask)./SmMask(ind_mask);
-else
-  SmMask = [];
-end
 
 T = zeros(dim);
 

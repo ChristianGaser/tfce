@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------
+r273 | gaser | 2024-04-03 12:25:11
+
+Changed paths:
+ M CHANGES.txt
+ M tfce_estimate_stat.m
+
+Changed: Removed variance smoothing.
+------------------------------------------------------------------------
 r272 | gaser | 2024-04-03 12:19:39
 
 Changed paths:

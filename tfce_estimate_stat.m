@@ -1896,6 +1896,7 @@ clear res0
 
 trRV = n_data - rank(xX.X);
 ResMS = ResSS/trRV;
+
 %-Modify ResMS (a form of shrinkage) to avoid problems of very low variance
 ResMS  = ResMS + 1e-3 * max(ResMS(isfinite(ResMS)));
 
@@ -1907,7 +1908,7 @@ if strcmp(xCon.STAT,'T')
 
   T(ind_mask) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
 else
-  %-Compute ESS
+  %-Compute ESS (ESS = Y'*Y - Beta'*X'*Y)
   h  = spm_FcUtil('Hsqr',xCon,xX.xKXs);
   ess = sum((h*Beta').^2,1)';
   MVM = ess/xCon.eidf;

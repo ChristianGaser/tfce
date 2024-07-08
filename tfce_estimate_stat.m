@@ -47,7 +47,7 @@ if numel(job.data) == 1
 end
 
 % split job and data into separate processes to save computation time
-if isfield(job,'nproc') && job.nproc>0 && (~isfield(job,'process_index'))
+if isfield(job,'nproc') && job.nproc>0 && (~isfield(job,'process_index')) && exist('cat_parallelize','file')
   cat_parallelize(job,mfilename,'data');
   return
 % or run though all data step-by-step

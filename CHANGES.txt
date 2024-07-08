@@ -1,4 +1,14 @@
 ------------------------------------------------------------------------
+r276 | gaser | 2024-07-08 21:02:45
+
+Changed paths:
+ M CHANGES.txt
+ M cat_spm_results_ui.m
+ M tfce_estimate_stat.m
+
+Fixed: Added checks for additional cat-tools that should be ignored if CAT12
+       is not installed.
+------------------------------------------------------------------------
 r273 | gaser | 2024-04-03 12:25:11
 
 Changed paths:

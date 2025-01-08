@@ -753,7 +753,7 @@ function [permutedResults, stopStatus] = executePermutation(perm, n_perm, xX, la
           fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g)! Probably your design was not correctly recognized.\n',cc(1,2));
         end
       else
-        fprintf('\nCorrelation between between parametric and non-parametric statistic is cc=%g, which means that your design and optionally your nuisance paramters were correctly recognized.\n',cc(1,2));
+        fprintf('\nCorrelation between between parametric and non-parametric statistic is cc=%g, which means that your design and optionally your nuisance parameters were correctly recognized.\n',cc(1,2));
       end
       check_validity = true;
     end

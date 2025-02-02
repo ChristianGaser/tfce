@@ -5,7 +5,7 @@
 % ==========================================================================
 % Description
 % ==========================================================================
-% This toolbox is a an extension to SPM12 (Wellcome Department of Cognitive 
+% This toolbox is an extension to SPM12 (Wellcome Department of Cognitive 
 % Neurology) to provide non-parametric statistics based on threshold-free
 % cluster enhancement (TFCE). It is developed by Christian Gaser (University of 
 % Jena, Department of Psychiatry) and is available to the scientific 

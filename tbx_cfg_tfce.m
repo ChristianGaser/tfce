@@ -66,10 +66,10 @@ mask         = cfg_files;
 mask.tag     = 'mask';
 mask.name    = 'Select additional mask';
 mask.help    = {'Select an additional mask image or surface to restrict your analysis. As default the mask in the analysis folder is used. Here you can select a mask to additionally restrict the analysis to regions of interest (i.e. small volume/surface correction).'};
-if strcmp(spm('ver'),'SPM12')
-  mask.filter  = {'image','mesh'};
-else
+if strcmp(spm('ver'),'SPM8')
   mask.filter  = {'image'};
+else
+  mask.filter  = {'image','mesh'};
 end
 mask.val     = {''};
 mask.ufilter = '.*';

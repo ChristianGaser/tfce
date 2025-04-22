@@ -11,7 +11,7 @@ function spm_TFCE
 SPMid = spm('FnBanner',mfilename);
 [Finter,Fgraph] = spm('FnUIsetup','TFCE 1.0');
 url = fullfile(fileparts(mfilename('fullpath')),'html','tfce.html');
-spm_help('!Disp',url,'',Fgraph,'Threshold-Free Cluster Enhancement Toolbox');
+web(url,'-noaddressbox','-new')
 
 fig = spm_figure('GetWin','Interactive');
 h0  = uimenu(fig,...

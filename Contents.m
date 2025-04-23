@@ -1,5 +1,5 @@
 % TFCE Toolbox
-% Version  278  (version 1.0) 2025-02-02
+% Version  280  (TFCE1.1) 2025-04-22
 % __________________________________________________________________________
 % Copyright (C) 2020 Christian Gaser christian.gaser@uni-jena.de
 %

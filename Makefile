@@ -2,10 +2,11 @@
 #
 # $Id$
 
-OLDVERSION="0.9"
-NEWVERSION="1.0"
+OLDVERSION="TFCE1.0"
+NEWVERSION="TFCE1.1"
 REVISION=`git rev-list --count HEAD`
 DATE=`git log --date short |grep "Date:"|head -1|cut -f2 -d':'|sed -e s'/ //g'`
+VERSION=`echo ${NEWVERSION} | sed -e 's/TFCE//g'`
 
 ZIPFOLDER=/Users/gaser/matlab/tfce8
 
@@ -53,7 +54,7 @@ doc:
 update: doc
 	-@git fetch
 	-@echo '% TFCE Toolbox' > Contents.m
-	-@echo '% Version ' ${REVISION} ' (version '${NEWVERSION}')' ${DATE} >> Contents.m
+	-@echo '% Version ' ${REVISION} ' ('${NEWVERSION}')' ${DATE} >> Contents.m
 	-@cat Contents_info.txt >> Contents.m
 	-@perl -p -i -e "s/${OLDVERSION}/${NEWVERSION}/g" spm_TFCE.m
 	-@echo '% TFCE Toolbox' > INSTALL.txt
@@ -69,6 +70,7 @@ zip: update
 	-@zip ${ZIPFOLDER}/${ZIPFILE} -rm TFCE
 
 scp: zip
+	-@git tag -f ${VERSION} -m "Release ${VERSION}"
 	-@echo scp to http://${STARGET_HOST}/tfce/${ZIPFILE}
 	-@scp -O -P 2222 CHANGES.txt ${ZIPFOLDER}/${ZIPFILE} ${STARGET}
 	-@bash -c "ssh -p 2222 ${STARGET_HOST} ln -fs ${STARGET_FOLDER}/${ZIPFILE} ${STARGET_FOLDER}/tfce_latest.zip"

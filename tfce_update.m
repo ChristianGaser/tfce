@@ -58,7 +58,7 @@ catch
 end
 
 if ~sts
-  msg = sprintf('Cannot access %s. Please check your proxy and/or firewall to allow access.\nYou can download your update at %s\n',url,url); 
+  msg = sprintf('Cannot access %s. Please check your proxy and/or firewall to allow access.\nYou can download your update at %s\n',url_github,url_github);
   if ~nargout, error(msg); else varargout = {NaN, msg}; end
   return
 end
@@ -72,7 +72,7 @@ end
 rnew = max(rnew);
 
 if rnew > r
-  sts = n;
+  sts = rnew;
   msg = sprintf('         A new version of TFCE is available on:\n');
   msg = [msg sprintf('   %s\n',url_github)];
   msg = [msg sprintf('        (Your version: %g - New version: %g)\n',r,rnew)];

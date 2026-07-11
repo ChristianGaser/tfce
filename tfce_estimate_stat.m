@@ -92,7 +92,10 @@ save_null_distribution = true;
 % 0 - Draper-Stoneman
 % 1 - Freedman-Lane
 % 2 - Smith
-nuisance_method = job.nuisance_method;
+% This is the method that was requested. get_nuisance_method may downgrade it to
+% Draper-Stoneman for a given contrast, so it is resolved again for each contrast
+% and the result must not be carried over to the next one.
+requested_nuisance_method = job.nuisance_method;
 
 % display permuted design matrix (otherwise show t distribution)
 show_permuted_designmatrix = true;
@@ -512,61 +515,10 @@ for con = 1:length(Ic0)
 
   fprintf('\n');
   
-  % check design
-  interaction_design = false;
-  switch n_cond
-  case 0 % correlation
-    label = 1:n_data;
-
-    % we have to correct for some F-contrasts (i.e. effects of interest
-    % with eyes)
-    if F_contrast_multiple_rows && is_eoi
-      is_one = find(any(c0'));
-      for j=1:numel(is_one)
-        ind_exch_blocks{j} = is_one(j);
-      end
-      ind_exch_blocks = ind_exch_blocks';
-    end
-    
-    if n_exch_blocks >= 2 && any(diff(exch_blocks(:))) % # exch_blocks >1 & differential contrast
-      fprintf('Interaction design between two or more regressors found\n')
-      interaction_design = true;
-
-      % remove all entries where contrast is not defined
-      % this does not work for all data CG 20200829
-      % label(all(xX.X(:,ind_X)==0,2)) = [];
-    else
-      if repeated_anova
-        fprintf('Repeated Anova with contrast for covariate found\n');
-      else
-        fprintf('Multiple regression design found\n');
-      end
-    end    
-  case 1 % one-sample t-test
-    fprintf('One sample t-test found\n');
-    
-    % use exchangeability blocks for labels
-    label = zeros(1,n_data);
-    for j=1:n_exch_blocks
-      for k=1:length(ind_exch_blocks{j})
-        label(xX.X(:,ind_exch_blocks{j}(k))~=0) = j;
-      end
-    end
-  otherwise  % Anova with at least 2 groups
-    if repeated_anova
-      fprintf('Repeated Anova found\n');
-    else
-      fprintf('Anova found\n');
-    end
-
-    % use exchangeability blocks for labels
-    label = zeros(1,n_data);
-    for j=1:n_exch_blocks
-      for k=1:length(ind_exch_blocks{j})
-        label(xX.X(:,ind_exch_blocks{j}(k))~=0) = j;
-      end
-    end
-  end
+  % recognize the design and derive the group labels to permute
+  [label, interaction_design, ind_exch_blocks] = get_design_labels(n_cond, ...
+      n_data, xX, c0, exch_blocks, n_exch_blocks, ind_exch_blocks, is_eoi, ...
+      F_contrast_multiple_rows, repeated_anova);
 
   fprintf('\n')
 
@@ -658,41 +610,10 @@ for con = 1:length(Ic0)
   fprintf('\n');
   fprintf('# of conditions: %d\n',n_cond);
            
-  % Guttman partioning of design matrix into effects of interest X and nuisance variables Z
-  X = xX.X(:,ind_X);
-  ind_Z = [xX.iH xX.iC xX.iB xX.iG];
-  ind_Z(ind_X) = [];
-  Z = xX.X(:,ind_Z);
-    
-  Hz = Z*pinv(Z);
-  Rz = eye(size(X,1)) - Hz;
-
-  % if Hz is zero or Ic is empty then no confounds were found and we can skip the time-consuming
-  % Freedman-Lane permutation
-  if (all(~any(Hz)) || isempty(xX.iC)) || all(~any(diff(Hz))) || (interaction_design && numel(xX.iC) == numel(ind_X))
-    exist_nuisance = false;
-  else
-    exist_nuisance = true;
-  end
-  
-  if ~exist_nuisance && nuisance_method > 0
-    fprintf('No nuisance variables were found: Use Draper-Stoneman permutation.\n\n');
-    nuisance_method = 0;
-  end
-
-  if nuisance_method > 0 && repeated_anova
-    fprintf('Use Draper-Stoneman permutation for repeated measures Anova.\n\n');
-    nuisance_method = 0;
-  end
-
-  switch nuisance_method 
-  case 0
-    str_permutation_method = 'Draper-Stoneman';
-  case 1
-    str_permutation_method = 'Freedman-Lane';
-  case 2
-    str_permutation_method = 'Smith';
-  end
+  % partition the design into effects of interest and nuisance, and settle on
+  % the method used to deal with the nuisance variables
+  [Rz, nuisance_method, str_permutation_method] = get_nuisance_method(xX, ...
+      ind_X, interaction_design, requested_nuisance_method, repeated_anova);
 
   % name of contrast
   c_name0 = deblank(xCon.name);
@@ -1736,6 +1657,111 @@ for j=1:n_exch_blocks
   else
     ind_exch_blocks{j} = ind_X(j);
   end
+end
+
+%---------------------------------------------------------------
+function [label, interaction_design, ind_exch_blocks] = get_design_labels(n_cond, ...
+    n_data, xX, c0, exch_blocks, n_exch_blocks, ind_exch_blocks, is_eoi, ...
+    F_contrast_multiple_rows, repeated_anova)
+% Recognize the design behind a contrast and derive the labels that are permuted.
+%
+% n_cond             - 0 = correlation/regression, 1 = one-sample t-test,
+%                      >1 = Anova with at least 2 groups
+% label              - group label per data point, 0 where the contrast is undefined
+% interaction_design - differential contrast across two or more regressors
+% ind_exch_blocks    - may be corrected here for effects-of-interest F-contrasts
+
+interaction_design = false;
+
+if n_cond == 0 % correlation
+  label = 1:n_data;
+
+  % we have to correct for some F-contrasts (i.e. effects of interest
+  % with eyes)
+  if F_contrast_multiple_rows && is_eoi
+    is_one = find(any(c0'));
+    for j=1:numel(is_one)
+      ind_exch_blocks{j} = is_one(j);
+    end
+    ind_exch_blocks = ind_exch_blocks';
+  end
+
+  if n_exch_blocks >= 2 && any(diff(exch_blocks(:))) % # exch_blocks >1 & differential contrast
+    fprintf('Interaction design between two or more regressors found\n')
+    interaction_design = true;
+
+    % remove all entries where contrast is not defined
+    % this does not work for all data CG 20200829
+    % label(all(xX.X(:,ind_X)==0,2)) = [];
+  else
+    if repeated_anova
+      fprintf('Repeated Anova with contrast for covariate found\n');
+    else
+      fprintf('Multiple regression design found\n');
+    end
+  end
+
+else % one-sample t-test or Anova: both use exchangeability blocks for labels
+  if n_cond == 1
+    fprintf('One sample t-test found\n');
+  elseif repeated_anova
+    fprintf('Repeated Anova found\n');
+  else
+    fprintf('Anova found\n');
+  end
+
+  label = zeros(1,n_data);
+  for j=1:n_exch_blocks
+    for k=1:length(ind_exch_blocks{j})
+      label(xX.X(:,ind_exch_blocks{j}(k))~=0) = j;
+    end
+  end
+end
+
+%---------------------------------------------------------------
+function [Rz, nuisance_method, str_permutation_method] = get_nuisance_method(xX, ...
+    ind_X, interaction_design, nuisance_method, repeated_anova)
+% Guttman partitioning of the design matrix and choice of the permutation method.
+%
+% Rz                     - residual forming matrix of the nuisance variables Z
+% nuisance_method        - may be downgraded to Draper-Stoneman (0) here if there
+%                          are no nuisance variables, or for a repeated Anova
+% str_permutation_method - name of the resulting method
+
+% Guttman partioning of design matrix into effects of interest X and nuisance variables Z
+X = xX.X(:,ind_X);
+ind_Z = [xX.iH xX.iC xX.iB xX.iG];
+ind_Z(ind_X) = [];
+Z = xX.X(:,ind_Z);
+
+Hz = Z*pinv(Z);
+Rz = eye(size(X,1)) - Hz;
+
+% if Hz is zero or Ic is empty then no confounds were found and we can skip the time-consuming
+% Freedman-Lane permutation
+if (all(~any(Hz)) || isempty(xX.iC)) || all(~any(diff(Hz))) || (interaction_design && numel(xX.iC) == numel(ind_X))
+  exist_nuisance = false;
+else
+  exist_nuisance = true;
+end
+
+if ~exist_nuisance && nuisance_method > 0
+  fprintf('No nuisance variables were found: Use Draper-Stoneman permutation.\n\n');
+  nuisance_method = 0;
+end
+
+if nuisance_method > 0 && repeated_anova
+  fprintf('Use Draper-Stoneman permutation for repeated measures Anova.\n\n');
+  nuisance_method = 0;
+end
+
+switch nuisance_method
+case 0
+  str_permutation_method = 'Draper-Stoneman';
+case 1
+  str_permutation_method = 'Freedman-Lane';
+case 2
+  str_permutation_method = 'Smith';
 end
 
 %---------------------------------------------------------------

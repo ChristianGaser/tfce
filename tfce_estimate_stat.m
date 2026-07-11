@@ -501,91 +501,14 @@ for con = 1:length(Ic0)
   
   fprintf('Use contrast #%d of %s\n',Ic,job.data{1})
 
-  % get contrast and name
-  c0 = xCon.c;  
-  F_contrast_multiple_rows = 0;
-  
-  % for F-contrasts if rank is 1 we can use the first row
-  if strcmp(xCon.STAT,'F')
-    if rank(c0) == 1
-      c0 = c0(:,1);
-    else
-      F_contrast_multiple_rows = 1;
-    end
+  % get contrast, exchangeability blocks and the design they imply
+  [ok, c0, F_contrast_multiple_rows, ind_X, exch_blocks, n_exch_blocks, ...
+   is_eoi, n_cond, use_half_permutations, ind_exch_blocks] = ...
+      get_exchangeability_blocks(xCon, xX, repeated_anova);
+  if ~ok
+    return
   end
-
-  [indi, indj] = find(c0~=0);
-  ind_X = unique(indi)';
   xCon.ind_X = ind_X;
-  
-  % check for contrasts that are defined for columns with subject effects
-  if ~isempty(xX.iB)
-    if max(ind_X) > min(xX.iB)
-      fprintf('ERROR: No contrasts on subjects/block effects allowed.\n');
-      return
-    end
-  end
-
-  % find exchangeability blocks using contrasts without zero values
-  exch_blocks   = c0(ind_X,:);
-    
-  n_exch_blocks = length(ind_X);
-  
-  % recognize effects of interest contrast for F-tests
-  if F_contrast_multiple_rows && size(exch_blocks,2) == n_exch_blocks
-    is_eoi = all(all(exch_blocks == eye(n_exch_blocks)));
-    if is_eoi
-      n_exch_blocks = 1;
-    end
-  end
-  
-  % check for exchangeability blocks and design matrix
-  if n_exch_blocks == 1
-    n_cond = length(find(xX.iH==ind_X)); % check whether the contrast is defined at columns for condition effects
-  else
-    n_cond = 0;
-    n_data_cond = [];
-    for k=1:length(xX.iH)
-      n_data_cond = [n_data_cond sum(xX.X(:,xX.iH(k)))];
-    end
-    
-    % for F-contrast with multiple rows n_cond is always n_exch_blocks
-    if F_contrast_multiple_rows && length(xX.iH) > 1
-      n_cond = n_exch_blocks;
-    elseif F_contrast_multiple_rows && length(xX.iH) == 1
-      n_cond = 0;
-    else
-      for j=1:n_exch_blocks
-        col_exch_blocks = find(c0==exch_blocks(j));
-        for k=1:length(col_exch_blocks)
-          n_cond = n_cond + length(find(xX.iH==col_exch_blocks(k)));
-        end
-      end  
-    end
-    
-  end
-
-  use_half_permutations = 0;
-  % check if sample size is equal for both conditions
-  if n_cond == 2
-    try
-      % repated Anova or F-test don't allow to use only half of the permutions
-      if repeated_anova || strcmp(xCon.STAT,'F')
-        use_half_permutations = 0;
-      elseif sum(n_data_cond(c0==exch_blocks(1))) == sum(n_data_cond(c0==exch_blocks(2)))
-        use_half_permutations = 1;
-      end
-    end
-  end
-  
-  ind_exch_blocks = cell(n_exch_blocks,1);
-  for j=1:n_exch_blocks
-    if strcmp(xCon.STAT,'T')
-      ind_exch_blocks{j} = find(c0==exch_blocks(j));
-    else
-      ind_exch_blocks{j} = ind_X(j);
-    end
-  end
 
   fprintf('\n');
   
@@ -1703,6 +1626,117 @@ for con = 1:length(Ic0)
 end
 
 colormap(gray)
+
+%---------------------------------------------------------------
+function [ok, c0, F_contrast_multiple_rows, ind_X, exch_blocks, n_exch_blocks, ...
+          is_eoi, n_cond, use_half_permutations, ind_exch_blocks] = ...
+    get_exchangeability_blocks(xCon, xX, repeated_anova)
+% Derive the exchangeability blocks of a contrast and the design they imply.
+%
+% xCon           - contrast structure
+% xX             - design structure
+% repeated_anova - true if subject/block effects are modelled
+%
+% ok             - false if the contrast cannot be permuted (caller must abort)
+% c0             - contrast, reduced to its first column for rank-1 F-contrasts
+% F_contrast_multiple_rows - F-contrast whose rank exceeds 1
+% ind_X          - columns of the design the contrast is defined on
+% exch_blocks    - contrast entries on those columns
+% n_exch_blocks  - number of exchangeability blocks
+% is_eoi         - contrast is an effects-of-interest F-contrast (eye matrix)
+% n_cond         - number of conditions: 0 = correlation/regression,
+%                  1 = one-sample t-test, >1 = Anova
+% use_half_permutations - equal sample sizes allow using half the permutations
+% ind_exch_blocks - design columns belonging to each exchangeability block
+
+ok = true;
+
+% get contrast and name
+c0 = xCon.c;
+F_contrast_multiple_rows = 0;
+
+% for F-contrasts if rank is 1 we can use the first row
+if strcmp(xCon.STAT,'F')
+  if rank(c0) == 1
+    c0 = c0(:,1);
+  else
+    F_contrast_multiple_rows = 1;
+  end
+end
+
+[indi, indj] = find(c0~=0);
+ind_X = unique(indi)';
+
+% check for contrasts that are defined for columns with subject effects
+if ~isempty(xX.iB)
+  if max(ind_X) > min(xX.iB)
+    fprintf('ERROR: No contrasts on subjects/block effects allowed.\n');
+    ok = false;
+    return
+  end
+end
+
+% find exchangeability blocks using contrasts without zero values
+exch_blocks   = c0(ind_X,:);
+
+n_exch_blocks = length(ind_X);
+
+% recognize effects of interest contrast for F-tests
+is_eoi = false;
+if F_contrast_multiple_rows && size(exch_blocks,2) == n_exch_blocks
+  is_eoi = all(all(exch_blocks == eye(n_exch_blocks)));
+  if is_eoi
+    n_exch_blocks = 1;
+  end
+end
+
+% check for exchangeability blocks and design matrix
+if n_exch_blocks == 1
+  n_cond = length(find(xX.iH==ind_X)); % check whether the contrast is defined at columns for condition effects
+else
+  n_cond = 0;
+  n_data_cond = [];
+  for k=1:length(xX.iH)
+    n_data_cond = [n_data_cond sum(xX.X(:,xX.iH(k)))];
+  end
+
+  % for F-contrast with multiple rows n_cond is always n_exch_blocks
+  if F_contrast_multiple_rows && length(xX.iH) > 1
+    n_cond = n_exch_blocks;
+  elseif F_contrast_multiple_rows && length(xX.iH) == 1
+    n_cond = 0;
+  else
+    for j=1:n_exch_blocks
+      col_exch_blocks = find(c0==exch_blocks(j));
+      for k=1:length(col_exch_blocks)
+        n_cond = n_cond + length(find(xX.iH==col_exch_blocks(k)));
+      end
+    end
+  end
+
+end
+
+use_half_permutations = 0;
+% check if sample size is equal for both conditions
+if n_cond == 2
+  try
+    % repated Anova or F-test don't allow to use only half of the permutions
+    if repeated_anova || strcmp(xCon.STAT,'F')
+      use_half_permutations = 0;
+    elseif sum(n_data_cond(c0==exch_blocks(1))) == sum(n_data_cond(c0==exch_blocks(2)))
+      use_half_permutations = 1;
+    end
+  end
+end
+
+ind_exch_blocks = cell(n_exch_blocks,1);
+for j=1:n_exch_blocks
+  if strcmp(xCon.STAT,'T')
+    ind_exch_blocks{j} = find(c0==exch_blocks(j));
+  else
+    ind_exch_blocks{j} = ind_X(j);
+  end
+end
 
 %---------------------------------------------------------------
 function [perm_labels, n_perm] = get_permutation_labels(n_perm, use_half_permutations, ...

@@ -27,3 +27,12 @@ try
 catch
     disp('Compilation of tfceMex_maxtree not successful')
 end
+
+eval(['mex ' mexflag ' tfceMex_maxtree_batch.c'])
+
+try
+    tfceMex_maxtree_batch(rand(1000,4),0.5,2,1,[10 10 10]);
+    disp('Compilation of tfceMex_maxtree_batch successful')
+catch
+    disp('Compilation of tfceMex_maxtree_batch not successful')
+end

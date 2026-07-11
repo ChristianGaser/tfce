@@ -21,7 +21,7 @@ STARGET_FOLDER=/volume1/web/tfce
 STARGET=${STARGET_HOST}:${STARGET_FOLDER}
 
 MATLAB_FILES=Contents.* tfce_*.m spm_TFCE.m snpm_P_FDR.m tbx_cfg_tfce.m cat_spm_results_ui.m
-C_FILES=tfceMex_pthread.* tfceMex_maxtree.*
+C_FILES=tfceMex_pthread.* tfceMex_maxtree.* tfceMex_maxtree_batch.* tfce_maxtree.h
 MISC_FILES=html
 
 FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}

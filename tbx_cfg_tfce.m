@@ -160,42 +160,12 @@ conspec.val     = {titlestr contrasts n_perm};
 conspec.help    = {''};
 
 % ---------------------------------------------------------------------
-% multithreading
-% ---------------------------------------------------------------------
-singlethreaded    = cfg_menu;
-singlethreaded.tag = 'singlethreaded';
-singlethreaded.name = 'Use multi-threading to speed up calculations';
-singlethreaded.labels = {'yes','no'};
-singlethreaded.values = {0 1};
-if ispc
-  singlethreaded.val  = {1};
-else
-  singlethreaded.val  = {0};
-end
-singlethreaded.help = {[...
-'Multithreading can be used to distribute calculations to multiple processors. ',...
-'This will minimize calculation time by a large amount, but makes trouble on Windows machines, where it is deselected by default. ']};
-
-% exact TFCE
-% ---------------------------------------------------------------------
-use_maxtree        = cfg_menu;
-use_maxtree.tag    = 'use_maxtree';
-use_maxtree.name   = 'Use exact (max-tree) TFCE';
-use_maxtree.labels = {'no','yes'};
-use_maxtree.values = {0 1};
-use_maxtree.val    = {0};
-use_maxtree.help   = {[...
-'The default TFCE implementation approximates the TFCE integral by stepping through 100 thresholds. ',...
-'The max-tree implementation instead evaluates the integral exactly using a union-find data structure, ',...
-'which removes the step size and its discretisation error and is considerably faster, in particular for surfaces. ',...
-'The resulting TFCE values are on the same scale but are not numerically identical to the default method.']};
-
 % ---------------------------------------------------------------------
 % results Results Report
 % ---------------------------------------------------------------------
 tfce_estimate          = cfg_exbranch;
 tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
-tfce_estimate.val      = {data nproc mask conspec nuisance_method tbss singlethreaded use_maxtree};
+tfce_estimate.val      = {data nproc mask conspec nuisance_method tbss};
 tfce_estimate.help     = {''};
 tfce_estimate.prog     = @tfce_estimate_stat;

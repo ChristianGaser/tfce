@@ -66,9 +66,6 @@ end
 use_gamma_tail_approximation = true;
 tail_approximation_wo_unpermuted_data = false;
 
-% single-threaded?
-singlethreaded = job.singlethreaded;
-
 % convert to z-statistic
 convert_to_z = false;
 
@@ -105,23 +102,19 @@ show_permuted_designmatrix = true;
 % without any data
 test_mode = false;
 
-% define stepsize for tfce (dh-stepping only, ignored by the max-tree)
+% The TFCE integral is evaluated exactly using a max-tree (union-find), which
+% needs no step size. The old dh-stepping approximation is only kept as a
+% fallback for the case that the mex-file is not available and then uses
+% n_steps_tfce thresholds.
+use_maxtree  = true;
 n_steps_tfce = 100;
 
-% use exact max-tree TFCE (union-find) instead of the dh-stepping approximation
-if isfield(job,'use_maxtree')
-  use_maxtree = job.use_maxtree;
-else
-  use_maxtree = false;
-end
+% dh-stepping fallback only: its multi-threading makes trouble on Windows
+singlethreaded = ispc;
 
-if use_maxtree && isempty(which('tfceMex_maxtree'))
+if isempty(which('tfceMex_maxtree'))
   fprintf('Warning: tfceMex_maxtree not found. Falling back to dh-stepping TFCE.\n');
   use_maxtree = false;
-end
-
-if use_maxtree
-  fprintf('Using exact max-tree TFCE (no step size).\n');
 end
 
 % colors and alpha levels
@@ -889,7 +882,7 @@ for con = 1:length(Ic0)
 
     % TFCE options, shared by the unpermuted map and the permutation loop
     tfce_opt = struct('use_maxtree', use_maxtree, 'n_steps', n_steps_tfce, ...
-                      'faces', [], 'singlethreaded', 1);
+                      'faces', [], 'singlethreaded', singlethreaded);
 
     % calculate tfce of unpermuted t-map
     if mesh_detected
@@ -909,13 +902,8 @@ for con = 1:length(Ic0)
       tfce_opt.faces = SPM.xVol.G.faces;
       tfce0 = tfce_compute(t0, E, H, 1, tfce_opt);
     else
-
-      % measure computation time to test whether multi-threading causes issues
-      % start with single-threading for unpermuted data
-      tstart = tic;
       % only estimate neg. tfce values for non-positive t-values
       tfce0 = tfce_compute(t0, E, H, found_N, tfce_opt);
-      telapsed = toc(tstart);
     end
 
     % prepare output files
@@ -1253,27 +1241,8 @@ for con = 1:length(Ic0)
         if mesh_detected
           tfce = tfce_compute(t, E, H, 1, tfce_opt);
         else
-
-          % the multi-threading heuristic below only applies to dh-stepping
-          check_threading = perm==3 && ~singlethreaded && ~use_maxtree;
-
-          % measure computation time for 1st permutation to test whether multi-threading causes issues
-          if check_threading, tstart = tic; end
-
           % only estimate neg. tfce values for non-positive t-values
-          tfce_opt.singlethreaded = singlethreaded;
           tfce = tfce_compute(t, E, H, min(t(:)) < 0, tfce_opt);
-
-          % if multi-threading takes 3x longer then force single-threading
-          % because for some unknown reason multi-threading is not working properly
-          if check_threading
-            telapsed_multi = toc(tstart);
-            if (telapsed_multi > 3*telapsed)
-              fprintf('Warning: Multi-threading disabled because of run-time issues.\n');
-              singlethreaded = 1;
-            end
-          end
-
         end
         
       end

@@ -710,8 +710,16 @@ for con = 1:length(Ic0)
       % Low correlation points to issues with image mask and we have to use a
       cc = corrcoef(Z0(:),t0(:));
       mask_shared = Z0 ~= 0;
-      if cc(1,2) < 0.85 && isempty(job.mask)
-        % check whether mask size differes and create a shared mask 
+
+      % Remember that the parametric and the non-parametric statistic already
+      % disagree. Pt is derived from Z0, so this discrepancy propagates into the
+      % comparison of parametric and permutation p-values later on and must not
+      % be mistaken there for a problem of the design.
+      cc_stat = cc(1,2);
+      stat_mismatch = cc_stat < 0.85;
+
+      if stat_mismatch && isempty(job.mask)
+        % check whether mask size differes and create a shared mask
         if sum(Z0(:) ~= 0) ~= sum(t0(:) ~= 0)
           fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g) which either points to different image masks or to missing absolute threshold for VBM analysis.\n',cc(1,2));
           mask_shared = Z0 ~= 0 & t0 ~=0;
@@ -719,9 +727,11 @@ for con = 1:length(Ic0)
           fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g) which is likely due to creating parametric statistics in fMRI mode, which slightly handles noise differently.\n',cc(1,2));
         end
       end
-          
+
     else
       mask_shared = ones(size(t0));
+      cc_stat = NaN;
+      stat_mismatch = false;
     end
 
     % TFCE options, shared by the unpermuted map and the permutation loop
@@ -837,6 +847,12 @@ for con = 1:length(Ic0)
   [perm_labels, n_perm] = get_permutation_labels(n_perm, use_half_permutations, ...
       n_cond, n_data_with_contrast, ind_label, label, ...
       exch_block_labels_data_defined, ind_label_gt0, unique_labels, n_unique_labels);
+
+  % verify the permutations before using them: data may only be exchanged inside
+  % its own exchangeability block. A wrong block structure invalidates the whole
+  % test, and it cannot be reliably diagnosed afterwards from the results.
+  check_permutation_labels(perm_labels, n_cond, ind_label, exch_block_labels, ...
+      exch_block_labels_data_defined);
 
   if ~test_mode, tfce_progress('Init',n_perm,'Calculating','Permutations'); end
 
@@ -1202,8 +1218,14 @@ for con = 1:length(Ic0)
         % check for low correlation between non-parametric and permutation test
         % skip check for voxel-wise covariate
         if cc(1,2) < 0.85
-          % check correlation between parametric and non-parametric statistic ofr Smith or Freedman-Lane correction
-          if nuisance_method > 0 
+          if stat_mismatch
+            % The parametric and the non-parametric statistic already disagreed
+            % before any permutation was done (see the warning above). Pt is
+            % derived from that parametric statistic, so it is expected that the
+            % p-values disagree here as well. This says nothing about the design.
+            fprintf('\nNote: Parametric and permutation p-values disagree (cc=%g), but the parametric and the non-parametric statistic already disagreed before permutation (cc=%g). This points to a mismatch of the statistics themselves - different image masks, a missing absolute threshold, or parametric statistics created in fMRI mode - and not to a wrongly recognized design. Please resolve that discrepancy first.\n',cc(1,2),cc_stat);
+          elseif nuisance_method > 0
+            % check correlation between parametric and non-parametric statistic ofr Smith or Freedman-Lane correction
             spm('alert!',sprintf('WARNING: Large discrepancy between parametric and non-parametric statistic found! Please try a different method to deal with nuisance parameters.\n'),'',spm('CmdLine'),0);
             fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g)! Please try a different method to deal with nuisance parameters.\n',cc(1,2));
           else
@@ -1211,8 +1233,32 @@ for con = 1:length(Ic0)
             fprintf('\nWARNING: Large discrepancy between parametric and non-parametric statistic found (cc=%g)! Probably your design was not correctly recognized.\n',cc(1,2));
           end
         else
-          fprintf('\nCorrelation between between parametric and non-parametric statistic is cc=%g, which means that your design and optionally your nuisance parameters were correctly recognized.\n',cc(1,2));
+          fprintf('\nCorrelation between parametric and non-parametric statistic is cc=%g. This rules out a grossly misspecified permutation, but note that it cannot detect a permutation null of the wrong width (see the calibration check below).\n',cc(1,2));
         end
+
+        % Calibration of the permutation null. Under a valid permutation the
+        % uncorrected p-values are uniformly distributed, so ~5% of them exceed
+        % 0.95. True effects only ever produce SMALL p-values and therefore
+        % cannot inflate this upper tail, which makes it a clean check.
+        % A null that is too narrow makes the test anti-conservative and shows
+        % up here, while the correlation above stays close to 1 and is blind to
+        % it (both p-value maps are monotone functions of the same statistic).
+        if found_P
+          p_unc = abs(nPt(mask_P & mask_shared));
+        else
+          p_unc = abs(nPt(mask_N & mask_shared));
+        end
+        p_hi = mean(p_unc > 0.95);
+
+        if p_hi > 0.08
+          spm('alert!',sprintf('WARNING: The permutation null looks too narrow and the test may be anti-conservative! Please check the exchangeability blocks of your design.\n'),'',spm('CmdLine'),0);
+          fprintf('\nWARNING: %.1f%% of the uncorrected p-values exceed 0.95, but only ~5%% are expected. The permutation null is too narrow, which makes the test anti-conservative and points to wrong exchangeability blocks.\n',100*p_hi);
+        elseif p_hi < 0.02
+          fprintf('\nNote: only %.1f%% of the uncorrected p-values exceed 0.95, but ~5%% are expected. The permutation null is wider than expected, so the test is likely conservative.\n',100*p_hi);
+        else
+          fprintf('Calibration of the permutation null is fine: %.1f%% of the uncorrected p-values exceed 0.95 (~5%% expected).\n',100*p_hi);
+        end
+
         check_validity = true;
       end
 
@@ -1762,6 +1808,42 @@ case 1
   str_permutation_method = 'Freedman-Lane';
 case 2
   str_permutation_method = 'Smith';
+end
+
+%---------------------------------------------------------------
+function check_permutation_labels(perm_labels, n_cond, ind_label, exch_block_labels, ...
+    exch_block_labels_data_defined)
+% Verify the generated permutations before they are used.
+%
+% Exchangeability is an assumption, not a result: if data are exchanged across
+% blocks that are not exchangeable, every p-value of the analysis is wrong, and
+% the resulting miscalibration is hard to spot in the output. It is cheap to
+% assert the property directly, so we do that rather than infer it later.
+
+if n_cond == 1 % one-sample t-test: data are sign-flipped, never moved
+  if ~all(abs(perm_labels(:)) == 1)
+    error('Permutation error: sign-flipping labels must all be +1 or -1.');
+  end
+  return
+end
+
+% each permutation must be a permutation of the data points that the contrast
+% is defined for, i.e. no data point is dropped or used twice
+expected = sort(ind_label(:))';
+if ~isequal(sort(perm_labels,2), repmat(expected, size(perm_labels,1), 1))
+  error(['Permutation error: at least one permutation is not a permutation of ' ...
+         'the data points of the contrast.']);
+end
+
+% and it may only exchange data points inside their own exchangeability block
+src_blocks = reshape(exch_block_labels(perm_labels), size(perm_labels));
+dst_blocks = repmat(exch_block_labels_data_defined(:)', size(perm_labels,1), 1);
+
+if ~isequal(src_blocks, dst_blocks)
+  n_bad = sum(any(src_blocks ~= dst_blocks, 2));
+  error(['Permutation error: %d of %d permutations exchange data across ' ...
+         'exchangeability blocks. The design was not correctly recognized and ' ...
+         'the resulting p-values would be invalid.'], n_bad, size(perm_labels,1));
 end
 
 %---------------------------------------------------------------

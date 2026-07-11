@@ -1949,18 +1949,25 @@ function [T, trRV] = calc_GLM(Y,xX,xCon,ind_mask,dim)
 
 c = xCon.c;
 
-X = xX.W*xX.X;
+X = full(xX.W*xX.X);
 pKX = pinv(X);
 
 n_data = size(X,1);
 
 Beta = Y*pKX';
 
-res0 = Beta*(single(X'));
-res0 = Y - res0; %-Residuals
-res0 = res0.^2;
-ResSS = double(sum(res0,2));
-clear res0
+% residual sum of squares. The fused mex computes the same sum of squared
+% residuals without materialising the n_vox x n_data residual matrix, which the
+% expression below has to write and re-read several times.
+if isempty(which('tfceMex_resss'))
+  res0 = Beta*(single(X'));
+  res0 = Y - res0; %-Residuals
+  res0 = res0.^2;
+  ResSS = double(sum(res0,2));
+  clear res0
+else
+  ResSS = tfceMex_resss(Y, Beta, X);
+end
 
 trRV = n_data - rank(xX.X);
 ResMS = ResSS/trRV;

@@ -105,9 +105,25 @@ show_permuted_designmatrix = true;
 % without any data
 test_mode = false;
 
-% define stepsize for tfce
+% define stepsize for tfce (dh-stepping only, ignored by the max-tree)
 n_steps_tfce = 100;
-    
+
+% use exact max-tree TFCE (union-find) instead of the dh-stepping approximation
+if isfield(job,'use_maxtree')
+  use_maxtree = job.use_maxtree;
+else
+  use_maxtree = false;
+end
+
+if use_maxtree && isempty(which('tfceMex_maxtree'))
+  fprintf('Warning: tfceMex_maxtree not found. Falling back to dh-stepping TFCE.\n');
+  use_maxtree = false;
+end
+
+if use_maxtree
+  fprintf('Using exact max-tree TFCE (no step size).\n');
+end
+
 % colors and alpha levels
 col   = [0.25 0 0; 1 0 0; 1 0.75 0];
 alpha = [0.05      0.01   0.001];
@@ -871,9 +887,10 @@ for con = 1:length(Ic0)
       mask_shared = ones(size(t0));
     end
 
-    % get dh for unpermuted map
-    dh = max(abs(t0(:)))/n_steps_tfce;
-  
+    % TFCE options, shared by the unpermuted map and the permutation loop
+    tfce_opt = struct('use_maxtree', use_maxtree, 'n_steps', n_steps_tfce, ...
+                      'faces', [], 'singlethreaded', 1);
+
     % calculate tfce of unpermuted t-map
     if mesh_detected
       if ~isa(SPM.xVol.G,'gifti')
@@ -889,18 +906,15 @@ for con = 1:length(Ic0)
         end
         SPM.xVol.G = gifti(SPM.xVol.G);
       end
-      tfce0 = tfce_mesh(SPM.xVol.G.faces, t0, dh, E, H)*dh;
+      tfce_opt.faces = SPM.xVol.G.faces;
+      tfce0 = tfce_compute(t0, E, H, 1, tfce_opt);
     else
-      
+
       % measure computation time to test whether multi-threading causes issues
       % start with single-threading for unpermuted data
       tstart = tic;
       % only estimate neg. tfce values for non-positive t-values
-      if found_N
-        tfce0 = tfceMex_pthread(t0,dh,E,H,1,1)*dh;
-      else
-        tfce0 = tfceMex_pthread(t0,dh,E,H,0,1)*dh;
-      end
+      tfce0 = tfce_compute(t0, E, H, found_N, tfce_opt);
       telapsed = toc(tstart);
     end
 
@@ -1282,27 +1296,24 @@ for con = 1:length(Ic0)
         % remove all NaN and Inf's
         t(isinf(t) | isnan(t)) = 0;
         
-        % use individual dh
-        dh = max(abs(t(:)))/n_steps_tfce;
-        
         % compute tfce
         if mesh_detected
-          tfce = tfce_mesh(SPM.xVol.G.faces, t, dh, E, H)*dh;
+          tfce = tfce_compute(t, E, H, 1, tfce_opt);
         else
-          
+
+          % the multi-threading heuristic below only applies to dh-stepping
+          check_threading = perm==3 && ~singlethreaded && ~use_maxtree;
+
           % measure computation time for 1st permutation to test whether multi-threading causes issues
-          if perm==3 && ~singlethreaded, tstart = tic; end
-          
+          if check_threading, tstart = tic; end
+
           % only estimate neg. tfce values for non-positive t-values
-          if min(t(:)) < 0
-            tfce = tfceMex_pthread(t,dh,E,H,1,singlethreaded)*dh;
-          else
-            tfce = tfceMex_pthread(t,dh,E,H,0,singlethreaded)*dh;
-          end
-          
+          tfce_opt.singlethreaded = singlethreaded;
+          tfce = tfce_compute(t, E, H, min(t(:)) < 0, tfce_opt);
+
           % if multi-threading takes 3x longer then force single-threading
           % because for some unknown reason multi-threading is not working properly
-          if perm==3 && ~singlethreaded
+          if check_threading
             telapsed_multi = toc(tstart);
             if (telapsed_multi > 3*telapsed)
               fprintf('Warning: Multi-threading disabled because of run-time issues.\n');

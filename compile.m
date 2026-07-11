@@ -18,3 +18,12 @@ try
 catch
     disp('Compilation of tfceMex not successful')
 end
+
+eval(['mex ' mexflag ' tfceMex_maxtree.c'])
+
+try
+    tfceMex_maxtree(rand(10,10,10),0.5,2,1);
+    disp('Compilation of tfceMex_maxtree successful')
+catch
+    disp('Compilation of tfceMex_maxtree not successful')
+end

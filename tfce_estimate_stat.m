@@ -987,10 +987,6 @@ for con = 1:length(Ic0)
   end
     
   stopStatus = false;
-  if ~test_mode, tfce_progress('Init',n_perm,'Calculating','Permutations'); end
-  
-  % update interval for progress bar
-  progress_step = max([1 round(n_perm/100)]);
 
   % Regression design found where contrast is defined for covariate?
   if ~isempty(xX.iC) && all(ismember(ind_X,SPM.xX.iC))
@@ -998,79 +994,36 @@ for con = 1:length(Ic0)
   else
     ind_label_gt0 = find(label > 0);
   end
-  
+
   unique_labels = unique(label(ind_label_gt0));
   n_unique_labels = length(unique_labels);
-  
+
+  % pre-generate the whole sequence of permutation labels. The draw only depends
+  % on the labels drawn before it and never on any statistic, so it can be done
+  % up front. This keeps the permutation sequence reproducible independently of
+  % the loop and is the prerequisite for computing permutations in parallel.
+  [perm_labels, n_perm] = get_permutation_labels(n_perm, use_half_permutations, ...
+      n_cond, n_data_with_contrast, ind_label, label, ...
+      exch_block_labels_data_defined, ind_label_gt0, unique_labels, n_unique_labels);
+
+  if ~test_mode, tfce_progress('Init',n_perm,'Calculating','Permutations'); end
+
+  % update interval for progress bar
+  progress_step = max([1 round(n_perm/100)]);
+
   perm = 1;
+  perm_idx = 0;
   check_validity = false;
   while perm<=n_perm
 
-    % randomize subject vector
-    if perm==1 % first permutation is always unpermuted model
-      if n_cond == 1 % one-sample t-test
-        rand_label = ones(1,n_data_with_contrast);
-        label_matrix = rand_label;
-      else % correlation or Anova
-        rand_order = ind_label;
-        rand_order_sorted = rand_order;
-        label_matrix = rand_order;
-      end
-    else
-      % init permutation and
-      % check that each permutation is used only once
-      if n_cond == 1 % one-sample t-test
-        rand_label = sign(randn(1,n_data_with_contrast));
-        while any(ismember(label_matrix,rand_label,'rows'))
-          rand_label = sign(randn(1,n_data_with_contrast));
-        end
-      else % correlation or Anova
-        
-        % permute inside exchangeability blocks only
-        rand_order = zeros(1,n_data_with_contrast);
-        rand_order_sorted = zeros(1,n_data_with_contrast);
-        for k = 1:max(exch_block_labels_data_defined)
-          ind_block   = find(exch_block_labels_data_defined == k);
-          n_per_block = length(ind_block);
-          rand_order(ind_block) = ind_label(ind_block(randperm(n_per_block)));
-        end
-        
-        % go through defined labels and sort inside
-        for k=1:n_unique_labels
-          ind_block = find(label(ind_label_gt0) == unique_labels(k));
-          rand_order_sorted(ind_block) = sort(rand_order(ind_block));
-        end
+    % pick the pre-generated subject vector for this permutation
+    perm_idx = perm_idx + 1;
+    if n_cond == 1 % one-sample t-test
+      rand_label = perm_labels(perm_idx,:);
+    else % correlation or Anova
+      rand_order_sorted = perm_labels(perm_idx,:);
+    end
 
-        % check whether this permutation was already used
-        count_trials = 0;
-        while any(ismember(label_matrix,rand_order_sorted,'rows'))
-          count_trials = count_trials + 1;
-          
-          % stop the permutation loop for too many successless trials for finding 
-          % new permutations
-          if count_trials > 100000
-            fprintf('Stopped after %d permutations because there were too many successless trials for finding new permutations.\n',perm);
-            fprintf('Probably there are some missing values for some subjects and the number of maximal permutations was too high.\n');
-            n_perm = perm; % stop the permutation loop
-            break
-          end
-          
-          for k = 1:max(exch_block_labels_data_defined)
-            ind_block   = find(exch_block_labels_data_defined == k);
-            n_per_block = length(ind_block);
-            rand_order(ind_block) = ind_label(ind_block(randperm(n_per_block)));
-          end
-          
-          % go through defined labels and sort inside
-          for k=1:n_unique_labels
-            ind_block = find(label(ind_label_gt0) == unique_labels(k));
-            rand_order_sorted(ind_block) = sort(rand_order(ind_block));
-          end
-
-        end
-      end    
-    end   
-    
     % create permutation set
     Pset = sparse(n_data,n_data);
     if n_cond == 1 % one-sample t-test
@@ -1337,11 +1290,7 @@ for con = 1:length(Ic0)
       end
     end % test_mode
     
-    % update label_matrix to check for unique permutations
     if use_half_permutations
-      if perm>1
-        label_matrix = [label_matrix; rand_order_sorted; [rand_order_sorted(label(ind_label) == 2) rand_order_sorted(label(ind_label) == 1)]];
-      end
       if ~test_mode
         % maximum statistic
         t_max    = [t_max    max(t(mask_stat_P))    -min(t(mask_stat_N))];
@@ -1355,13 +1304,6 @@ for con = 1:length(Ic0)
         
       end
     else
-      if perm>1
-        if n_cond == 1 % one-sample t-test
-          label_matrix = [label_matrix; rand_label];
-        else
-          label_matrix = [label_matrix; rand_order_sorted];
-        end
-      end
       if ~test_mode
         % maximum statistic
         t_max    = [t_max    max(t(mask_stat_P))];
@@ -1792,6 +1734,121 @@ for con = 1:length(Ic0)
 end
 
 colormap(gray)
+
+%---------------------------------------------------------------
+function [perm_labels, n_perm] = get_permutation_labels(n_perm, use_half_permutations, ...
+    n_cond, n_data_with_contrast, ind_label, label, exch_block_labels_data_defined, ...
+    ind_label_gt0, unique_labels, n_unique_labels)
+% Pre-generate the sequence of permutation labels used by the permutation loop.
+%
+% Each draw is rejection-sampled against the permutations drawn before it so that
+% no permutation is used twice. It depends on nothing but the previous draws, so
+% generating the whole sequence up front yields exactly the same labels (and
+% consumes the random number stream in exactly the same order) as drawing them
+% inside the loop.
+%
+% perm_labels - one row per permutation: the sign vector for a one-sample t-test,
+%               otherwise the sorted permutation order
+% n_perm      - possibly reduced if no further unique permutations can be found
+
+if use_half_permutations % each draw also covers its mirrored counterpart
+  step = 2;
+else
+  step = 1;
+end
+
+perm_labels = zeros(length(1:step:n_perm), n_data_with_contrast);
+
+perm = 1;
+i    = 0;
+while perm <= n_perm
+
+  i = i + 1;
+
+  % first permutation is always the unpermuted model
+  if perm == 1
+    if n_cond == 1 % one-sample t-test
+      rand_label = ones(1,n_data_with_contrast);
+      label_matrix = rand_label;
+    else % correlation or Anova
+      rand_order_sorted = ind_label;
+      label_matrix = rand_order_sorted;
+    end
+  else
+    if n_cond == 1 % one-sample t-test
+      rand_label = sign(randn(1,n_data_with_contrast));
+      while any(ismember(label_matrix,rand_label,'rows'))
+        rand_label = sign(randn(1,n_data_with_contrast));
+      end
+    else % correlation or Anova
+
+      % permute inside exchangeability blocks only
+      rand_order = zeros(1,n_data_with_contrast);
+      rand_order_sorted = zeros(1,n_data_with_contrast);
+      for k = 1:max(exch_block_labels_data_defined)
+        ind_block   = find(exch_block_labels_data_defined == k);
+        n_per_block = length(ind_block);
+        rand_order(ind_block) = ind_label(ind_block(randperm(n_per_block)));
+      end
+
+      % go through defined labels and sort inside
+      for k=1:n_unique_labels
+        ind_block = find(label(ind_label_gt0) == unique_labels(k));
+        rand_order_sorted(ind_block) = sort(rand_order(ind_block));
+      end
+
+      % check whether this permutation was already used
+      count_trials = 0;
+      while any(ismember(label_matrix,rand_order_sorted,'rows'))
+        count_trials = count_trials + 1;
+
+        % stop the permutation loop for too many successless trials for finding
+        % new permutations
+        if count_trials > 100000
+          fprintf('Stopped after %d permutations because there were too many successless trials for finding new permutations.\n',perm);
+          fprintf('Probably there are some missing values for some subjects and the number of maximal permutations was too high.\n');
+          n_perm = perm; % stop the permutation loop
+          perm_labels(i,:) = rand_order_sorted;
+          perm_labels = perm_labels(1:i,:);
+          return
+        end
+
+        for k = 1:max(exch_block_labels_data_defined)
+          ind_block   = find(exch_block_labels_data_defined == k);
+          n_per_block = length(ind_block);
+          rand_order(ind_block) = ind_label(ind_block(randperm(n_per_block)));
+        end
+
+        % go through defined labels and sort inside
+        for k=1:n_unique_labels
+          ind_block = find(label(ind_label_gt0) == unique_labels(k));
+          rand_order_sorted(ind_block) = sort(rand_order(ind_block));
+        end
+
+      end
+    end
+  end
+
+  % keep the drawn permutation and remember it to check for unique permutations
+  if n_cond == 1 % one-sample t-test
+    perm_labels(i,:) = rand_label;
+    if perm > 1
+      label_matrix = [label_matrix; rand_label];
+    end
+  else
+    perm_labels(i,:) = rand_order_sorted;
+    if perm > 1
+      if use_half_permutations % the mirrored permutation is used up as well
+        label_matrix = [label_matrix; rand_order_sorted; ...
+          [rand_order_sorted(label(ind_label) == 2) rand_order_sorted(label(ind_label) == 1)]];
+      else
+        label_matrix = [label_matrix; rand_order_sorted];
+      end
+    end
+  end
+
+  perm = perm + step;
+end
 
 %---------------------------------------------------------------
 function plot_distribution(val_max,val_th,name,alpha,col,order,val0_max,val0_min)

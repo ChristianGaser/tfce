@@ -20,9 +20,19 @@ if strcmp(mexext,'mexmaci64') && verLessThan('matlab','9.2')
   warning('WARNING: Matlab version should be at least R2017a for compilation under Mac.');
 end
 
+% report the compiler that mex selected, which is what usually goes wrong on a
+% build machine
+try
+  cc = mex.getCompilerConfigurations('C','Selected');
+  fprintf('Compiler: %s (%s)\n', cc.Name, cc.Version);
+catch
+  fprintf('Compiler: none selected by mex\n');
+end
+
 if ispc
-  % MSVC understands neither the gcc/clang flags nor pthreads. The mex-files use
-  % Win32 threads there instead (see tfce_threads.h), and mex already optimizes.
+  % Neither MSVC nor MinGW take the gcc/clang flags used below, and MSVC has no
+  % pthreads. The mex-files use Win32 threads on Windows (see tfce_threads.h),
+  % and mex already optimizes by default.
   mexflag = ' -O ';
 else
   mexflag = ' -O COPTIMFLAGS=''-O3 -fwrapv -DNDEBUG'' CFLAGS=''$CFLAGS -pthread -Wall -ansi -pedantic -Wextra'' ';

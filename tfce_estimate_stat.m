@@ -89,9 +89,6 @@ show_permuted_designmatrix = true;
 % without any data
 test_mode = false;
 
-% dh-stepping fallback only: its multi-threading makes trouble on Windows
-singlethreaded = ispc;
-
 % colors and alpha levels
 col   = [0.25 0 0; 1 0 0; 1 0.75 0];
 alpha = [0.05      0.01   0.001];
@@ -777,7 +774,9 @@ for con = 1:length(Ic0)
       stat_mismatch = false;
     end
 
-    % TFCE options, shared by the unpermuted map and the permutation loop
+    % Surface faces are passed to tfceMex_maxtree to select the neighbourhood:
+    % empty means volume data with 26-connectivity, otherwise the mesh adjacency
+    % built from these faces is used. Shared by the unpermuted map and the loop.
     faces = [];
 
     % calculate tfce of unpermuted t-map
@@ -796,10 +795,10 @@ for con = 1:length(Ic0)
         SPM.xVol.G = gifti(SPM.xVol.G);
       end
       faces = SPM.xVol.G.faces;
-      tfce0 = tfce_compute(t0, E, H, 1, faces);
+      tfce0 = tfceMex_maxtree(t0, E, H, 1, faces);
     else
       % only estimate neg. tfce values for non-positive t-values
-      tfce0 = tfce_compute(t0, E, H, found_N, faces);
+      tfce0 = tfceMex_maxtree(t0, E, H, found_N, faces);
     end
 
     % prepare output files
@@ -1141,10 +1140,10 @@ for con = 1:length(Ic0)
         
         % compute tfce
         if mesh_detected
-          tfce = tfce_compute(t, E, H, 1, faces);
+          tfce = tfceMex_maxtree(t, E, H, 1, faces);
         else
           % only estimate neg. tfce values for non-positive t-values
-          tfce = tfce_compute(t, E, H, min(t(:)) < 0, faces);
+          tfce = tfceMex_maxtree(t, E, H, min(t(:)) < 0, faces);
         end
         
       end

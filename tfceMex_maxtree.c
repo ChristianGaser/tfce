@@ -4,10 +4,14 @@
  *   tfce = tfceMex_maxtree(t, E, H, calc_neg)          % volume, t is 3D
  *   tfce = tfceMex_maxtree(t, E, H, calc_neg, faces)   % surface, t is Nx1
  *
- * In contrast to tfceMex_pthread, the TFCE integral is evaluated exactly, so
- * there is no step size dh and no discretisation error. See tfce_maxtree.h for
- * the algorithm. To compute many maps at once (permutations), use
- * tfceMex_maxtree_batch, which runs one map per thread.
+ * The last argument selects the neighbourhood: if faces are omitted or empty, t
+ * is treated as a 3D volume with 26-connectivity, otherwise as surface data on
+ * the mesh defined by these faces.
+ *
+ * The TFCE integral is evaluated exactly, so there is no step size dh and no
+ * discretisation error. See tfce_maxtree.h for the algorithm. To compute many
+ * maps at once (permutations), use tfceMex_maxtree_batch, which runs one map
+ * per thread.
  *
  * The positive and negative passes touch disjoint elements and run on two
  * threads without locking.

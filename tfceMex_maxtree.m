@@ -7,10 +7,13 @@ tfce = tfceMex_maxtree(t, E, H, calc_neg, faces)
 % calc_neg  - also calc neg. TFCE values (default)
 % faces     - surface faces; omit or leave empty for volume data
 %
-% In contrast to tfceMex_pthread, the TFCE integral is evaluated exactly using
-% a max-tree (component tree) built with union-find, so there is no step size
-% dh and no discretisation error. Run time is independent of any precision
-% parameter.
+% The last argument selects the neighbourhood: if faces are omitted or empty,
+% t is treated as a 3D volume with 26-connectivity, otherwise as surface data
+% on the mesh defined by these faces.
+%
+% The TFCE integral is evaluated exactly using a max-tree (component tree) built
+% with union-find, so there is no step size dh and no discretisation error. Run
+% time is independent of any precision parameter.
 %
 % ______________________________________________________________________
 %

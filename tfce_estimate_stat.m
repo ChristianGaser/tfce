@@ -208,36 +208,52 @@ end
 % find exchangeability block labels for longitudinal designs (paired t-test, flexible factorial)
 repeated_anova = ~isempty(xX.iB);
 if repeated_anova
-  [rw,cl] = find(xX.I == length(xX.iB)); % find column which codes subject factor (length(xX.iB) -> n_subj)
-  exch_block_labels = xX.I(:,cl(1));     % column from above contains the subject factor
+  % Read the blocks straight from the block partition of the design matrix, where
+  % they are explicit: xX.X(:,xX.iB) is the subject indicator matrix. The previous
+  % version searched xX.I for the value numel(xX.iB) and used the first column that
+  % happened to contain it. That silently picked the wrong factor if the subject
+  % factor was not the first one and an earlier factor had at least as many levels,
+  % and it picked the replication index of a "specify all" factor matrix whenever
+  % that index was not constant.
+  B = xX.X(:,xX.iB) ~= 0;
 
-  % check that labels are defined for each block
-  for i=1:n_data
-    groupListed(exch_block_labels(i)) = true;
+  % every data point has to belong to exactly one block
+  if any(sum(B,2) ~= 1)
+    fprintf('\nError: The block partition of the design matrix does not assign every data point to exactly one subject.\n\n');
+    return
   end
-  
-  for i = 1:max(exch_block_labels)
-    if ~groupListed(i) 
-      fprintf('\nError: block %d must be assigned to at least one design row in the blocks file.\n\n',i);
-      return
-    end
+
+  [~, exch_block_labels] = max(B, [], 2);
+  exch_block_labels = exch_block_labels';
+
+  n_tp = sum(B, 1);   % number of data points per block
+
+  if any(n_tp == 0)
+    fprintf('\nError: block %d must be assigned to at least one design row in the blocks file.\n\n', find(n_tp == 0, 1));
+    return
   end
-  
-  % check whether ate least two time points are available
-  n_tp = sum(xX.X(:,xX.iB));
+
+  % check whether at least two time points are available
   if any(n_tp == 1)
     fprintf('\nError: You need at least two time points for a longitudinal design for every subjects.\n\n');
     return
   end
-  
+
   if ~isempty(xX.iC)
-    fprintf('\Warning: Covariates are not recommended for repeated measures Anova and will not properly work.\n');
+    fprintf('\nWarning: Covariates are not recommended for repeated measures Anova and will not properly work.\n');
     fprintf('Please remove any covariates from your longitudinal design.\n\n');
   end
-  
-  fprintf('\nPlease note that permutation is only done within subjects for repeated Anova.\n');
+
+  % report the recognized structure so that it can be checked
+  if all(n_tp == n_tp(1))
+    fprintf('\nExchangeability blocks: %d subjects with %d data points each.\n', numel(n_tp), n_tp(1));
+  else
+    fprintf('\nExchangeability blocks: %d subjects with %d to %d data points.\n', numel(n_tp), min(n_tp), max(n_tp));
+  end
+  fprintf('Please note that permutation is only done within subjects for repeated Anova.\n');
 else
   exch_block_labels = ones(1,n_data);
+  fprintf('\nExchangeability blocks: none, all %d data points are freely exchangeable.\n', n_data);
 end
 
 if ~test_mode

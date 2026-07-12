@@ -1316,6 +1316,7 @@ for con = 1:length(Ic0)
   
   try
     delete(hStopButton);
+    warning off
     spm_print;
   end
   

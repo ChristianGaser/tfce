@@ -1,4 +1,4 @@
-function tfce = tfce_compute(t, E, H, calc_neg, opt)
+function tfce = tfce_compute(t, E, H, calc_neg, faces)
 % Apply the TFCE transform, either exactly or with the dh-stepping approximation
 % FORMAT tfce = tfce_compute(t, E, H, calc_neg, opt)
 % t         - T map (3D volume, or Nx1 vector for surface data)

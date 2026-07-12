@@ -120,7 +120,7 @@ jobs:
 
       - name: Zip mex-files
         shell: bash
-        run: zip -r tfce_${{ github.ref_name }}_${{ matrix.mex_ext }}.zip TFCE/*.${{ matrix.mex_ext }}
+        run: zip -r tfce_${{ github.ref_name }}_${{ matrix.mex_ext }}.zip -i TFCE/*.${{ matrix.mex_ext }}
 
       - name: Upload ZIP
         uses: actions/upload-artifact@v4

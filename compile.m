@@ -10,15 +10,6 @@ end
 
 mexflag=' -O -largeArrayDims COPTIMFLAGS=''-O3 -fwrapv -DNDEBUG'' CFLAGS=''$CFLAGS -pthread -Wall -ansi -pedantic -Wextra'' ';
 
-eval(['mex ' mexflag ' tfceMex_pthread.c'])
-
-try
-    tfceMex_pthread(rand(10,10,10),0.01,0.5,2);
-    disp('Compilation of tfceMex successful')
-catch
-    disp('Compilation of tfceMex not successful')
-end
-
 eval(['mex ' mexflag ' tfceMex_maxtree.c'])
 
 try

@@ -5,11 +5,7 @@ function tfce = tfce_compute(t, E, H, calc_neg, opt)
 % E         - TFCE parameter for extent
 % H         - TFCE parameter for height
 % calc_neg  - also calc neg. TFCE values
-% opt       - options with fields
-%             use_maxtree    - exact max-tree TFCE instead of dh-stepping
-%             n_steps        - number of dh steps (dh-stepping only)
-%             faces          - surface faces; empty for volume data
-%             singlethreaded - dh-stepping volumes only
+% faces     - surface faces; empty for volume data
 %
 % The dh-stepping variant approximates the TFCE integral on a grid of n_steps
 % levels, with dh derived from the map maximum. The max-tree variant evaluates
@@ -25,17 +21,8 @@ function tfce = tfce_compute(t, E, H, calc_neg, opt)
 % ______________________________________________________________________
 % $Id$
 
-if opt.use_maxtree
-  if isempty(opt.faces)
-    tfce = tfceMex_maxtree(t, E, H, calc_neg);
-  else
-    tfce = tfceMex_maxtree(t, E, H, calc_neg, opt.faces);
-  end
+if isempty(faces)
+  tfce = tfceMex_maxtree(t, E, H, calc_neg);
 else
-  dh = max(abs(t(:)))/opt.n_steps;
-  if isempty(opt.faces)
-    tfce = tfceMex_pthread(t, dh, E, H, calc_neg, opt.singlethreaded)*dh;
-  else
-    tfce = tfce_mesh(opt.faces, t, dh, E, H)*dh;
-  end
+  tfce = tfceMex_maxtree(t, E, H, calc_neg, faces);
 end

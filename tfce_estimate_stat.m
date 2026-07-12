@@ -39,8 +39,6 @@ function tfce_estimate_stat(job)
 % Jena University Hospital
 % ______________________________________________________________________
 
-global old_method_stat
-
 % disable parallel processing for only one SPM.mat file
 if numel(job.data) == 1
   job.nproc = 0;
@@ -64,26 +62,12 @@ end
 
 % Use tail approximation from the Gamma distribution for corrected P-values 
 use_gamma_tail_approximation = true;
-tail_approximation_wo_unpermuted_data = false;
 
 % convert to z-statistic
 convert_to_z = false;
 
 % option to stop estimation if no FWE-corrected result was found after defined number of permutations
 stop_if_no_FWEeffects_found = Inf;
-
-% use (too liberal) method for estimating maximum statistic from old release 
-% r184 for compatibility purposes only that was estimating max/min statistics
-% only inside pos./neg. effects and not both
-if isfield(job,'old_method_stat')
-  old_method_stat = job.old_method_stat;
-elseif exist('old_method_stat','var') && isempty(old_method_stat)
-  old_method_stat = false;
-end
-
-if old_method_stat
-  fprintf('Use old method from r184 to estimate maximum statistics which might be too liberal.\n');
-end
 
 % save null distribution
 save_null_distribution = true;
@@ -105,20 +89,8 @@ show_permuted_designmatrix = true;
 % without any data
 test_mode = false;
 
-% The TFCE integral is evaluated exactly using a max-tree (union-find), which
-% needs no step size. The old dh-stepping approximation is only kept as a
-% fallback for the case that the mex-file is not available and then uses
-% n_steps_tfce thresholds.
-use_maxtree  = true;
-n_steps_tfce = 100;
-
 % dh-stepping fallback only: its multi-threading makes trouble on Windows
 singlethreaded = ispc;
-
-if isempty(which('tfceMex_maxtree'))
-  fprintf('Warning: tfceMex_maxtree not found. Falling back to dh-stepping TFCE.\n');
-  use_maxtree = false;
-end
 
 % colors and alpha levels
 col   = [0.25 0 0; 1 0 0; 1 0.75 0];
@@ -806,8 +778,7 @@ for con = 1:length(Ic0)
     end
 
     % TFCE options, shared by the unpermuted map and the permutation loop
-    tfce_opt = struct('use_maxtree', use_maxtree, 'n_steps', n_steps_tfce, ...
-                      'faces', [], 'singlethreaded', singlethreaded);
+    faces = [];
 
     % calculate tfce of unpermuted t-map
     if mesh_detected
@@ -824,11 +795,11 @@ for con = 1:length(Ic0)
         end
         SPM.xVol.G = gifti(SPM.xVol.G);
       end
-      tfce_opt.faces = SPM.xVol.G.faces;
-      tfce0 = tfce_compute(t0, E, H, 1, tfce_opt);
+      faces = SPM.xVol.G.faces;
+      tfce0 = tfce_compute(t0, E, H, 1, faces);
     else
       % only estimate neg. tfce values for non-positive t-values
-      tfce0 = tfce_compute(t0, E, H, found_N, tfce_opt);
+      tfce0 = tfce_compute(t0, E, H, found_N, faces);
     end
 
     % prepare output files
@@ -1170,24 +1141,16 @@ for con = 1:length(Ic0)
         
         % compute tfce
         if mesh_detected
-          tfce = tfce_compute(t, E, H, 1, tfce_opt);
+          tfce = tfce_compute(t, E, H, 1, faces);
         else
           % only estimate neg. tfce values for non-positive t-values
-          tfce = tfce_compute(t, E, H, min(t(:)) < 0, tfce_opt);
+          tfce = tfce_compute(t, E, H, min(t(:)) < 0, faces);
         end
         
       end
       
-      % use (too liberal) method for estimating maximum statistic from old release 
-      % r184 for compatibility purposes only that was estimating max/min statistics
-      % only inside pos./neg. effects and not both
-      if old_method_stat
-        mask_stat_P = mask_P;
-        mask_stat_N = mask_N;
-      else  
-        mask_stat_P = mask_1;
-        mask_stat_N = mask_1;
-      end
+      mask_stat_P = mask_1;
+      mask_stat_N = mask_1;
     end % test_mode
     
     if use_half_permutations
@@ -1448,11 +1411,7 @@ for con = 1:length(Ic0)
     if use_gamma_tail_approximation
       fprintf('Using tail approximation from the Gamma distribution for corrected P-values.\n');
       
-      if tail_approximation_wo_unpermuted_data
-        ind_tail = 2:n_perm;
-      else
-        ind_tail = 1:n_perm;
-      end
+      ind_tail = 1:n_perm;
       
       if found_P
         [mu,s2,gamm1] = palm_moments(tfce_max(ind_tail)');

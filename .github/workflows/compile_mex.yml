@@ -113,17 +113,19 @@ jobs:
           done
           exit $missing
 
-      - name: Install zip on Windows
-        if: runner.os == 'Windows'
-        run: choco install zip -y
+      # Collect the mex-files under a TFCE folder so that the downloaded archive
+      # unpacks straight into the SPM toolbox directory. Do NOT zip here:
+      # upload-artifact always zips what it is given, and zipping a zip of the
+      # same name produces an archive that many tools refuse to unpack.
+      - name: Collect mex-files
         shell: bash
+        run: |
+          mkdir -p dist/TFCE
+          cp TFCE/*.${{ matrix.mex_ext }} dist/TFCE/
+          ls -l dist/TFCE
 
-      - name: Zip mex-files
-        shell: bash
-        run: zip -r tfce_${{ github.ref_name }}_${{ matrix.mex_ext }}.zip -i TFCE/*.${{ matrix.mex_ext }}
-
-      - name: Upload ZIP
+      - name: Upload mex-files
         uses: actions/upload-artifact@v4
         with:
           name: tfce_${{ github.ref_name }}_${{ matrix.mex_ext }}
-          path: tfce_*.zip
+          path: dist/

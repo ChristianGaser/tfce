@@ -244,16 +244,43 @@ if repeated_anova
     fprintf('Please remove any covariates from your longitudinal design.\n\n');
   end
 
-  % report the recognized structure so that it can be checked
-  if all(n_tp == n_tp(1))
-    fprintf('\nExchangeability blocks: %d subjects with %d data points each.\n', numel(n_tp), n_tp(1));
-  else
-    fprintf('\nExchangeability blocks: %d subjects with %d to %d data points.\n', numel(n_tp), min(n_tp), max(n_tp));
-  end
-  fprintf('Please note that permutation is only done within subjects for repeated Anova.\n');
+  fprintf('\nPlease note that permutation is only done within subjects for repeated Anova.\n');
 else
   exch_block_labels = ones(1,n_data);
+end
+
+% An explicitly supplied block structure always wins over the recognized one.
+% This is the escape hatch for designs the recognition cannot handle, and for
+% block structures that are not in the design matrix at all, such as sites or
+% families.
+blocks_supplied = false;
+if isfield(job,'exch_blocks') && ~isempty(job.exch_blocks) && ...
+   ~(iscell(job.exch_blocks) && isempty(job.exch_blocks{1}))
+  exch_block_labels = load_exch_blocks(job.exch_blocks, n_data);
+  if isempty(exch_block_labels)
+    return
+  end
+  blocks_supplied = true;
+end
+
+% report the block structure that will actually be used
+n_tp = accumarray(exch_block_labels(:), 1)';
+has_blocks = numel(n_tp) > 1;
+
+if ~has_blocks
   fprintf('\nExchangeability blocks: none, all %d data points are freely exchangeable.\n', n_data);
+else
+  if blocks_supplied
+    src = 'supplied';
+  else
+    src = 'recognized from the design';
+  end
+  if all(n_tp == n_tp(1))
+    fprintf('\nExchangeability blocks (%s): %d blocks with %d data points each.\n', src, numel(n_tp), n_tp(1));
+  else
+    fprintf('\nExchangeability blocks (%s): %d blocks with %d to %d data points.\n', src, numel(n_tp), min(n_tp), max(n_tp));
+  end
+  fprintf('Data are only permuted within these blocks.\n');
 end
 
 if ~test_mode
@@ -529,6 +556,21 @@ for con = 1:length(Ic0)
   end
   xCon.ind_X = ind_X;
 
+  if blocks_supplied
+    % A one-sample t-test is permuted by flipping the sign of each data point
+    % independently, so a block structure has no effect on it.
+    if n_cond == 1
+      fprintf('\nWarning: The supplied exchangeability blocks are ignored for a one-sample t-test, which is permuted by sign-flipping.\n');
+    end
+
+    % Using half of the permutations relies on the mirrored permutation being
+    % available as well, which a supplied block structure need not allow.
+    if use_half_permutations
+      fprintf('\nNote: Using only half of the permutations is disabled because exchangeability blocks were supplied.\n');
+      use_half_permutations = 0;
+    end
+  end
+
   fprintf('\n');
   
   % recognize the design and derive the group labels to permute
@@ -585,7 +627,11 @@ for con = 1:length(Ic0)
     % for a full model where each condition is defined for all subjects the easier
     % estimation is: n_perm = (n_cond!)^n_subj
     % check that no regression analysis inside repeated anova is used
-    if repeated_anova && n_cond~=0
+    % permutations are restricted to the blocks, so the number of possible
+    % permutations is the product over the blocks, not the free count above.
+    % This is keyed on the blocks themselves rather than on repeated_anova, so
+    % that it also holds for an explicitly supplied block structure.
+    if has_blocks && n_cond~=0
       n_subj = max(exch_block_labels_data_defined);
       n_perm_full = 1;
       for k=1:n_subj
@@ -1834,6 +1880,77 @@ case 1
 case 2
   str_permutation_method = 'Smith';
 end
+
+%---------------------------------------------------------------
+function exch_block_labels = load_exch_blocks(f, n_data)
+% Load an explicitly supplied exchangeability block structure.
+%
+% f       - name of a text file with one integer label per data point (in the
+%           order of the rows of the design matrix), a mat-file containing such
+%           a vector, or the vector itself
+% n_data  - number of data points of the design
+%
+% exch_block_labels - block label per data point, renumbered to 1..n_blocks,
+%                     or empty if the file could not be used (caller must abort)
+%
+% Data are only ever permuted within a block, so this is the way to describe a
+% structure that is not visible in the design matrix (sites, families, scanners)
+% or to override a design that is not recognized correctly.
+
+exch_block_labels = [];
+
+if iscell(f), f = f{1}; end
+
+if ischar(f)
+  if ~exist(f,'file')
+    fprintf('\nError: Exchangeability blocks file %s not found.\n\n', f);
+    return
+  end
+  [~,~,ext] = fileparts(f);
+  try
+    if strcmpi(ext,'.mat')
+      S  = load(f);
+      fn = fieldnames(S);
+      b  = S.(fn{1});
+    else
+      b = load(f); % plain text with one label per row
+    end
+  catch
+    fprintf('\nError: Could not read exchangeability blocks file %s.\n\n', f);
+    return
+  end
+else
+  b = f;
+end
+
+b = double(b(:))';
+
+if numel(b) ~= n_data
+  fprintf('\nError: The exchangeability blocks have %d entries, but the design has %d data points.\n\n', numel(b), n_data);
+  return
+end
+
+if any(~isfinite(b)) || any(b ~= round(b))
+  fprintf('\nError: The exchangeability blocks must be given as integer labels.\n\n');
+  return
+end
+
+% renumber to 1..n_blocks, the permutation code indexes blocks by their label
+[~,~,b] = unique(b);
+b = b(:)';
+
+n_tp = accumarray(b(:), 1)';
+
+if all(n_tp == 1)
+  fprintf('\nError: Every exchangeability block holds a single data point, so nothing can be permuted.\n\n');
+  return
+end
+
+if any(n_tp == 1)
+  fprintf('\nWarning: %d exchangeability blocks hold a single data point. These data points are never permuted.\n', sum(n_tp == 1));
+end
+
+exch_block_labels = b;
 
 %---------------------------------------------------------------
 function check_permutation_labels(perm_labels, n_cond, ind_label, exch_block_labels, ...

@@ -160,12 +160,32 @@ conspec.val     = {titlestr contrasts n_perm};
 conspec.help    = {''};
 
 % ---------------------------------------------------------------------
+% exchangeability blocks
+% ---------------------------------------------------------------------
+exch_blocks         = cfg_files;
+exch_blocks.tag     = 'exch_blocks';
+exch_blocks.name    = 'Exchangeability blocks';
+exch_blocks.filter  = 'any';
+exch_blocks.ufilter = '.*\.(txt|csv|mat)$';
+exch_blocks.num     = [0 1];
+exch_blocks.val     = {{}};
+exch_blocks.help    = {[...
+'Optionally define the exchangeability blocks explicitly. Provide a text file with one integer label per data point, in the order of the rows of the design matrix, or a mat-file that contains such a vector. ',...
+'Data are then only permuted WITHIN blocks that share the same label. '],...
+'',...
+[...
+'If left empty, the blocks are recognized automatically from the design: the subject effects of a paired t-test, a within-subject Anova or a flexible factorial define one block per subject, and all other designs are freely exchangeable. '],...
+'',...
+[...
+'Use this option if your design is not recognized correctly, or to describe a block structure that is not part of the design matrix at all, such as scanning site or family membership. ',...
+'Note that a one-sample t-test is permuted by sign-flipping and is therefore not affected by exchangeability blocks.']};
+
 % ---------------------------------------------------------------------
 % results Results Report
 % ---------------------------------------------------------------------
 tfce_estimate          = cfg_exbranch;
 tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
-tfce_estimate.val      = {data nproc mask conspec nuisance_method tbss};
+tfce_estimate.val      = {data nproc mask conspec nuisance_method tbss exch_blocks};
 tfce_estimate.help     = {''};
 tfce_estimate.prog     = @tfce_estimate_stat;

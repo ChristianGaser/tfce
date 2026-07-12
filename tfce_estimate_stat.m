@@ -652,8 +652,17 @@ for con = 1:length(Ic0)
       [t0, df2] = calc_GLM(Y,xX,xCon,ind_mask,VY(1).dim);
     end
 
-    df1 = size(xCon.c,2);
-    
+    % numerator df of the F-statistic is the RANK of the contrast, not its number
+    % of columns. These differ for rank-deficient F-contrasts, and calc_GLM uses
+    % the rank (xCon.eidf) as well, so Pt would otherwise be evaluated against
+    % the wrong F distribution.
+    if strcmp(xCon.STAT,'T')
+      df1 = 1;
+    else
+      df1 = xCon.eidf;
+    end
+
+
     % transform to z statistic
     if convert_to_z
       % use faster z-transformation of SPM for T-statistics
@@ -2094,11 +2103,21 @@ if strcmp(xCon.STAT,'T')
 
   T(ind_mask) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
 else
-  %-Compute ESS (ESS = Y'*Y - Beta'*X'*Y)
-  h  = spm_FcUtil('Hsqr',xCon,xX.xKXs);
-  ess = sum((h*Beta').^2,1)';
+  %-Compute ESS = (c'*b)' * pinv(c'*pinv(X'*X)*c) * (c'*b)
+  % This is derived from the very design that Beta was estimated with. The
+  % previous version took the contrast projection from xX.xKXs, but a permuted
+  % xX only carries a new X and W, so xKXs still described the UNPERMUTED design
+  % space. Draper-Stoneman and Smith permute the columns of interest only, hence
+  % X'*X and the projection do change and the permuted F-statistic was wrong,
+  % which made F-tests anti-conservative. Note that we cannot simply hand the
+  % permuted space to spm_FcUtil, because the contrast object caches X1o/X0 for
+  % the space it was created with. For the unpermuted design this gives exactly
+  % the same F as spm_FcUtil('Hsqr',...) did.
+  M   = c' * pinv(X'*X) * c;
+  CB  = c' * double(Beta)';      % q x n_vox
+  ess = sum(CB .* (pinv(M)*CB), 1)';
   MVM = ess/xCon.eidf;
-  
+
   T(ind_mask) = MVM./ResMS;
 end
 

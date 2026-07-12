@@ -20,7 +20,7 @@
  */
 
 #include "mex.h"
-#include <pthread.h>
+#include "tfce_threads.h"
 #include "tfce_maxtree.h"
 
 typedef struct {
@@ -45,7 +45,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   int calc_neg = 1, i, N;
   Neigh nb;
   PassArgs ap, an;
-  pthread_t th;
+  tfce_thread_t th;
   int threaded = 0;
   int *aptr = NULL, *aidx = NULL;
 
@@ -91,9 +91,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     an.E = E; an.H = H; an.sign = -1.0;
 
     /* the two passes write to disjoint elements: no lock needed */
-    threaded = (pthread_create(&th, NULL, pass_thread, &an) == 0);
+    threaded = (tfce_thread_create(&th, pass_thread, &an) == 0);
     maxtree_pass(&ap.ws, ap.d, ap.out, ap.nb, E, H, 1.0);
-    if (threaded) pthread_join(th, NULL);
+    if (threaded) tfce_thread_join(th);
     else          maxtree_pass(&an.ws, an.d, an.out, an.nb, E, H, -1.0);
 
     ws_free(&an.ws);

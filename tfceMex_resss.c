@@ -33,7 +33,7 @@
 #include "math.h"
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
+#include "tfce_threads.h"
 
 #define MAX_THREADS 256
 #define VBLOCK 4096          /* voxels per cache-resident block */
@@ -45,7 +45,7 @@ typedef struct {
   double *ResSS;
   int nv, nd, p;
   int *next;                 /* next block to claim */
-  pthread_mutex_t *mtx;
+  tfce_mutex_t *mtx;
   int nblocks;
 } Args;
 
@@ -59,9 +59,9 @@ static void *worker(void *pa)
   for (;;) {
     int blk, v0, v1, n, i, j, k;
 
-    pthread_mutex_lock(a->mtx);
+    tfce_mutex_lock(a->mtx);
     blk = (*a->next)++;
-    pthread_mutex_unlock(a->mtx);
+    tfce_mutex_unlock(a->mtx);
     if (blk >= a->nblocks) break;
 
     v0 = blk * VBLOCK;
@@ -99,8 +99,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
   int nv, nd, p, i, nthreads, next = 0, nblocks, started = 0;
   Args args[MAX_THREADS];
-  pthread_t th[MAX_THREADS];
-  pthread_mutex_t mtx;
+  tfce_thread_t th[MAX_THREADS];
+  tfce_mutex_t mtx;
 
   if (nrhs < 3)
     mexErrMsgTxt("Usage: ResSS = tfceMex_resss(Y, Beta, X [, n_threads])");
@@ -127,7 +127,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   if (nthreads > nblocks) nthreads = nblocks;
   if (nthreads > MAX_THREADS) nthreads = MAX_THREADS;
 
-  if (pthread_mutex_init(&mtx, NULL) != 0) mexErrMsgTxt("Mutex init failed.");
+  if (tfce_mutex_init(&mtx) != 0) mexErrMsgTxt("Mutex init failed.");
 
   for (i = 0; i < nthreads; i++) {
     args[i].Y       = (const float *)  mxGetData(prhs[0]);
@@ -143,12 +143,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
 
   for (i = 0; i < nthreads; i++)
-    if (pthread_create(&th[i], NULL, worker, &args[i]) == 0) started++;
+    if (tfce_thread_create(&th[i], worker, &args[i]) == 0) started++;
     else break;
 
   if (started < nthreads) worker(&args[0]);
 
-  for (i = 0; i < started; i++) pthread_join(th[i], NULL);
+  for (i = 0; i < started; i++) tfce_thread_join(th[i]);
 
-  pthread_mutex_destroy(&mtx);
+  tfce_mutex_destroy(&mtx);
 }

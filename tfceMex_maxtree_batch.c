@@ -23,7 +23,7 @@
  */
 
 #include "mex.h"
-#include <pthread.h>
+#include "tfce_threads.h"
 #include "tfce_maxtree.h"
 
 #define MAX_THREADS 256
@@ -36,7 +36,7 @@ typedef struct {
   double E, H;
   int calc_neg;
   int *next;                 /* next map to claim, shared */
-  pthread_mutex_t *mtx;
+  tfce_mutex_t *mtx;
   int ok;
 } BatchArgs;
 
@@ -50,9 +50,9 @@ static void *batch_thread(void *pa)
   for (;;) {
     int b;
 
-    pthread_mutex_lock(A->mtx);
+    tfce_mutex_lock(A->mtx);
     b = (*A->next)++;
-    pthread_mutex_unlock(A->mtx);
+    tfce_mutex_unlock(A->mtx);
 
     if (b >= A->B) break;
 
@@ -70,8 +70,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   int calc_neg = 1, N, B, i, nthreads, next = 0;
   Neigh nb;
   BatchArgs args[MAX_THREADS];
-  pthread_t th[MAX_THREADS];
-  pthread_mutex_t mtx;
+  tfce_thread_t th[MAX_THREADS];
+  tfce_mutex_t mtx;
   int *aptr = NULL, *aidx = NULL;
   int started = 0;
 
@@ -112,7 +112,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   plhs[0] = mxCreateDoubleMatrix((mwSize)N, (mwSize)B, mxREAL);
 
-  if (pthread_mutex_init(&mtx, NULL) != 0)
+  if (tfce_mutex_init(&mtx) != 0)
     mexErrMsgTxt("Mutex init failed.");
 
   for (i = 0; i < nthreads; i++) {
@@ -130,15 +130,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
 
   for (i = 0; i < nthreads; i++)
-    if (pthread_create(&th[i], NULL, batch_thread, &args[i]) == 0) started++;
+    if (tfce_thread_create(&th[i], batch_thread, &args[i]) == 0) started++;
     else break;
 
   /* if threads could not be created, do the rest on this thread */
   if (started < nthreads) batch_thread(&args[0]);
 
-  for (i = 0; i < started; i++) pthread_join(th[i], NULL);
+  for (i = 0; i < started; i++) tfce_thread_join(th[i]);
 
-  pthread_mutex_destroy(&mtx);
+  tfce_mutex_destroy(&mtx);
   if (aptr) { free(aptr); free(aidx); }
 
   for (i = 0; i < nthreads; i++)

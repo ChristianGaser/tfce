@@ -2,8 +2,8 @@
 #
 # $Id$
 
-OLDVERSION="TFCE1.0"
-NEWVERSION="TFCE1.1"
+OLDVERSION="TFCE1.1"
+NEWVERSION="TFCE1.2"
 REVISION=`git rev-list --count HEAD`
 DATE=`git log --date short |grep "Date:"|head -1|cut -f2 -d':'|sed -e s'/ //g'`
 VERSION=`echo ${NEWVERSION} | sed -e 's/TFCE//g'`

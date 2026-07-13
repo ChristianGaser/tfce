@@ -895,6 +895,22 @@ for con = 1:length(Ic0)
   check_permutation_labels(perm_labels, n_cond, ind_label, exch_block_labels, ...
       exch_block_labels_data_defined);
 
+  % precompute the permutation-invariant parts of the GLM. This is what allows the
+  % permuted statistic to be obtained from the n_vox x rank(X) matrix Beta alone,
+  % without ever forming the permuted data matrix or the residual matrix. Returns
+  % empty if the shortcut would not reproduce the same statistic, in which case
+  % the loop below falls back to calc_GLM.
+  pre_GLM = [];
+  if ~test_mode && ~voxel_covariate
+    Pset0 = make_Pset(perm_labels(1,:), n_cond, n_data, n_data_with_contrast, ind_label);
+    Pset1 = make_Pset(perm_labels(min(2,size(perm_labels,1)),:), n_cond, n_data, ...
+        n_data_with_contrast, ind_label);
+    pre_GLM = prepare_GLM_fast(Y, xX, Rz, nuisance_method, Pset0, Pset1);
+    if isempty(pre_GLM)
+      fprintf('Note: Using the unaccelerated GLM for the permutations.\n');
+    end
+  end
+
   if ~test_mode, tfce_progress('Init',n_perm,'Calculating','Permutations'); end
 
   % update interval for progress bar
@@ -914,16 +930,7 @@ for con = 1:length(Ic0)
     end
 
     % create permutation set
-    Pset = sparse(n_data,n_data);
-    if n_cond == 1 % one-sample t-test
-      for k=1:n_data_with_contrast
-        Pset(ind_label(k),ind_label(k)) = rand_label(k);
-      end
-    else % correlation or Anova
-      for k=1:n_data_with_contrast
-        Pset(rand_order_sorted(k),ind_label(k)) = 1;
-      end
-    end
+    Pset = make_Pset(perm_labels(perm_idx,:), n_cond, n_data, n_data_with_contrast, ind_label);
 
     % add Stop button after 20 iterations
     try % use try commands to allow batch mode without graphical output
@@ -1110,15 +1117,17 @@ for con = 1:length(Ic0)
         xXperm.X = Xperm;        
         xXperm.W = Wperm;
 
-        % Freedman-Lane permutation of data
-        if nuisance_method == 1
+        if voxel_covariate
+          t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset,ind_X,pinv_method);
+        elseif ~isempty(pre_GLM)
+          % accelerated path: the permutation enters through Pset for
+          % Freedman-Lane and through Xperm for Draper-Stoneman/Smith
+          t = calc_GLM_fast(Y,pre_GLM,xXperm,xCon,ind_mask,VY(1).dim,Pset,nuisance_method);
+        elseif nuisance_method == 1
+          % Freedman-Lane permutation of data
           t = calc_GLM(Y*(Pset'*Rz),xXperm,xCon,ind_mask,VY(1).dim);
         else
-          if voxel_covariate
-            t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset,ind_X,pinv_method);
-          else
-            t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
-          end
+          t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
         end
 
         if convert_to_z
@@ -2143,6 +2152,159 @@ if sz_val_max >= 20
   end
   ylabel('Threshold')
   xlabel('Permutations')   
+end
+
+%---------------------------------------------------------------
+function Pset = make_Pset(perm_label, n_cond, n_data, n_data_with_contrast, ind_label)
+% build the permutation matrix for one draw of permutation labels
+%
+% For a one-sample t-test (n_cond == 1) the data are exchanged by sign-flipping,
+% which gives a diagonal matrix of +-1, otherwise a permutation matrix. Data
+% points outside the contrast leave their row and column at zero.
+
+if n_cond == 1 % one-sample t-test: sign flipping
+  ii = ind_label(1:n_data_with_contrast);
+  jj = ind_label(1:n_data_with_contrast);
+  vv = perm_label(1:n_data_with_contrast);
+else % correlation or Anova: permutation
+  ii = perm_label(1:n_data_with_contrast);
+  jj = ind_label(1:n_data_with_contrast);
+  vv = ones(1,n_data_with_contrast);
+end
+
+Pset = sparse(double(ii(:)), double(jj(:)), double(vv(:)), n_data, n_data);
+
+%---------------------------------------------------------------
+function pre = prepare_GLM_fast(Y, xX, Rz, nuisance_method, Pset0, Pset1)
+% precompute the permutation-invariant parts of the GLM, or return empty if the
+% accelerated statistic would not be identical to the unaccelerated one
+%
+% The residual sum of squares never needs the n_vox x n_data residual matrix.
+% For any design X the residual forming matrix R = I - X*pinv(X) is a projector,
+% so with Beta = pinv(X)*y
+%
+%   ResSS = ||R*y||^2 = ||y||^2 - Beta'*(X'*X)*Beta
+%
+% which costs O(n_vox*rank(X)^2) instead of O(n_vox*n_data*rank(X)). Draper-
+% Stoneman and Smith permute the design and leave the data alone, so ||y||^2 is
+% the same for every permutation and is computed once here.
+%
+% Freedman-Lane gains far more. It hands calc_GLM the permuted data Y*(Pset'*Rz)
+% while leaving X untouched, so pinv(X) and X'*X are loop-invariant. And because
+% the nuisance columns Z are part of the full design X, the full-model residual
+% forming matrix already annihilates them, R*Rz = R, so Rz drops out of the
+% residuals altogether:
+%
+%   ResSS = ||R*Rz*Pset*y||^2 = ||R*Pset*y||^2 = ||Pset*y||^2 - Beta'*(X'*X)*Beta
+%
+% with Beta = pinv(X)*Pset*y. Pset only permutes or sign-flips the rows it
+% touches, so ||Pset*y||^2 does not depend on the permutation either. The whole
+% permutation therefore collapses into the rank(X) x n_data matrix pinv(X)*Pset,
+% and the n_vox x n_data x n_data multiply Y*(Pset'*Rz) disappears from the loop.
+%
+% R*Rz = R only holds if the space spanned by Z is contained in the space spanned
+% by the design that is actually fitted. calc_GLM fits W*X on data that were
+% already whitened at load time, while Rz is built from the unwhitened Z, so the
+% identity breaks for a non-identity whitening matrix. It is therefore verified
+% here rather than assumed.
+
+pre = [];
+
+X   = full(xX.W*xX.X);
+pKX = pinv(X);
+
+if nuisance_method == 1
+  % Freedman-Lane: Rz may only be dropped from the residuals if R*Rz = R
+  R = eye(size(X,1)) - X*pKX;
+  if max(abs(R*Rz - R),[],'all') > 1e-5*max(1,max(abs(R),[],'all'))
+    return
+  end
+
+  % ||Pset*y||^2 is permutation-invariant only if Pset merely moves entries
+  % around without scaling them, and always draws from the same data points
+  [i0,j0,v0] = find(Pset0);
+  [~ ,j1,v1] = find(Pset1);
+  if ~all(abs(v0) == 1) || ~all(abs(v1) == 1) || ...
+      numel(unique(i0)) ~= numel(i0) || numel(unique(j0)) ~= numel(j0) || ...
+      ~isequal(sort(j0), sort(j1))
+    return
+  end
+
+  % the columns Pset draws from are the data points entering the statistic
+  pre.SSY = sum(double(Y(:,sort(j0))).^2, 2);
+else
+  pre.SSY = sum(double(Y).^2, 2);
+end
+
+pre.X    = X;
+pre.pKX  = pKX;
+pre.XtX  = X'*X;
+pre.trRV = size(X,1) - rank(xX.X);
+
+%---------------------------------------------------------------
+function [T, trRV] = calc_GLM_fast(Y,pre,xX,xCon,ind_mask,dim,Pset,nuisance_method)
+% compute the permuted T- or F-statistic from the quantities precomputed by
+% prepare_GLM_fast, without forming the permuted data or the residual matrix
+%
+% Y        - masked data as vector
+% pre      - precomputed permutation-invariant GLM quantities
+% xX       - permuted design structure
+% xCon     - contrast structure
+% ind_mask - index of mask image
+% dim      - image dimension
+% Pset     - permutation matrix of this permutation
+%
+% Output:
+% T        - T/F-values
+% trRV     - df
+
+c = xCon.c;
+
+if nuisance_method == 1
+  % Freedman-Lane: the design is unchanged, the permutation enters only through
+  % Pset, so the precomputed pseudoinverse still applies
+  pKX  = pre.pKX;
+  XtX  = pre.XtX;
+  Beta = Y*single((pKX*Pset)');   % n_vox x rank(X): the only large multiply
+  trRV = pre.trRV;
+else
+  % Draper-Stoneman/Smith permute the design, so the pseudoinverse has to be
+  % redone, but that is an n_data x rank(X) problem and negligible next to the
+  % n_vox work. The data are unpermuted, hence pre.SSY still applies.
+  X    = full(xX.W*xX.X);
+  pKX  = pinv(X);
+  XtX  = X'*X;
+  Beta = Y*single(pKX');
+  trRV = size(X,1) - rank(xX.X);
+end
+
+% ResSS = ||y||^2 - Beta'*(X'*X)*Beta. The subtraction is a cancellation, so the
+% quadratic form is accumulated in double even though Beta is single.
+Bd    = double(Beta);
+ResSS = pre.SSY - sum((Bd*XtX).*Bd, 2);
+
+% the cancellation can push an all-but-perfectly-fitted voxel slightly negative
+ResSS = max(ResSS, 0);
+
+ResMS = ResSS/trRV;
+
+%-Modify ResMS (a form of shrinkage) to avoid problems of very low variance
+ResMS = ResMS + 1e-3 * max(ResMS(isfinite(ResMS)));
+
+T = zeros(dim);
+
+if strcmp(xCon.STAT,'T')
+  Bcov = pKX*pKX';
+  con  = Beta*c;
+
+  T(ind_mask) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
+else
+  M   = c' * pinv(XtX) * c;
+  CB  = c' * Bd';                % q x n_vox
+  ess = sum(CB .* (pinv(M)*CB), 1)';
+  MVM = ess/xCon.eidf;
+
+  T(ind_mask) = MVM./ResMS;
 end
 
 %---------------------------------------------------------------

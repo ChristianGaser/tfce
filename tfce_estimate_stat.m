@@ -2393,14 +2393,19 @@ function [T, trRV] = calc_GLM_voxelwise(Y,xX,xC,xCon,ind_mask,dim,C,Pset,ind_X,p
 % use Matlab pinv by default
 if nargin < 10, pinv_method = 1; end
 
+persistent has_pagemldivide
+if isempty(has_pagemldivide)
+  has_pagemldivide = ~isempty(which('pagemldivide'));
+end
+
 c = xCon.c;
-X = xX.W*xX.X;
+X = full(xX.W*xX.X);
 
 n_data = size(X,1);
 trRV = n_data - rank(xX.X);
 
 T  = zeros(dim);
-T0 = zeros(size(ind_mask));
+n_vox = size(Y,1);
 
 % only permute C if this covariate is selected by the contrast
 if ~isempty(Pset)
@@ -2413,19 +2418,194 @@ if ~isempty(Pset)
     end
   end
   if found_ind_X
-    C = C*full(Pset);
+    % C*full(Pset) is an n_vox x n_data x n_data multiply, but Pset holds at most
+    % one non-zero of magnitude 1 per column, so it only moves the columns of C
+    % around and flips their sign. Doing that directly is the same result.
+    [ii,jj,vv] = find(Pset);
+    Cp = zeros(size(C), 'like', C);
+    Cp(:,jj) = C(:,ii) .* cast(vv(:).', 'like', C);
+    C = Cp;
   end
 end
 
-% use pinv2 if it was faster
-if pinv_method == 2
-    pinvx  = @(x) pinv2(x); 
-else
-    pinvx  = @(x) pinv(x); 
+% The design of a voxel differs from X only in the columns xC.cols, and there
+% only on the rows where the original column is > 0. That makes it possible to
+% assemble Xi'*Xi and Xi'*y for ALL voxels from a handful of matrix products
+% against C and Y, and to solve the resulting rank(X) x rank(X) systems in one
+% batched call, instead of taking a pseudoinverse of a fresh design matrix for
+% every single voxel. Voxels whose system the batch solve cannot handle (a
+% rank-deficient Xi, e.g. a constant covariate) are handed back and redone with
+% the pseudoinverse, which resolves them in the least-squares sense.
+T0   = zeros(n_vox,1);
+todo = (1:n_vox)';
+
+if strcmp(xCon.STAT,'T') && has_pagemldivide
+  [T0, bad] = calc_GLM_voxelwise_batch(Y, X, C, xC, c, trRV);
+  todo = find(bad);
 end
 
+if ~isempty(todo)
+  T0(todo) = calc_GLM_voxelwise_loop(Y, X, C, xC, xCon, trRV, pinv_method, todo);
+end
+
+T(ind_mask) = T0;
+
+%---------------------------------------------------------------
+function [T0, bad] = calc_GLM_voxelwise_batch(Y, X, C, xC, c, trRV)
+% vectorised voxel-wise GLM: assemble Xi'*Xi and Xi'*y for every voxel at once
+%
+% Output:
+% T0  - t-values, one per voxel
+% bad - voxels whose system was singular and that the caller must redo with pinv
+
+[n_data, r] = size(X);
+n_vox = size(Y,1);
+cols  = xC.cols(:)';
+n_col = numel(cols);
+fixed = setdiff(1:r, cols);
+n_fix = numel(fixed);
+A     = X(:,fixed);
+
+% the voxel-wise column is X(:,cols(j)) outside the mask, and C(i,:) inside it
+m    = false(n_data, n_col);
+base = zeros(n_data, n_col);
+for j = 1:n_col
+  m(:,j)    = X(:,cols(j)) > 0;
+  base(:,j) = X(:,cols(j)) .* ~m(:,j);
+end
+
+XtX = zeros(r, r, n_vox);
+Xty = zeros(r, n_vox);
+SSY = zeros(n_vox, 1);
+AtA = A'*A;
+
+% Working from Xi'*Xi rather than from Xi squares the condition number of the
+% problem, so the products below are accumulated in double even though Y and C
+% are single. A voxel-wise covariate that barely varies across subjects makes Xi
+% nearly collinear with the intercept, and in single precision that alone would
+% cost several digits of the t-value. The cast is done in chunks so that the
+% double copy of the data never has to exist all at once.
+chunk = 65536;
+for s = 1:chunk:n_vox
+  idx = s:min(s+chunk-1, n_vox);
+  n_b = numel(idx);
+  Yd  = double(Y(idx,:));
+  Cd  = double(C(idx,:));
+  C2  = Cd.^2;
+
+  if n_fix > 0
+    XtX(fixed,fixed,idx) = repmat(AtA, 1, 1, n_b);  % same design for every voxel
+    Xty(fixed,idx)       = (Yd*A).';
+  end
+
+  for j = 1:n_col
+    cj = cols(j);
+
+    if n_fix > 0
+      AV = A'*base(:,j) + (Cd*(A.*m(:,j))).';
+      XtX(fixed,cj,idx) = reshape(AV, n_fix, 1, n_b);
+      XtX(cj,fixed,idx) = reshape(AV, 1, n_fix, n_b);
+    end
+
+    Xty(cj,idx) = (Yd*base(:,j)).' + sum(Cd.*Yd.*m(:,j).', 2).';
+
+    for l = 1:n_col
+      vv = base(:,j)'*base(:,l) ...
+         + (Cd*(base(:,j).*m(:,l))).' ...
+         + (Cd*(base(:,l).*m(:,j))).' ...
+         + sum(C2.*double(m(:,j) & m(:,l)).', 2).';
+      XtX(cj,cols(l),idx) = reshape(vv, 1, 1, n_b);
+    end
+  end
+
+  SSY(idx) = sum(Yd.^2, 2);
+end
+clear Yd Cd C2
+
+% Rank test. Xi is rank-deficient at a voxel exactly when its voxel-wise columns
+% keep (almost) no variance once the fixed columns are projected out of them: a
+% covariate that hardly varies across subjects is collinear with the intercept.
+% What is left over is the Schur complement of the fixed block, and every term of
+% it has already been assembled above, so this costs almost nothing. Testing the
+% solve for Inf/NaN instead would NOT work: an LU solve of a singular system
+% returns a huge but finite answer through a tiny pivot rather than failing.
+if n_fix > 0
+  if rcond(AtA) < 1e-12
+    T0  = zeros(n_vox,1);      % the fixed part of the design is itself degenerate
+    bad = true(n_vox,1);
+    return
+  end
+  AV  = XtX(fixed,cols,:);
+  W   = AtA \ reshape(AV, n_fix, n_col*n_vox);
+  Sc  = XtX(cols,cols,:) - pagemtimes(pagetranspose(AV), reshape(W, n_fix, n_col, n_vox));
+else
+  Sc  = XtX(cols,cols,:);
+end
+
+% the scale the leftover variance has to be judged against
+dg = zeros(n_col, n_vox);
+for j = 1:n_col
+  dg(j,:) = XtX(cols(j),cols(j),:);
+end
+
+if n_col == 1
+  s_min = reshape(Sc, [], 1);
+else
+  sv    = pagesvd(Sc);
+  s_min = reshape(sv(end,1,:), [], 1);
+end
+
+% ~(x > y) rather than x <= y, so that NaN counts as degenerate
+degenerate = ~(s_min > 1e-10 * max(dg, [], 1).');
+
+Bp   = pagemldivide(XtX, reshape(Xty, r, 1, n_vox));
+Beta = reshape(Bp, r, n_vox);
+
+% ResSS = ||y||^2 - Beta'*(Xi'*Xi)*Beta = ||y||^2 - Beta'*(Xi'*y)
+ResSS = SSY - sum(Beta.*Xty, 1).';
+ResSS = max(ResSS, 0);           % the subtraction is a cancellation
+
+ResMS = ResSS/trRV;
+
+% NOTE: the per-voxel loop applies its shrinkage to a SCALAR ResMS, so
+% max(ResMS(isfinite(ResMS))) is that same scalar and the line collapses to
+% ResMS*1.001 -- unlike calc_GLM, which shrinks towards the maximum over all
+% voxels. That behaviour is reproduced here so the two paths agree exactly. It
+% is applied identically to the unpermuted and to the permuted maps, so it
+% cancels out of the inference either way.
+ResMS = ResMS + 1e-3*ResMS;
+
+% c'*inv(Xi'*Xi)*c, which is what pKX*pKX' amounts to for a full-rank Xi
+cG  = pagemldivide(XtX, repmat(c, 1, 1, n_vox));
+cGc = sum(c .* reshape(cG, r, n_vox), 1).';
+
+T0  = (Beta.'*c) ./ (eps + sqrt(ResMS.*cGc));
+
+% these voxels go back to pinv, which resolves them in the least-squares sense
+bad = degenerate | ~isfinite(T0) | ~isfinite(cGc) | cGc <= 0;
+
+%---------------------------------------------------------------
+function T0 = calc_GLM_voxelwise_loop(Y, X, C, xC, xCon, trRV, pinv_method, todo)
+% voxel-wise GLM by an explicit pseudoinverse per voxel
+%
+% This is the reference implementation. It is used for the voxels the batched
+% solve could not resolve, and whenever the batched solve does not apply.
+
+c = xCon.c;
+
+% use pinv2 if it was faster
+if pinv_method == 2
+    pinvx  = @(x) pinv2(x);
+else
+    pinvx  = @(x) pinv(x);
+end
+
+T0 = zeros(numel(todo),1);
+
 % go through all voxels inside mask
-for i=1:size(Y,1)
+for k=1:numel(todo)
+
+  i = todo(k);
 
   % get X and replace defined columns with voxel-wise covariate
   Xi = X;
@@ -2442,28 +2622,20 @@ for i=1:size(Y,1)
   res0 = res0 - Y(i,:); %-Residuals
   res0 = res0.^2;
   ResSS = double(sum(res0,2));
-  
+
   ResMS = ResSS/trRV;
   %-Modify ResMS (a form of shrinkage) to avoid problems of very low variance
   ResMS  = ResMS + 1e-3 * max(ResMS(isfinite(ResMS)));
-  
+
   if strcmp(xCon.STAT,'T')
     Bcov = pKX*pKX';
     con = Beta'*c;
-  
-    T0(i) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
+
+    T0(k) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
   else
     error('F-test is not yet supported')
-    %-Compute ESS
-    h  = spm_FcUtil('Hsqr',xCon,xX.xKXs);
-    ess = sum((h*Beta).^2,1)';
-    MVM = ess/xCon.eidf;
-    
-    T(ind_mask) = MVM./ResMS;
   end
 end
-
-T(ind_mask) = T0;
 
 %---------------------------------------------------------------
 function xX = correct_xX(xX)

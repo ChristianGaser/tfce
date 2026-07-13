@@ -2398,7 +2398,6 @@ if isempty(has_pagemldivide)
   has_pagemldivide = ~isempty(which('pagemldivide'));
 end
 
-c = xCon.c;
 X = full(xX.W*xX.X);
 
 n_data = size(X,1);
@@ -2407,25 +2406,19 @@ trRV = n_data - rank(xX.X);
 T  = zeros(dim);
 n_vox = size(Y,1);
 
-% only permute C if this covariate is selected by the contrast
-if ~isempty(Pset)
-  found_ind_X = false;
-  for j=1:numel(xC.cols)
-    if ~isempty(find(ind_X==xC.cols(j), 1))
-      found_ind_X = true;
-    else
-      found_ind_X = false;
-    end
-  end
-  if found_ind_X
-    % C*full(Pset) is an n_vox x n_data x n_data multiply, but Pset holds at most
-    % one non-zero of magnitude 1 per column, so it only moves the columns of C
-    % around and flips their sign. Doing that directly is the same result.
-    [ii,jj,vv] = find(Pset);
-    Cp = zeros(size(C), 'like', C);
-    Cp(:,jj) = C(:,ii) .* cast(vv(:).', 'like', C);
-    C = Cp;
-  end
+% Only permute C if the contrast is defined on the voxel-wise covariate. Any of
+% the covariate columns being tested is enough: the loop that used to stand here
+% reassigned its flag on every pass, so only the LAST of xC.cols decided, and a
+% covariate spread over several columns (one per group, say) was left unpermuted
+% whenever its last column happened not to be in the contrast.
+if ~isempty(Pset) && any(ismember(xC.cols, ind_X))
+  % C*full(Pset) is an n_vox x n_data x n_data multiply, but Pset holds at most
+  % one non-zero of magnitude 1 per column, so it only moves the columns of C
+  % around and flips their sign. Doing that directly is the same result.
+  [ii,jj,vv] = find(Pset);
+  Cp = zeros(size(C), 'like', C);
+  Cp(:,jj) = C(:,ii) .* cast(vv(:).', 'like', C);
+  C = Cp;
 end
 
 % The design of a voxel differs from X only in the columns xC.cols, and there
@@ -2436,28 +2429,51 @@ end
 % every single voxel. Voxels whose system the batch solve cannot handle (a
 % rank-deficient Xi, e.g. a constant covariate) are handed back and redone with
 % the pseudoinverse, which resolves them in the least-squares sense.
-T0   = zeros(n_vox,1);
-todo = (1:n_vox)';
+%
+% The statistic itself is only assembled once every voxel has been fitted,
+% because the shrinkage of ResMS below needs the maximum over all of them.
+num   = zeros(n_vox,1);   % c'*Beta for a t-contrast, ESS/eidf for an F-contrast
+cGc   = ones(n_vox,1);    % c'*inv(Xi'*Xi)*c, only used for a t-contrast
+ResMS = zeros(n_vox,1);
+todo  = (1:n_vox)';
 
-if strcmp(xCon.STAT,'T') && has_pagemldivide
-  [T0, bad] = calc_GLM_voxelwise_batch(Y, X, C, xC, c, trRV);
+if has_pagemldivide
+  [num, cGc, ResMS, bad] = calc_GLM_voxelwise_batch(Y, X, C, xC, xCon, trRV);
   todo = find(bad);
 end
 
 if ~isempty(todo)
-  T0(todo) = calc_GLM_voxelwise_loop(Y, X, C, xC, xCon, trRV, pinv_method, todo);
+  [num(todo), cGc(todo), ResMS(todo)] = ...
+      calc_GLM_voxelwise_loop(Y, X, C, xC, xCon, trRV, pinv_method, todo);
+end
+
+%-Modify ResMS (a form of shrinkage) to avoid problems of very low variance
+% This shrinks towards the largest residual variance in the image, exactly as
+% calc_GLM does. The per-voxel loop this replaced applied the same line to a
+% SCALAR ResMS, where max(ResMS(isfinite(ResMS))) is that same scalar and the
+% whole thing collapsed to ResMS*1.001, so the voxel-wise path was in effect not
+% shrinking at all.
+ResMS = ResMS + 1e-3 * max(ResMS(isfinite(ResMS)));
+
+if strcmp(xCon.STAT,'T')
+  T0 = num./(eps+sqrt(ResMS.*cGc));
+else
+  T0 = num./ResMS;
 end
 
 T(ind_mask) = T0;
 
 %---------------------------------------------------------------
-function [T0, bad] = calc_GLM_voxelwise_batch(Y, X, C, xC, c, trRV)
+function [num, cGc, ResMS, bad] = calc_GLM_voxelwise_batch(Y, X, C, xC, xCon, trRV)
 % vectorised voxel-wise GLM: assemble Xi'*Xi and Xi'*y for every voxel at once
 %
 % Output:
-% T0  - t-values, one per voxel
-% bad - voxels whose system was singular and that the caller must redo with pinv
+% num   - c'*Beta for a t-contrast, ESS/eidf for an F-contrast
+% cGc   - c'*inv(Xi'*Xi)*c, only meaningful for a t-contrast
+% ResMS - residual mean square, NOT yet shrunk (the caller needs the global max)
+% bad   - voxels whose system was singular and that the caller must redo with pinv
 
+c = xCon.c;
 [n_data, r] = size(X);
 n_vox = size(Y,1);
 cols  = xC.cols(:)';
@@ -2531,8 +2547,11 @@ clear Yd Cd C2
 % returns a huge but finite answer through a tiny pivot rather than failing.
 if n_fix > 0
   if rcond(AtA) < 1e-12
-    T0  = zeros(n_vox,1);      % the fixed part of the design is itself degenerate
-    bad = true(n_vox,1);
+    % the fixed part of the design is itself degenerate: pinv has to do all of it
+    num   = zeros(n_vox,1);
+    cGc   = ones(n_vox,1);
+    ResMS = zeros(n_vox,1);
+    bad   = true(n_vox,1);
     return
   end
   AV  = XtX(fixed,cols,:);
@@ -2565,31 +2584,48 @@ Beta = reshape(Bp, r, n_vox);
 ResSS = SSY - sum(Beta.*Xty, 1).';
 ResSS = max(ResSS, 0);           % the subtraction is a cancellation
 
+% the caller shrinks this once it has seen every voxel
 ResMS = ResSS/trRV;
 
-% NOTE: the per-voxel loop applies its shrinkage to a SCALAR ResMS, so
-% max(ResMS(isfinite(ResMS))) is that same scalar and the line collapses to
-% ResMS*1.001 -- unlike calc_GLM, which shrinks towards the maximum over all
-% voxels. That behaviour is reproduced here so the two paths agree exactly. It
-% is applied identically to the unpermuted and to the permuted maps, so it
-% cancels out of the inference either way.
-ResMS = ResMS + 1e-3*ResMS;
+if strcmp(xCon.STAT,'T')
+  % c'*inv(Xi'*Xi)*c, which is what pKX*pKX' amounts to for a full-rank Xi
+  cG  = pagemldivide(XtX, repmat(c, 1, 1, n_vox));
+  cGc = sum(c .* reshape(cG, r, n_vox), 1).';
+  num = Beta.'*c;
 
-% c'*inv(Xi'*Xi)*c, which is what pKX*pKX' amounts to for a full-rank Xi
-cG  = pagemldivide(XtX, repmat(c, 1, 1, n_vox));
-cGc = sum(c .* reshape(cG, r, n_vox), 1).';
+  bad = degenerate | ~isfinite(num) | ~isfinite(cGc) | cGc <= 0;
+else
+  % ESS = (c'*Beta)' * pinv(c'*inv(Xi'*Xi)*c) * (c'*Beta), voxel by voxel.
+  %
+  % Replacing c by an orthonormal basis of its column space leaves ESS unchanged
+  % -- it only depends on the space the contrast spans -- and makes the q x q
+  % middle matrix invertible, so the pinv of the unvectorised formula becomes an
+  % ordinary batched solve. q is the rank of the contrast, i.e. xCon.eidf.
+  Q  = orth(c);
+  q  = size(Q,2);
 
-T0  = (Beta.'*c) ./ (eps + sqrt(ResMS.*cGc));
+  cG = pagemldivide(XtX, repmat(Q, 1, 1, n_vox));      % r x q x n_vox
+  M  = pagemtimes(Q', cG);                             % q x q x n_vox
+  CB = Q'*Beta;                                        % q x n_vox
 
-% these voxels go back to pinv, which resolves them in the least-squares sense
-bad = degenerate | ~isfinite(T0) | ~isfinite(cGc) | cGc <= 0;
+  ess = sum(CB .* reshape(pagemldivide(M, reshape(CB, q, 1, n_vox)), q, n_vox), 1).';
+  num = ess/xCon.eidf;
+  cGc = ones(n_vox,1);                                 % unused for an F-contrast
+
+  bad = degenerate | ~isfinite(num);
+end
 
 %---------------------------------------------------------------
-function T0 = calc_GLM_voxelwise_loop(Y, X, C, xC, xCon, trRV, pinv_method, todo)
+function [num, cGc, ResMS] = calc_GLM_voxelwise_loop(Y, X, C, xC, xCon, trRV, pinv_method, todo)
 % voxel-wise GLM by an explicit pseudoinverse per voxel
 %
 % This is the reference implementation. It is used for the voxels the batched
 % solve could not resolve, and whenever the batched solve does not apply.
+%
+% Output:
+% num   - c'*Beta for a t-contrast, ESS/eidf for an F-contrast
+% cGc   - c'*inv(Xi'*Xi)*c, only meaningful for a t-contrast
+% ResMS - residual mean square, NOT yet shrunk (the caller needs the global max)
 
 c = xCon.c;
 
@@ -2600,7 +2636,9 @@ else
     pinvx  = @(x) pinv(x);
 end
 
-T0 = zeros(numel(todo),1);
+num   = zeros(numel(todo),1);
+cGc   = ones(numel(todo),1);
+ResMS = zeros(numel(todo),1);
 
 % go through all voxels inside mask
 for k=1:numel(todo)
@@ -2623,17 +2661,17 @@ for k=1:numel(todo)
   res0 = res0.^2;
   ResSS = double(sum(res0,2));
 
-  ResMS = ResSS/trRV;
-  %-Modify ResMS (a form of shrinkage) to avoid problems of very low variance
-  ResMS  = ResMS + 1e-3 * max(ResMS(isfinite(ResMS)));
+  ResMS(k) = ResSS/trRV;
 
   if strcmp(xCon.STAT,'T')
-    Bcov = pKX*pKX';
-    con = Beta'*c;
-
-    T0(k) = con./(eps+sqrt(ResMS*(c'*Bcov*c)));
+    Bcov   = pKX*pKX';
+    num(k) = Beta'*c;
+    cGc(k) = c'*Bcov*c;
   else
-    error('F-test is not yet supported')
+    %-Compute ESS = (c'*b)' * pinv(c'*inv(Xi'*Xi)*c) * (c'*b), as in calc_GLM
+    M      = c' * (pKX*pKX') * c;
+    CB     = c' * double(Beta);
+    num(k) = (CB' * pinv(M) * CB)/xCon.eidf;
   end
 end
 

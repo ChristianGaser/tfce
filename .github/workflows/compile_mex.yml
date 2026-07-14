@@ -88,7 +88,7 @@ jobs:
         uses: matlab-actions/run-command@v1
         with:
           command: |
-            cd(fullfile(getenv('GITHUB_WORKSPACE'), 'TFCE'))
+            cd(fullfile(getenv('GITHUB_WORKSPACE'), 'TFCE', 'matlab'))
             compile(1)
 
       - name: Compile TFCE mex-files
@@ -96,32 +96,35 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: |
-            cd(fullfile(getenv('GITHUB_WORKSPACE'), 'TFCE'))
+            cd(fullfile(getenv('GITHUB_WORKSPACE'), 'TFCE', 'matlab'))
             compile(1)
 
+      # The sources live in TFCE/matlab and the shared C core in TFCE/c; compile.m
+      # writes the mex-files back beside its own sources.
       - name: Check that all mex-files were built
         shell: bash
         run: |
           missing=0
           for f in tfceMex_maxtree tfceMex_maxtree_batch tfceMex_resss; do
-            if [ ! -f "TFCE/$f.${{ matrix.mex_ext }}" ]; then
-              echo "MISSING: TFCE/$f.${{ matrix.mex_ext }}"
+            if [ ! -f "TFCE/matlab/$f.${{ matrix.mex_ext }}" ]; then
+              echo "MISSING: TFCE/matlab/$f.${{ matrix.mex_ext }}"
               missing=1
             else
-              echo "ok: TFCE/$f.${{ matrix.mex_ext }}"
+              echo "ok: TFCE/matlab/$f.${{ matrix.mex_ext }}"
             fi
           done
           exit $missing
 
       # Collect the mex-files under a TFCE folder so that the downloaded archive
-      # unpacks straight into the SPM toolbox directory. Do NOT zip here:
-      # upload-artifact always zips what it is given, and zipping a zip of the
-      # same name produces an archive that many tools refuse to unpack.
+      # unpacks straight into the SPM toolbox directory -- which is flat, hence
+      # the mex-files are collected out of matlab/ and not under it. Do NOT zip
+      # here: upload-artifact always zips what it is given, and zipping a zip of
+      # the same name produces an archive that many tools refuse to unpack.
       - name: Collect mex-files
         shell: bash
         run: |
           mkdir -p dist/TFCE
-          cp TFCE/*.${{ matrix.mex_ext }} dist/TFCE/
+          cp TFCE/matlab/*.${{ matrix.mex_ext }} dist/TFCE/
           ls -l dist/TFCE
 
       - name: Upload mex-files

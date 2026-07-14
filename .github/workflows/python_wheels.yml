@@ -17,18 +17,12 @@ on:
     branches: [master, main]
     paths:
       - "python/**"
-      - "tfce_capi.*"
-      - "tfce_maxtree.h"
-      - "tfce_batch.h"
-      - "tfce_threads.h"
+      - "c/**"
       - ".github/workflows/python_wheels.yml"
   pull_request:
     paths:
       - "python/**"
-      - "tfce_capi.*"
-      - "tfce_maxtree.h"
-      - "tfce_batch.h"
-      - "tfce_threads.h"
+      - "c/**"
   release:
     types: [published]
   workflow_dispatch:

@@ -37,6 +37,7 @@
 typedef struct {
   int is_mesh;
   int nx, ny, nz;          /* grid  */
+  int conn;                /* 6, 18 or 26; 0 means 26. Ignored for a mesh.    */
   const int *ptr, *idx;    /* CSR   */
 } Neigh;
 
@@ -69,12 +70,24 @@ static int neigh_get(const Neigh *nb, int u, int *buf, const int **out)
     int x0 = ux > 0 ? ux - 1 : 0, x1 = ux < nx - 1 ? ux + 1 : nx - 1;
     int y0 = uy > 0 ? uy - 1 : 0, y1 = uy < ny - 1 ? uy + 1 : ny - 1;
     int z0 = uz > 0 ? uz - 1 : 0, z1 = uz < nz - 1 ? uz + 1 : nz - 1;
+    int conn = nb->conn ? nb->conn : 26;   /* an unset field means the default */
     int tx, ty, tz;
+
     for (tz = z0; tz <= z1; tz++)
       for (ty = y0; ty <= y1; ty++)
         for (tx = x0; tx <= x1; tx++) {
-          int w = tz * nxy + ty * nx + tx;
-          if (w != u) buf[n++] = w;
+          /* the Manhattan distance tells the three neighbourhoods apart: 1 is a
+             shared face, 2 adds a shared edge, 3 adds a shared corner */
+          int dx = tx > ux ? tx - ux : ux - tx;
+          int dy = ty > uy ? ty - uy : uy - ty;
+          int dz = tz > uz ? tz - uz : uz - tz;
+          int man = dx + dy + dz;
+
+          if (man == 0) continue;                    /* u itself */
+          if (conn == 6  && man != 1) continue;
+          if (conn == 18 && man >  2) continue;
+
+          buf[n++] = tz * nxy + ty * nx + tx;
         }
     *out = buf;
     return n;

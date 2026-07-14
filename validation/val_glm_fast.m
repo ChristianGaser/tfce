@@ -32,7 +32,8 @@ function val_glm_fast
 % ______________________________________________________________________
 
 val_util('header','Accelerated GLM');
-val_util('extract','calc_GLM','calc_GLM_fast','prepare_GLM_fast','make_Pset');
+val_util('extract','calc_GLM','calc_GLM_fast','prepare_GLM_fast','make_Pset', ...
+         'permuted_design');
 
 rng(1);
 tol = 1e-5;   % Beta is single, so this is the rounding floor, not slack
@@ -149,16 +150,13 @@ val_util('summary');
 
 %---------------------------------------------------------------
 function xXperm = permute_design(xX, Pset, Rz, ind_X, nuisance_method)
-% apply a permutation to the design exactly as the permutation loop does
+% apply a permutation to the design, through the very function the loop uses
+%
+% n_exch_blocks = 1 keeps permuted_design out of its interaction-design branch,
+% which these designs do not have.
 
-xXperm = xX;
-switch nuisance_method
-  case 0 % Draper-Stoneman permutes X
-    xXperm.X(:,ind_X) = Pset*xX.X(:,ind_X);
-  case 1 % Freedman-Lane permutes Y, so X is untouched
-  case 2 % Smith additionally orthogonalises X with respect to Z
-    xXperm.X(:,ind_X) = Pset*Rz*xX.X(:,ind_X);
-end
+xXperm   = xX;
+xXperm.X = permuted_design(xX.X, Pset, Rz, ind_X, nuisance_method, 1, 0, true);
 
 
 %---------------------------------------------------------------

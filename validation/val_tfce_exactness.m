@@ -97,6 +97,36 @@ end
 val_util('result','batched transform == single-map transform', d == 0, ...
   sprintf('max abs diff = %.1e over %d maps', d, B));
 
+% ---------------------------------------------------------------------
+% the permutation loop hands a whole block of permutations to the batched
+% transform under ONE calc_neg flag, whereas it used to decide that per map. That
+% is only the same thing if asking for negative TFCE values on a map that has no
+% negative values leaves it unchanged -- otherwise a block that mixes signed and
+% unsigned maps (an F-statistic, a t-statistic that happens to be all-positive)
+% would come out differently than it did permutation by permutation.
+% ---------------------------------------------------------------------
+T = zeros(N,B);
+for b = 1:B
+  m = smooth3(randn(dim),'gaussian',7,1.8);
+  if mod(b,2) == 0, m = abs(m); end     % half the block has no negative values
+  T(:,b) = m(:);
+end
+
+% sequential, deciding calc_neg per map, exactly as the loop used to
+seq = zeros(N,B);
+for b = 1:B
+  t = reshape(T(:,b),dim);
+  s1 = tfceMex_maxtree(t, E, H, min(t(:)) < 0);
+  seq(:,b) = s1(:);
+end
+
+% batched, with one flag for the whole block, as the loop does now
+bat = tfceMex_maxtree_batch(T, E, H, any(T(:) < 0), dim);
+
+val_util('result','one calc_neg flag for a mixed-sign block is the same thing', ...
+  isequal(seq, bat), ...
+  sprintf('%d of %d maps had no negative values', nnz(~any(T<0,1)), B));
+
 val_util('summary');
 
 %---------------------------------------------------------------

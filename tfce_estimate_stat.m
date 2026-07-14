@@ -89,6 +89,16 @@ n_exc_min = 25;
 % uncorrected P-values fall back to plain counting.
 tail_memory_limit = 4;
 
+% Number of permutations whose TFCE transform is computed in one go. The TFCE
+% transform dominates the cost of the permutation loop, and permutations are
+% independent of one another, so they are handed to tfceMex_maxtree_batch a block
+% at a time and it works on one permutation per thread. Nothing about the result
+% changes, only the order in which the work is done. The block needs
+% n_elements x block_size doubles twice over, so it should be of the order of the
+% number of cores rather than as large as possible. 0 = one per computational
+% thread, 1 = the old permutation-by-permutation path.
+tfce_block_size = 0;
+
 % convert to z-statistic
 convert_to_z = false;
 
@@ -970,6 +980,32 @@ for con = 1:length(Ic0)
     end
   end
 
+  % Permutations are worked through a block at a time so that their TFCE
+  % transforms can be done in parallel, one permutation per thread. These hold the
+  % statistics and the TFCE maps of the block currently being consumed.
+  n_draws_max = size(perm_labels,1);
+
+  n_threads = tfce_block_size;
+  if n_threads <= 0
+    n_threads = maxNumCompThreads;
+  end
+  n_threads = max(1, min(n_threads, n_draws_max));
+
+  % the batched transform needs to be told the neighbourhood explicitly, since it
+  % is handed a matrix of maps rather than one map in its own shape
+  tfce_geom = [];
+  if ~test_mode
+    if mesh_detected
+      tfce_geom = faces;
+    else
+      tfce_geom = VY(1).dim;
+    end
+  end
+
+  blk_t    = [];
+  blk_tfce = zeros(0,0);
+  blk_pos  = 1;
+
   if ~test_mode, tfce_progress('Init',n_perm,'Calculating','Permutations'); end
 
   % update interval for progress bar
@@ -1014,40 +1050,14 @@ for con = 1:length(Ic0)
       
     % change design matrix according to permutation order
     % only permute columns, where contrast is defined
-    Xperm = xX.X;
+    % the design that is actually fitted is built inside the block below, one per
+    % permutation. This one only feeds the display.
     Xperm_debug = xX.X;
-    Wperm = xX.W;
-
-    switch nuisance_method 
-    case 0 % Draper-Stoneman is permuting X
-      Xperm(:,ind_X) = Pset*Xperm(:,ind_X);
-%      if n_cond ~= 1
-%        Wtmp = Pset*xX.W;
-%        Wperm(ind_data_defined,ind_data_defined) = Wtmp(ind_data_defined,ind_data_defined);
-%      end
-    case 1 % Freedman-Lane is permuting Y
-      Xperm = xX.X;
-    case 2 % Smith method is additionally orthogonalizing X with respect to Z
-      Xperm(:,ind_X) = Pset*Rz*Xperm(:,ind_X);
-%      if n_cond ~= 1
-%        Wtmp = Pset*Rz*xX.W;
-%        Wperm(ind_data_defined,ind_data_defined) = Wtmp(ind_data_defined,ind_data_defined);
-%      end
-    end
-            
     Xperm_debug(:,ind_X) = Pset*Xperm_debug(:,ind_X);
-    
+
     % correct interaction designs
     % # exch_blocks >1 & # cond == 0 & differential contrast
     if n_exch_blocks >= 2 && n_cond==0 && ~all(exch_blocks(:))
-      Xperm2 = Xperm;
-      Xperm2(:,ind_X) = 0;
-      for j=1:n_exch_blocks
-        ind_Xj = find(xX.X(:,ind_X(j)));
-        Xperm2(ind_Xj,ind_X(j)) = sum(Xperm(ind_Xj,ind_X),2);
-      end
-      Xperm = Xperm2;
-
       Xperm_debug2 = Xperm_debug;
       Xperm_debug2(:,ind_X) = 0;
       for j=1:n_exch_blocks
@@ -1056,7 +1066,7 @@ for con = 1:length(Ic0)
       end
       Xperm_debug = Xperm_debug2;
     end
-    
+
     if show_permuted_designmatrix
       % scale covariates and nuisance variables to a range 0.8..1
       % to properly display these variables with indicated colors
@@ -1172,48 +1182,71 @@ for con = 1:length(Ic0)
           null_distribution = zeros(size(t));
         end
       else
-        xXperm   = xX;
-        xXperm.X = Xperm;        
-        xXperm.W = Wperm;
+        % Work through the permutations a block at a time. The statistic of every
+        % permutation in the block is computed first, and their TFCE transforms
+        % are then done in a single call that runs one permutation per thread.
+        % TFCE dominates the cost of this loop and the permutations are
+        % independent of one another, so that is where the parallelism belongs.
+        % Nothing about the result changes: the permutations are consumed below in
+        % exactly the order they would have been, only the order of the work
+        % differs. A block size of 1 reproduces the permutation-by-permutation
+        % path exactly.
+        if blk_pos > size(blk_tfce,2)
+          n_blk = max(1, min(n_threads, n_draws_max - perm_idx + 1));
+          blk_t = zeros(numel(t0), n_blk);
 
-        if voxel_covariate
-          t = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset,ind_X,pinv_method);
-        elseif ~isempty(pre_GLM)
-          % accelerated path: the permutation enters through Pset for
-          % Freedman-Lane and through Xperm for Draper-Stoneman/Smith
-          t = calc_GLM_fast(Y,pre_GLM,xXperm,xCon,ind_mask,VY(1).dim,Pset,nuisance_method);
-        elseif nuisance_method == 1
-          % Freedman-Lane permutation of data
-          t = calc_GLM(Y*(Pset'*Rz),xXperm,xCon,ind_mask,VY(1).dim);
-        else
-          t = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
-        end
+          for b = 1:n_blk
+            Pset_b  = make_Pset(perm_labels(perm_idx+b-1,:), n_cond, n_data, ...
+                                n_data_with_contrast, ind_label);
+            xXperm  = xX;
+            xXperm.X = permuted_design(xX.X, Pset_b, Rz, ind_X, nuisance_method, ...
+                                       n_exch_blocks, n_cond, exch_blocks);
 
-        if convert_to_z
-          % use faster z-transformation of SPM for T-statistics
-          if strcmp(xCon.STAT,'T')
-            t(mask_1) = spm_t2z(t(mask_1),df2);
-          else
-            t(mask_1) = palm_gtoz(t(mask_1),df1,df2);
+            if voxel_covariate
+              tb = calc_GLM_voxelwise(Y,xXperm,SPM.xC(voxel_covariate),xCon,ind_mask,VY(1).dim,C,Pset_b,ind_X,pinv_method);
+            elseif ~isempty(pre_GLM)
+              % accelerated path: the permutation enters through Pset for
+              % Freedman-Lane and through the design for Draper-Stoneman/Smith
+              tb = calc_GLM_fast(Y,pre_GLM,xXperm,xCon,ind_mask,VY(1).dim,Pset_b,nuisance_method);
+            elseif nuisance_method == 1
+              % Freedman-Lane permutation of data
+              tb = calc_GLM(Y*(Pset_b'*Rz),xXperm,xCon,ind_mask,VY(1).dim);
+            else
+              tb = calc_GLM(Y,xXperm,xCon,ind_mask,VY(1).dim);
+            end
+
+            if convert_to_z
+              % use faster z-transformation of SPM for T-statistics
+              if strcmp(xCon.STAT,'T')
+                tb(mask_1) = spm_t2z(tb(mask_1),df2);
+              else
+                tb(mask_1) = palm_gtoz(tb(mask_1),df1,df2);
+              end
+            end
+
+            % update null-distribution
+            if save_null_distribution
+              null_distribution(mask_1) = null_distribution(mask_1) + tb(mask_1);
+            end
+
+            % remove all NaN and Inf's
+            tb(isinf(tb) | isnan(tb)) = 0;
+
+            blk_t(:,b) = tb(:);
           end
+
+          % only estimate neg. tfce values for non-positive t-values. A map that
+          % has none is unaffected by asking for them, so one flag for the block
+          % gives the same maps as one flag per permutation.
+          calc_neg = mesh_detected || any(blk_t(:) < 0);
+
+          blk_tfce = tfceMex_maxtree_batch(blk_t, E, H, calc_neg, tfce_geom, n_threads);
+          blk_pos  = 1;
         end
 
-        % update null-distribution
-        if save_null_distribution
-          null_distribution(mask_1) = null_distribution(mask_1) + t(mask_1);
-        end
-        
-        % remove all NaN and Inf's
-        t(isinf(t) | isnan(t)) = 0;
-        
-        % compute tfce
-        if mesh_detected
-          tfce = tfceMex_maxtree(t, E, H, 1, faces);
-        else
-          % only estimate neg. tfce values for non-positive t-values
-          tfce = tfceMex_maxtree(t, E, H, min(t(:)) < 0, faces);
-        end
-        
+        t    = reshape(blk_t(:,blk_pos),    size(t0));
+        tfce = reshape(blk_tfce(:,blk_pos), size(t0));
+        blk_pos = blk_pos + 1;
       end
       
       mask_stat_P = mask_1;
@@ -2251,6 +2284,38 @@ if sz_val_max >= 20
   end
   ylabel('Threshold')
   xlabel('Permutations')   
+end
+
+%---------------------------------------------------------------
+function Xperm = permuted_design(X, Pset, Rz, ind_X, nuisance_method, ...
+    n_exch_blocks, n_cond, exch_blocks)
+% apply one permutation to the design matrix
+%
+% Freedman-Lane permutes the data and leaves the design alone. Draper-Stoneman
+% permutes the columns of interest, and Smith permutes them after orthogonalising
+% them with respect to the nuisance variables.
+
+Xperm = X;
+
+switch nuisance_method
+case 0 % Draper-Stoneman is permuting X
+  Xperm(:,ind_X) = Pset*X(:,ind_X);
+case 1 % Freedman-Lane is permuting Y
+  % the design is untouched
+case 2 % Smith method is additionally orthogonalizing X with respect to Z
+  Xperm(:,ind_X) = Pset*Rz*X(:,ind_X);
+end
+
+% correct interaction designs
+% # exch_blocks >1 & # cond == 0 & differential contrast
+if n_exch_blocks >= 2 && n_cond == 0 && ~all(exch_blocks(:))
+  Xperm2 = Xperm;
+  Xperm2(:,ind_X) = 0;
+  for j = 1:n_exch_blocks
+    ind_Xj = find(X(:,ind_X(j)));
+    Xperm2(ind_Xj,ind_X(j)) = sum(Xperm(ind_Xj,ind_X),2);
+  end
+  Xperm = Xperm2;
 end
 
 %---------------------------------------------------------------

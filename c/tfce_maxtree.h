@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright (c) 2020-2026, Christian Gaser. See LICENSE. */
 /*
  * Exact TFCE via a max-tree (component tree) built with union-find.
  *

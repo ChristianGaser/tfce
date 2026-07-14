@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright (c) 2020-2026, Christian Gaser. See LICENSE. */
 /*
  * Flat C API for the exact TFCE max-tree. See tfce_capi.h.
  *

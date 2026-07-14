@@ -1,2 +1,13 @@
 .refact
 .venv-tfce
+# Python port
+.venv-tfce/
+python/build/
+python/dist/
+python/src/tfce.egg-info/
+python/src/tfce/_maxtree.c
+python/src/tfce/*.so
+**/__pycache__/
+.pytest_cache/
+python/src/tfce/_c/
+python/MANIFEST

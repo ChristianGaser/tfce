@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=64", "wheel", "Cython>=3.0", "numpy>=1.22"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tfce"
+version = "0.1.0"
+description = "Exact threshold-free cluster enhancement, and the permutation inference around it"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "GPL-2.0-or-later" }
+authors = [{ name = "Christian Gaser", email = "christian.gaser@uni-jena.de" }]
+keywords = ["neuroimaging", "TFCE", "permutation", "statistics", "fMRI", "VBM"]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+
+# Deliberately thin. numpy and scipy are all the core needs. nibabel and nilearn
+# belong to the layers above it, and are optional so that the core can be depended
+# on -- by nilearn itself, for instance -- without dragging a tree behind it.
+dependencies = ["numpy>=1.22", "scipy>=1.8"]
+
+[project.optional-dependencies]
+io = ["nibabel>=4.0"]
+test = ["pytest>=7.0"]
+dev = ["pytest>=7.0", "nibabel>=4.0", "nilearn>=0.10", "cython>=3.0"]
+
+[project.urls]
+Homepage = "https://github.com/ChristianGaser/tfce"
+Source = "https://github.com/ChristianGaser/tfce"
+Issues = "https://github.com/ChristianGaser/tfce/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+tfce = ["_c/*.h", "_c/*.c"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+# ---------------------------------------------------------------------------
+# Wheels
+#
+# The whole reason to publish this is that the compiled core is 14x faster than a
+# stepped TFCE on one map and 72x on a block of permutations. That is only worth
+# anything if `pip install tfce` just works, so wheels are built for every
+# platform and no user is ever asked to have a compiler.
+# ---------------------------------------------------------------------------
+[tool.cibuildwheel]
+build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
+skip = ["*-musllinux_i686", "pp*"]
+test-requires = "pytest"
+test-command = "pytest {project}/tests -q"
+build-verbosity = 1
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64", "aarch64"]
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]

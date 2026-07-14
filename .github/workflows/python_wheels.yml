@@ -1,0 +1,112 @@
+# Build the tfce Python package for every platform, and publish it to PyPI on a
+# tag.
+#
+# The point of the compiled core is that it is 14x faster than a stepped TFCE on
+# one map, and 72x on a block of permutations. That is worth nothing if users have
+# to have a C compiler, so wheels are built here for Linux, macOS and Windows and
+# nobody ever compiles anything.
+#
+# The C core is shared with the MATLAB toolbox and lives at the repository root;
+# python/setup.py vendors it into the package at build time, which is why this
+# checks out the whole repository rather than just python/.
+
+name: Python wheels
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "python/**"
+      - "tfce_capi.*"
+      - "tfce_maxtree.h"
+      - "tfce_batch.h"
+      - "tfce_threads.h"
+      - ".github/workflows/python_wheels.yml"
+  pull_request:
+    paths:
+      - "python/**"
+      - "tfce_capi.*"
+      - "tfce_maxtree.h"
+      - "tfce_batch.h"
+      - "tfce_threads.h"
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  wheels:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-13, macos-14, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Linux aarch64 wheels are cross-built in an emulated container
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.21
+        with:
+          package-dir: python
+        env:
+          # macos-13 is Intel, macos-14 is Apple silicon: build only what the
+          # runner actually is, so nothing is cross-compiled untested
+          CIBW_ARCHS_MACOS: ${{ matrix.os == 'macos-14' && 'arm64' || 'x86_64' }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+
+  sdist:
+    name: sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pipx run build --sdist
+        working-directory: python
+
+      # An sdist that cannot build is worse than no sdist: it turns
+      # `pip install tfce` into a compile error on any platform without a wheel.
+      # So it is built from source here, in a directory with no repository in
+      # sight, and the tests are run against what comes out.
+      - name: Install the sdist from source and test it
+        run: |
+          python -m venv /tmp/fresh
+          /tmp/fresh/bin/pip install --upgrade pip pytest
+          /tmp/fresh/bin/pip install python/dist/*.tar.gz
+          cp -r python/tests /tmp/tests
+          cd /tmp && /tmp/fresh/bin/python -m pytest /tmp/tests -q \
+            --ignore=/tmp/tests/test_nilearn_compat.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: python/dist/*.tar.gz
+
+  publish:
+    name: Publish to PyPI
+    needs: [wheels, sdist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    environment: pypi
+    permissions:
+      id-token: write        # trusted publishing: no API token to leak
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: pypa/gh-action-pypi-publish@release/v1

@@ -1,0 +1,14 @@
+# The C core is vendored into src/tfce/_c/ by setup.py. It MUST go into the sdist:
+# without it there is nothing to compile, and `pip install tfce` from source fails.
+include src/tfce/_c/*.c
+include src/tfce/_c/*.h
+include src/tfce/*.pyx
+
+include README.md
+include LICENSE
+
+recursive-include tests *.py
+recursive-include tests/data *.npz
+
+exclude src/tfce/_maxtree.c
+global-exclude *.so *.pyd __pycache__/*

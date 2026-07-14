@@ -17,66 +17,26 @@
  * index). Each worker allocates its scratch arrays once and reuses them for
  * every map it processes.
  *
- * See tfce_maxtree.h for the algorithm.
+ * See tfce_maxtree.h for the algorithm, and tfce_batch.h for the threading. The
+ * batch driver is shared with the C API that the Python binding sits on, so both
+ * run the very same code rather than two copies of it that could drift apart.
  *
  * Christian Gaser
  */
 
 #include "mex.h"
-#include "tfce_threads.h"
 #include "tfce_maxtree.h"
-
-#define MAX_THREADS 256
-
-typedef struct {
-  const tfce_val *T;
-  tfce_val *out;
-  int N, B;
-  const Neigh *nb;
-  double E, H;
-  int calc_neg;
-  int *next;                 /* next map to claim, shared */
-  tfce_mutex_t *mtx;
-  int ok;
-} BatchArgs;
-
-static void *batch_thread(void *pa)
-{
-  BatchArgs *A = (BatchArgs *)pa;
-  Workspace ws;
-
-  if (!ws_alloc(&ws, A->N)) { A->ok = 0; return NULL; }
-
-  for (;;) {
-    int b;
-
-    tfce_mutex_lock(A->mtx);
-    b = (*A->next)++;
-    tfce_mutex_unlock(A->mtx);
-
-    if (b >= A->B) break;
-
-    maxtree_map(&ws, A->T + (size_t)b * A->N, A->out + (size_t)b * A->N,
-                A->nb, A->E, A->H, A->calc_neg);
-  }
-
-  ws_free(&ws);
-  return NULL;
-}
+#include "tfce_batch.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
   double E, H;
-  int calc_neg = 1, N, B, i, nthreads, next = 0, is_single;
+  int calc_neg = 1, N, B, nthreads, is_single, ok;
   size_t NB;
   const tfce_val *Tin;
   tfce_val *outData, *inBuf = NULL, *outBuf = NULL;
   Neigh nb;
-  BatchArgs args[MAX_THREADS];
-  tfce_thread_t th[MAX_THREADS];
-  tfce_mutex_t mtx;
   int *aptr = NULL, *aidx = NULL;
-  int started = 0;
 
   if (nrhs < 5)
     mexErrMsgTxt("Usage: tfce = tfceMex_maxtree_batch(T, E, H, calc_neg, geom [, n_threads])");
@@ -122,11 +82,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mexErrMsgTxt("geom must be [nx ny nz] or an F x 3 face list.");
   }
 
-  nthreads = B;
+  nthreads = B;   /* tfce_batch_run caps this; <= 0 would mean one per map */
   if (nrhs > 5 && !mxIsEmpty(prhs[5])) nthreads = (int) mxGetScalar(prhs[5]);
-  if (nthreads < 1) nthreads = 1;
-  if (nthreads > B) nthreads = B;
-  if (nthreads > MAX_THREADS) nthreads = MAX_THREADS;
 
   if (is_single) {
     Tin = (const tfce_val *) mxGetData(prhs[0]);
@@ -151,33 +108,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     outData = outBuf;
   }
 
-  if (tfce_mutex_init(&mtx) != 0)
-    mexErrMsgTxt("Mutex init failed.");
+  /* the driver itself is shared with the C API, see tfce_batch.h */
+  ok = tfce_batch_run(Tin, outData, N, B, &nb, E, H, calc_neg, nthreads);
 
-  for (i = 0; i < nthreads; i++) {
-    args[i].T        = Tin;
-    args[i].out      = outData;
-    args[i].N        = N;
-    args[i].B        = B;
-    args[i].nb       = &nb;
-    args[i].E        = E;
-    args[i].H        = H;
-    args[i].calc_neg = calc_neg;
-    args[i].next     = &next;
-    args[i].mtx      = &mtx;
-    args[i].ok       = 1;
-  }
-
-  for (i = 0; i < nthreads; i++)
-    if (tfce_thread_create(&th[i], batch_thread, &args[i]) == 0) started++;
-    else break;
-
-  /* if threads could not be created, do the rest on this thread */
-  if (started < nthreads) batch_thread(&args[0]);
-
-  for (i = 0; i < started; i++) tfce_thread_join(th[i]);
-
-  tfce_mutex_destroy(&mtx);
   if (aptr) { free(aptr); free(aidx); }
 
   if (!is_single) {                      /* hand the result back as double */
@@ -189,6 +122,5 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   if (inBuf)  free(inBuf);
   if (outBuf) free(outBuf);
 
-  for (i = 0; i < nthreads; i++)
-    if (!args[i].ok) mexErrMsgTxt("Memory allocation error in worker thread.");
+  if (!ok) mexErrMsgTxt("Memory allocation error in worker thread.");
 }

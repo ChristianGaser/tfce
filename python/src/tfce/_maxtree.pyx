@@ -1,6 +1,9 @@
 # cython: language_level=3
 # cython: boundscheck=False
 # cython: wraparound=False
+#
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2020-2026, Christian Gaser. See LICENSE.
 """
 Cython binding to the exact TFCE max-tree.
 

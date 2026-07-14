@@ -5,17 +5,28 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "tfce"
 version = "0.1.0"
-description = "Exact threshold-free cluster enhancement, and the permutation inference around it"
+# Shown in PyPI search results, so it has to say what this is and why it is not
+# just another TFCE: the integral is evaluated exactly, with no step size.
+description = "Exact threshold-free cluster enhancement (TFCE) with no step size, and the permutation inference around it"
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "GPL-2.0-or-later" }
+
+# BSD-3-Clause, NOT the GPL of the MATLAB toolbox in the same repository.
+#
+# Nothing here is derived from SPM: neither this package nor the C core it
+# compiles in (../c) contains SPM, SnPM or PALM code, so none of it inherits their
+# GPL. It is BSD so that permissive projects can depend on it without a second
+# thought -- nilearn is BSD-3, nipreps is Apache-2.0, and both can take BSD-3 with
+# no friction. BSD-3 is also GPLv2-compatible, so the MATLAB toolbox, which
+# compiles the very same C core, stays GPL-2.0-or-later exactly as it always was.
+license = { text = "BSD-3-Clause" }
 authors = [{ name = "Christian Gaser", email = "christian.gaser@uni-jena.de" }]
 keywords = ["neuroimaging", "TFCE", "permutation", "statistics", "fMRI", "VBM"]
 
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "License :: OSI Approved :: BSD License",
     "Programming Language :: Python :: 3",
     "Programming Language :: C",
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
@@ -36,6 +47,9 @@ dev = ["pytest>=7.0", "nibabel>=4.0", "nilearn>=0.10", "cython>=3.0"]
 Homepage = "https://github.com/ChristianGaser/tfce"
 Source = "https://github.com/ChristianGaser/tfce"
 Issues = "https://github.com/ChristianGaser/tfce/issues"
+
+[tool.setuptools]
+license-files = ["LICENSE"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

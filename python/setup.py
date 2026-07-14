@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2020-2026, Christian Gaser. See LICENSE.
 """
 Build the exact TFCE max-tree as a Python extension.
 
@@ -25,7 +27,7 @@ from setuptools import Extension, setup
 from Cython.Build import cythonize
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.abspath(os.path.join(HERE, os.pardir))
+CORE = os.path.abspath(os.path.join(HERE, os.pardir, "c"))
 VENDOR = os.path.join("src", "tfce", "_c")
 
 CORE_FILES = [
@@ -43,17 +45,17 @@ def vendor_core():
     os.makedirs(dest, exist_ok=True)
 
     for name in CORE_FILES:
-        src = os.path.join(ROOT, name)
+        src = os.path.join(CORE, name)
         dst = os.path.join(dest, name)
 
         if os.path.exists(src):
-            # a git checkout: the root is the source of truth, always
+            # a git checkout: ../c is the source of truth, always
             shutil.copyfile(src, dst)
         elif not os.path.exists(dst):
             raise RuntimeError(
-                f"{name} is neither at the repository root nor vendored in "
-                f"{VENDOR}. A source distribution should carry it; a checkout "
-                f"should have it one directory up."
+                f"{name} is neither in {CORE} nor vendored in {VENDOR}. "
+                f"A source distribution should carry it; a checkout should have "
+                f"it in the c/ folder beside python/."
             )
 
 

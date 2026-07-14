@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2020-2026, Christian Gaser. See LICENSE.
 """
 Tail approximations: how a permutation test stops needing so many permutations.
 

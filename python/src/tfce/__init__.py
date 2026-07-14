@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2020-2026, Christian Gaser. See LICENSE.
 """Exact TFCE and permutation inference.
 
 The core is deliberately framework-free: arrays in, arrays out, numpy and scipy

@@ -40,16 +40,28 @@ typedef struct {
   const int *ptr, *idx;    /* CSR   */
 } Neigh;
 
+/* a 3x3x3 neighbourhood has 26 elements around its centre, and that is the most
+   the grid case can ever produce. It says nothing about a mesh, where the degree
+   of a vertex is not bounded by anything. */
 #define MAX_NEIGH 26
 
-static int neigh_get(const Neigh *nb, int u, int *buf)
+/*
+ * Neighbours of element u. Returns how many there are and, in *out, where they
+ * are.
+ *
+ * A mesh is NOT copied into buf: the adjacency is already a contiguous run in the
+ * CSR index array, so *out simply points into it. Copying it would need a buffer
+ * as large as the largest vertex degree in the mesh, which nothing bounds -- an
+ * earlier version copied into a buffer of MAX_NEIGH and smashed the stack on any
+ * vertex with more than 26 neighbours.
+ */
+static int neigh_get(const Neigh *nb, int u, int *buf, const int **out)
 {
   int n = 0;
 
   if (nb->is_mesh) {
-    int s = nb->ptr[u], e = nb->ptr[u + 1], i;
-    for (i = s; i < e; i++) buf[n++] = nb->idx[i];
-    return n;
+    *out = nb->idx + nb->ptr[u];
+    return nb->ptr[u + 1] - nb->ptr[u];
   } else {
     int nx = nb->nx, ny = nb->ny, nz = nb->nz, nxy = nx * ny;
     int uz  = u / nxy, rem = u - uz * nxy;
@@ -64,6 +76,7 @@ static int neigh_get(const Neigh *nb, int u, int *buf)
           int w = tz * nxy + ty * nx + tx;
           if (w != u) buf[n++] = w;
         }
+    *out = buf;
     return n;
   }
 }
@@ -279,9 +292,10 @@ static void maxtree_pass(Workspace *w, const tfce_val *d, tfce_val *out,
     /* merge with active neighbours; old node lists splice along for free */
     for (g = gs; g < ge; g++) {
       int u = w->ord[g].idx;
-      int n = neigh_get(nb, u, nbuf), j;
+      const int *nl;
+      int n = neigh_get(nb, u, nbuf, &nl), j;
       for (j = 0; j < n; j++)
-        if (w->active[nbuf[j]]) uf_union(w, u, nbuf[j]);
+        if (w->active[nl[j]]) uf_union(w, u, nl[j]);
     }
 
     /* one fresh node per component that changed at this level */
@@ -346,19 +360,30 @@ static void maxtree_map(Workspace *w, const tfce_val *d, tfce_val *out,
 }
 
 /* ------------------------------------------------------------------ *
- * CSR adjacency from a face list (1-based, F x 3)
+ * CSR adjacency from a face list (1-based, F x 3, column-major)
+ *
+ * Returns 0 and builds nothing if any index does not name a vertex that exists.
+ * That check is not a formality: an out-of-range index is written straight past
+ * the end of the degree array below, which corrupts the heap and takes the
+ * process down somewhere else entirely, long after the fact.
  * ------------------------------------------------------------------ */
-static void build_adjacency(const double *faces, int nF, int N, int **ptr, int **idx)
+static int build_adjacency(const int *faces, int nF, int N, int **ptr, int **idx)
 {
-  int *deg = (int *) calloc((size_t)N + 1, sizeof(int));
+  int *deg;
   int *p, *ix, *fill;
   int f, i, j, e, total;
   static const int ea[3] = {0, 1, 2}, eb[3] = {1, 2, 0};
 
+  for (i = 0; i < nF * 3; i++)
+    if (faces[i] < 1 || faces[i] > N) return 0;
+
+  deg = (int *) calloc((size_t)N + 1, sizeof(int));
+  if (!deg) return 0;
+
   for (f = 0; f < nF; f++)
     for (e = 0; e < 3; e++) {
-      int a = (int)faces[ea[e] * nF + f] - 1;
-      int b = (int)faces[eb[e] * nF + f] - 1;
+      int a = faces[ea[e] * nF + f] - 1;
+      int b = faces[eb[e] * nF + f] - 1;
       deg[a]++; deg[b]++;
     }
 
@@ -373,8 +398,8 @@ static void build_adjacency(const double *faces, int nF, int N, int **ptr, int *
 
   for (f = 0; f < nF; f++)
     for (e = 0; e < 3; e++) {
-      int a = (int)faces[ea[e] * nF + f] - 1;
-      int b = (int)faces[eb[e] * nF + f] - 1;
+      int a = faces[ea[e] * nF + f] - 1;
+      int b = faces[eb[e] * nF + f] - 1;
       ix[fill[a]++] = b;
       ix[fill[b]++] = a;
     }
@@ -408,6 +433,62 @@ static void build_adjacency(const double *faces, int nF, int N, int **ptr, int *
 
   free(deg); free(fill);
   *ptr = p; *idx = ix;
+  return 1;
 }
+
+#ifdef MATLAB_MEX_FILE
+/* ------------------------------------------------------------------ *
+ * Read a face list out of MATLAB, whatever numeric class it arrived in.
+ *
+ * This has to honour the class. GIFTI stores triangles as int32, so SPM hands
+ * SPM.xVol.G.faces over as an int32 array -- and reading that with mxGetPr, which
+ * assumes double, reinterprets the integer bit patterns as floating point and
+ * produces vertex indices that are pure noise. Those indices then get written
+ * past the ends of the adjacency arrays. That was a heap corruption on every
+ * surface analysis, and it took MATLAB down wherever it happened to notice.
+ * ------------------------------------------------------------------ */
+static int *faces_to_int(const mxArray *A, int nF, const char **err)
+{
+  size_t n = (size_t)nF * 3, i;
+  int *f;
+
+  *err = NULL;
+
+  if (mxIsComplex(A) || !mxIsNumeric(A)) {
+    *err = "faces must be a real numeric F x 3 array.";
+    return NULL;
+  }
+
+  f = (int *) malloc(n * sizeof(int));
+  if (!f) { *err = "Memory allocation error."; return NULL; }
+
+  switch (mxGetClassID(A)) {
+    case mxDOUBLE_CLASS:
+      { const double   *p = (const double   *)mxGetData(A);
+        for (i = 0; i < n; i++) f[i] = (int)p[i]; break; }
+    case mxSINGLE_CLASS:
+      { const float    *p = (const float    *)mxGetData(A);
+        for (i = 0; i < n; i++) f[i] = (int)p[i]; break; }
+    case mxINT32_CLASS:
+      { const int32_T  *p = (const int32_T  *)mxGetData(A);
+        for (i = 0; i < n; i++) f[i] = (int)p[i]; break; }
+    case mxUINT32_CLASS:
+      { const uint32_T *p = (const uint32_T *)mxGetData(A);
+        for (i = 0; i < n; i++) f[i] = (int)p[i]; break; }
+    case mxINT16_CLASS:
+      { const int16_T  *p = (const int16_T  *)mxGetData(A);
+        for (i = 0; i < n; i++) f[i] = (int)p[i]; break; }
+    case mxUINT16_CLASS:
+      { const uint16_T *p = (const uint16_T *)mxGetData(A);
+        for (i = 0; i < n; i++) f[i] = (int)p[i]; break; }
+    default:
+      free(f);
+      *err = "faces must be double, single, int16/uint16 or int32/uint32.";
+      return NULL;
+  }
+
+  return f;
+}
+#endif /* MATLAB_MEX_FILE */
 
 #endif /* TFCE_MAXTREE_H */

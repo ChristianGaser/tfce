@@ -79,8 +79,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   memset(&nb, 0, sizeof(nb));
 
   if (nrhs > 4 && !mxIsEmpty(prhs[4])) {          /* surface */
+    int nF = (int) mxGetM(prhs[4]), *fidx;
+    const char *err;
     if (mxGetN(prhs[4]) != 3) mexErrMsgTxt("faces must be F x 3.");
-    build_adjacency(mxGetPr(prhs[4]), (int) mxGetM(prhs[4]), N, &aptr, &aidx);
+    fidx = faces_to_int(prhs[4], nF, &err);
+    if (!fidx) { if (inBuf) free(inBuf); mexErrMsgTxt(err); }
+    if (!build_adjacency(fidx, nF, N, &aptr, &aidx)) {
+      free(fidx);
+      if (inBuf) free(inBuf);
+      mexErrMsgTxt("faces name a vertex that is not in the data.");
+    }
+    free(fidx);
     nb.is_mesh = 1; nb.ptr = aptr; nb.idx = aidx;
   } else {                                        /* volume */
     const mwSize *dims;

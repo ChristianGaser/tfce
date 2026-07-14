@@ -108,7 +108,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (nb.nx * nb.ny * nb.nz != N)
       mexErrMsgTxt("prod(geom) does not match the number of rows of T.");
   } else if (mxGetN(prhs[4]) == 3) {
-    build_adjacency(mxGetPr(prhs[4]), (int) mxGetM(prhs[4]), N, &aptr, &aidx);
+    int nF = (int) mxGetM(prhs[4]), *fidx;
+    const char *err;
+    fidx = faces_to_int(prhs[4], nF, &err);
+    if (!fidx) mexErrMsgTxt(err);
+    if (!build_adjacency(fidx, nF, N, &aptr, &aidx)) {
+      free(fidx);
+      mexErrMsgTxt("faces name a vertex that is not in the data.");
+    }
+    free(fidx);
     nb.is_mesh = 1; nb.ptr = aptr; nb.idx = aidx;
   } else {
     mexErrMsgTxt("geom must be [nx ny nz] or an F x 3 face list.");

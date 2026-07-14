@@ -75,6 +75,43 @@ if exist('spm_mesh_adjacency','file') && exist('gifti','file')
   val_util('result','surface: dh-stepping converges onto the max-tree', ...
     slope > -1.2 && slope < -0.8, ...
     sprintf('log-log slope = %.2f (first order = -1)', slope));
+
+  % ------------------------------------------------------------------
+  % the faces must be read in the class they actually arrive in
+  %
+  % GIFTI stores triangles as int32, so SPM.xVol.G.faces is an int32 array and
+  % that is exactly what tfce_estimate_stat passes. Reading it as double -- which
+  % is what mxGetPr does, whatever the array really holds -- reinterprets the
+  % integer bit patterns as floating point and yields vertex indices that are
+  % noise. Those were then written past the ends of the adjacency arrays: a heap
+  % corruption on every single surface analysis.
+  %
+  % Note the cast on line 58 above. Testing only with double faces is precisely
+  % how this was missed, so the class is now part of the test.
+  % ------------------------------------------------------------------
+  faces_i32 = int32(g.faces);
+  val_util('result','surface: faces really are int32 as SPM passes them', ...
+    isa(g.faces,'int32'), sprintf('class(g.faces) = %s', class(g.faces)));
+
+  s_i32 = tfceMex_maxtree(s, E, H, 1, faces_i32);
+  val_util('result','surface: int32 faces give the same map as double faces', ...
+    isequal(s_i32, exact_s), 'bit-identical');
+
+  b_i32 = tfceMex_maxtree_batch([s s], E, H, 1, faces_i32, 2);
+  val_util('result','surface: the batched transform accepts int32 faces too', ...
+    isequal(b_i32(:,1), exact_s(:)), 'and matches the single-map transform');
+
+  % an index naming a vertex that does not exist must be refused, not written
+  % past the end of the adjacency arrays
+  bad = faces_i32; bad(1) = int32(nv + 5);
+  refused = false;
+  try
+    tfceMex_maxtree(s, E, H, 1, bad);
+  catch
+    refused = true;
+  end
+  val_util('result','surface: an out-of-range vertex index is refused', ...
+    refused, 'rather than corrupting the heap');
 else
   fprintf('\n  (SPM not on the path, skipping the surface check)\n');
 end

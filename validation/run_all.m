@@ -15,6 +15,7 @@ addpath(fileparts(here));
 tests = {
   'val_tfce_exactness'      % is the max-tree the exact TFCE integral?
   'val_gamma'               % is the Gamma approximation of the FWE null calibrated?
+  'val_pareto'              % does the Pareto tail resolve uncorrected P below 1/n_perm?
   'val_half_permutations'   % is the half-permutation shortcut lossless?
   'val_nuisance'            % are Draper-Stoneman / Freedman-Lane / Smith calibrated?
   'val_glm_fast'            % is the accelerated GLM identical to the unaccelerated one?

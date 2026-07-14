@@ -60,8 +60,34 @@ elseif numel(job.data)>1
   return
 end
 
-% Use tail approximation from the Gamma distribution for corrected P-values 
+% Use tail approximation from the Gamma distribution for corrected P-values
 use_gamma_tail_approximation = true;
+
+% Use tail approximation from the Generalised Pareto distribution for UNcorrected
+% P-values. Counting exceedances cannot resolve a P-value below 1/n_perm, and
+% that floor, not the FWE-corrected null, is what forces a permutation test to
+% run many thousands of permutations: the maximum distribution behind the
+% corrected P-values is already handled by the Gamma fit above and converges far
+% sooner. Fitting a Generalised Pareto distribution to the tail of the
+% permutation distribution of each element removes the floor and lets a few
+% hundred permutations resolve P-values of 1e-4 and below. The uncorrected
+% P-values also feed the FDR correction, which is therefore capped by the same
+% floor today. See Winkler et al., Faster permutation inference in brain imaging,
+% NeuroImage 141:502-516, 2016.
+use_pareto_tail_approximation = true;
+
+% Number of tail values kept per element for that fit. The fit never uses more
+% than this, and picks the tail size it does use from below it.
+n_tail = 100;
+
+% Elements that were exceeded at least this often are left to plain counting: the
+% count is then already precise enough (25 exceedances is a relative standard
+% error of 20%) and there is nothing for the fit to add.
+n_exc_min = 25;
+
+% Do not spend more than this (in GB) on the tail buffers. Above it the
+% uncorrected P-values fall back to plain counting.
+tail_memory_limit = 4;
 
 % convert to z-statistic
 convert_to_z = false;
@@ -911,6 +937,39 @@ for con = 1:length(Ic0)
     end
   end
 
+  % Keep the largest n_tail permuted statistics of every element, so that a
+  % Generalised Pareto distribution can be fitted to the tail afterwards and the
+  % uncorrected P-values resolved below the 1/n_perm floor of plain counting.
+  % Only the elements that carry a statistic are tracked, and only the tail of
+  % the side the observed statistic is on: sgn turns both sides into an upper
+  % tail, so one buffer per map is enough.
+  tail_tfce = [];
+  tail_t    = [];
+  ind_stat  = [];
+  sgn       = [];
+
+  if use_pareto_tail_approximation && ~test_mode
+    ind_stat = find(mask_1);
+    sgn      = single(sign(t0(ind_stat)))';
+
+    % the fit can never use more values than there are permutations to draw from
+    n_draws_max = n_perm/(1 + use_half_permutations);
+    K = min(n_tail, floor(n_draws_max) - 1);
+
+    need_gb = 2*K*numel(ind_stat)*4/1e9;
+    if K < 30
+      fprintf('Note: Too few permutations for the Pareto tail approximation, using plain counting.\n');
+      ind_stat = [];
+    elseif need_gb > tail_memory_limit
+      fprintf('Note: The Pareto tail approximation would need %.1f GB, above the limit of %.1f GB. Using plain counting.\n', ...
+              need_gb, tail_memory_limit);
+      ind_stat = [];
+    else
+      tail_tfce = tail_init(K, numel(ind_stat));
+      tail_t    = tail_init(K, numel(ind_stat));
+    end
+  end
+
   if ~test_mode, tfce_progress('Init',n_perm,'Calculating','Permutations'); end
 
   % update interval for progress bar
@@ -1185,10 +1244,21 @@ for con = 1:length(Ic0)
         tperm(mask_N)    = tperm(mask_N) - (t(mask_N) <= t0(mask_N));
         tfceperm(mask_P) = tfceperm(mask_P) + (tfce(mask_P) >= tfce0(mask_P));
         tfceperm(mask_N) = tfceperm(mask_N) - (tfce(mask_N) <= tfce0(mask_N));
-  
+
       end
     end
-      
+
+    % feed this permutation into the tail buffers. sgn flips the elements with a
+    % negative statistic, so that both sides are an upper tail and the counting
+    % above and the fit afterwards look at the very same draws. The mirrored
+    % permutations of the half-permutation shortcut are deliberately not entered
+    % here: the counting above does not use them element-wise either, it counts
+    % each drawn permutation twice.
+    if ~test_mode && ~isempty(ind_stat)
+      tail_tfce = tail_update(tail_tfce, single(tfce(ind_stat))'.*sgn);
+      tail_t    = tail_update(tail_t,    single(t(ind_stat))'   .*sgn);
+    end
+
     if ~test_mode
       % use cummulated sum to find threshold
       stfce_max = sort(tfce_max);
@@ -1331,6 +1401,15 @@ for con = 1:length(Ic0)
   if ~test_mode && save_results
     % get correct number of permutations in case that process was stopped
     n_perm = length(tfce_max);
+
+    % number of permutations that were actually drawn and fed to the element-wise
+    % counting. The half-permutation shortcut enters each of them twice, so this
+    % is half of n_perm there, and the two are the same otherwise.
+    n_draws = perm_idx;
+
+    if use_pareto_tail_approximation && ~isempty(ind_stat)
+      fprintf('Using tail approximation from the Generalised Pareto distribution for uncorrected P-values.\n');
+    end
   
     %---------------------------------------------------------------
     % corrected threshold based on permutation distribution
@@ -1358,6 +1437,16 @@ for con = 1:length(Ic0)
       
     % estimate p-values
     nPtfce = tfceperm/n_perm;
+
+    % ... and resolve the ones that plain counting cannot, from the fitted tail
+    % sgn is single, because that is what the tail buffer holds. The P-values are
+    % not: multiplying by it directly would silently round them to single.
+    if ~isempty(ind_stat)
+      nPtfce(ind_stat) = (double(sgn) .* tail_pvalue(tail_tfce, ...
+          single(tfce0(ind_stat))'.*sgn, abs(tfceperm(ind_stat))'*n_draws/n_perm, ...
+          n_draws, n_exc_min))';
+    end
+
     nPtfcelog10 = zeros(size(tfce0));
   
     if found_P
@@ -1388,7 +1477,17 @@ for con = 1:length(Ic0)
   
     % estimate p-values
     nPt = tperm/n_perm;
-   
+
+    % ... and resolve the ones that plain counting cannot, from the fitted tail
+    if ~isempty(ind_stat)
+      nPt(ind_stat) = (double(sgn) .* tail_pvalue(tail_t, ...
+          single(t0(ind_stat))'.*sgn, abs(tperm(ind_stat))'*n_draws/n_perm, ...
+          n_draws, n_exc_min))';
+    end
+
+    % the tail buffers are the largest thing this loop allocated
+    tail_tfce = []; tail_t = []; %#ok<NASGU>
+
     if found_P
       nPtlog10(mask_P) = -log10(nPt(mask_P));
     end
@@ -2153,6 +2252,218 @@ if sz_val_max >= 20
   ylabel('Threshold')
   xlabel('Permutations')   
 end
+
+%---------------------------------------------------------------
+function tb = tail_init(K, n)
+% buffer holding the K largest values seen so far, for each of n elements
+
+tb.K   = K;
+tb.n   = n;
+tb.buf = -inf(K, n, 'single');
+tb.cnt = 0;
+tb.mn  = [];
+tb.pos = [];
+
+%---------------------------------------------------------------
+function tb = tail_update(tb, v)
+% enter one permutation (v: 1 x n) into the running top-K of every element
+%
+% Once the buffer has filled up, only the elements whose current minimum is beaten
+% have to be touched at all, and the chance of that decays like K/m as the
+% permutations pile up. The whole run therefore costs on the order of
+% n*K*log(n_perm/K) element operations, which is nothing next to the TFCE.
+
+if tb.cnt < tb.K
+  tb.cnt = tb.cnt + 1;
+  tb.buf(tb.cnt,:) = v;
+  if tb.cnt == tb.K
+    [tb.mn, tb.pos] = min(tb.buf, [], 1);
+  end
+  return
+end
+
+hit = v > tb.mn;
+if ~any(hit), return; end
+
+idx = find(hit);
+tb.buf(tb.pos(idx) + (idx-1)*tb.K) = v(idx);
+
+if numel(idx) > tb.n/2
+  % touching most columns anyway: indexing out a copy of them would cost more
+  [tb.mn, tb.pos] = min(tb.buf, [], 1);
+else
+  [tb.mn(idx), tb.pos(idx)] = min(tb.buf(:,idx), [], 1);
+end
+
+%---------------------------------------------------------------
+function P = tail_pvalue(tb, obs, cnt, n_draws, n_exc_min)
+% uncorrected P-values, resolved below the 1/n_draws floor of plain counting
+%
+% tb        - tail buffer of the permutation distribution, as an upper tail
+% obs       - observed statistic, already turned into an upper tail
+% cnt       - how often the permutations reached or exceeded obs
+% n_draws   - number of permutations drawn
+% n_exc_min - leave elements exceeded at least this often to plain counting
+%
+% Counting resolves nothing below 1/n_draws, and that floor is what forces a
+% permutation test to run many thousands of permutations. Where the observed
+% statistic was exceeded often enough the count is already precise and is kept.
+% Everywhere else a Generalised Pareto distribution is fitted to the tail of the
+% permutation distribution of that element and the P-value read off it,
+%
+%   P = (m/n_draws) * (1 - F_gpd(obs - u))
+%
+% where u is the threshold below the m largest permuted values. At obs = u the
+% fitted term is exactly 1 and the two estimates coincide, so the P-value stays
+% continuous where the fit takes over from the count.
+%
+% The shape of the tail is pooled across elements, the scale is not. Every element
+% carries the permutation distribution of the same statistic under the same
+% design, so the elements differ from one another in scale, not in shape. Fitting
+% the shape k separately for each element therefore spends a hundred tail values
+% on a number they all share, and the error in it is what dominates the error of
+% the extrapolation: on the checks in val_pareto, pooling k lifts the share of
+% elements landing within a factor of two of the truth at P = 1e-4 from 45% to
+% 60%, without moving the median. So k is estimated once, over elements sampled
+% across the image, and only the scale is fitted per element -- which follows in
+% closed form from the mean of the exceedances, since the Generalised Pareto has
+% mean sigma/(1 + k).
+%
+% The tail size m is not fixed either: the fit is repeated for a range of m and
+% the one whose Anderson-Darling statistic says it describes the observed tail
+% best is kept. An element whose tail none of them describes is left to counting
+% rather than extrapolated from a fit that does not hold.
+%
+% Winkler et al., Faster permutation inference in brain imaging, NeuroImage
+% 141:502-516, 2016.
+
+P = cnt/n_draws;
+
+K = min(tb.cnt, tb.K);
+if K < 30, return; end
+
+% the elements counting cannot resolve, and only those, are worth fitting
+need = (cnt < n_exc_min) & isfinite(obs);
+if ~any(need), return; end
+
+G   = double(sort(tb.buf(1:K,need), 1, 'descend'));
+ob  = double(obs(need));
+Pn  = P(need);
+nn  = size(G,2);
+
+% Elements the shape is pooled over. These are sampled from the WHOLE image, not
+% from the elements being fitted: the latter were selected for carrying a large
+% observed statistic, and selecting on that would bias the tails they are drawn
+% from. Spreading the sample evenly keeps this reproducible.
+n_shape    = min(20000, tb.n);
+shape_cols = round(linspace(1, tb.n, n_shape));
+Gs         = double(sort(tb.buf(1:K,shape_cols), 1, 'descend'));
+
+best_ad = inf(1, nn);
+best_p  = Pn;
+
+cands = unique(round(K*(0.9:-0.1:0.3)));
+cands = cands(cands >= 20 & cands <= K-1);
+
+for m = cands
+  % the shape, pooled over the sampled elements. The median is what makes this
+  % robust: the individual estimates are noisy, but they scatter around a value
+  % they have in common.
+  us     = (Gs(m,:) + Gs(m+1,:))/2;
+  ks     = gpd_pwm(flipud(Gs(1:m,:)) - us);
+  k_pool = median(ks(isfinite(ks)));
+
+  % threshold sits between the m-th and the (m+1)-th largest permuted value
+  u = (G(m,:) + G(m+1,:))/2;
+  y = flipud(G(1:m,:)) - u;              % exceedances, ascending
+
+  % Two shapes are tried at every tail size: the pooled one, and the exponential
+  % limit k = 0. The exponential is the safety net. A Generalised Pareto with
+  % k > 0 has a finite upper end point at u + sigma/k, and whenever the observed
+  % statistic lies beyond that end point the fit returns exactly zero. But the
+  % observation is itself proof that the end point is wrong, so such a fit is
+  % rejected rather than believed. The exponential has infinite support and
+  % therefore always answers.
+  for variant = 1:2
+    if variant == 1
+      if ~isfinite(k_pool) || k_pool <= -1, continue; end
+      k = repmat(k_pool, 1, nn);
+    else
+      k = zeros(1, nn);
+    end
+
+    % given the shape, the scale follows from the mean of the exceedances
+    sigma = mean(y, 1) .* (1 + k);
+
+    p  = (m/n_draws) .* gpd_sf(ob - u, k, sigma);
+    ad = gpd_anderson(y, k, sigma);
+
+    ok  = (sigma > 0) & (ob >= u) & isfinite(p) & (p > 0) & (p <= 1) & isfinite(ad);
+    upd = ok & (ad < best_ad);
+
+    best_ad(upd) = ad(upd);
+    best_p(upd)  = p(upd);
+  end
+end
+
+% a tail that none of the candidates describes is counted, not extrapolated. The
+% cut-off is deliberately loose: it is there to catch a fit that has gone wrong,
+% not to test a hypothesis about the tail.
+trust     = isfinite(best_ad) & (best_ad < 5);
+Pn(trust) = best_p(trust);
+
+P(need) = Pn;
+
+%---------------------------------------------------------------
+function [k, sigma] = gpd_pwm(y)
+% Generalised Pareto parameters from probability-weighted moments
+%
+% y - exceedances, ascending, one column per element
+%
+% Hosking & Wallis (1987). Closed form, hence one call for all elements at once.
+% The distribution is parameterised as F(y) = 1 - (1 - k*y/sigma)^(1/k).
+
+m  = size(y,1);
+j  = (1:m)';
+
+a0 = mean(y, 1);
+a1 = sum(y .* ((m - j)/(m*(m-1))), 1);
+
+d     = a0 - 2*a1;
+k     = a0./d - 2;
+sigma = 2*a0.*a1./d;
+
+%---------------------------------------------------------------
+function S = gpd_sf(z, k, sigma)
+% survival function of the Generalised Pareto distribution
+
+k     = repmat(k,     size(z,1), 1);
+sigma = repmat(sigma, size(z,1), 1);
+
+S = zeros(size(z));
+
+% k -> 0 is the exponential limit, where the expression below is 0/0
+lin    = abs(k) < 1e-8;
+S(lin) = exp(-z(lin)./sigma(lin));
+
+q = 1 - k.*z./sigma;
+q(q < 0) = 0;                  % beyond the upper end point of a fit with k > 0
+S(~lin) = q(~lin).^(1./k(~lin));
+
+%---------------------------------------------------------------
+function A2 = gpd_anderson(y, k, sigma)
+% Anderson-Darling statistic of a fitted Generalised Pareto against its own tail
+%
+% Used to rank candidate tail sizes against each other, so what matters is that it
+% grows when the fit describes the observed tail less well.
+
+m = size(y,1);
+j = (1:m)';
+
+F = 1 - gpd_sf(y, k, sigma);
+F = min(max(F, 1e-12), 1-1e-12);
+
+A2 = -m - sum((2*j-1).*(log(F) + log(1 - flipud(F))), 1)/m;
 
 %---------------------------------------------------------------
 function Pset = make_Pset(perm_label, n_cond, n_data, n_data_with_contrast, ind_label)

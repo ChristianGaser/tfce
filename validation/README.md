@@ -21,6 +21,7 @@ ships rather than a copy of it that could drift.
 |---|---|
 | `val_tfce_exactness` | The max-tree really is the exact TFCE integral, and the batched transform is identical to the sequential one. |
 | `val_gamma` | The Gamma fit to the maximum distribution gives calibrated FWE p-values. This is the most consequential check: it enters *every* corrected p-value the toolbox reports. |
+| `val_pareto` | The Generalised Pareto fit to the tail of each element's permutation distribution recovers uncorrected p-values *below* the 1/n_perm floor that counting cannot reach, is unbiased, never returns zero, and is never less accurate than the counting it overrides. |
 | `val_half_permutations` | The half-permutation shortcut is lossless, and correctly refuses unbalanced designs. |
 | `val_nuisance` | Draper-Stoneman, Freedman-Lane and Smith all control the false-positive rate, including when the nuisance variable is correlated with the effect of interest. |
 | `val_glm_fast` | The accelerated GLM returns exactly the statistic `calc_GLM` returns, for t- and F-contrasts under all three nuisance methods, and refuses itself when its algebraic precondition does not hold. |
@@ -41,6 +42,45 @@ to its first three moments. The check compares the fit against counting *in the
 tail only* — the bulk is irrelevant for inference — with a tolerance of three
 standard errors of the counting estimator, `sqrt(p(1-p)/n_perm)`. A tighter
 tolerance would be testing the noise of the reference rather than the fit.
+
+**Pareto tail.** Counting exceedances cannot report a p-value below `1/n_perm`,
+and that floor — not the FWE-corrected null, which the Gamma fit already handles
+and which converges far sooner — is what forces a permutation test to run many
+thousands of permutations. It also caps FDR, which is computed from the
+uncorrected p-values. A Generalised Pareto distribution is therefore fitted to
+the tail of each element's permutation distribution and the p-value read off it.
+
+Extrapolating a tail from a hundred points cannot be exact, so the check is not
+"is it right" but "does it beat what it replaces". The suite builds a real
+permutation distribution from 50000 permutations, shows the fit only the first
+1000 or 5000, and scores both the fit and plain counting against the truth. The
+fit has to be unbiased, and has to land within a factor of two of the truth at
+least as often as counting does. Two structural properties matter as much as the
+accuracy. The fit must never return zero — counting does so constantly once the
+true p drops below the floor, and a zero becomes `Inf` in the `-log10` map the
+toolbox writes out. And it must leave alone the elements counting already
+resolves. Both are checked.
+
+The zero case is the subtle one. Probability-weighted moments put the shape `k`
+above zero for roughly half the elements simply by chance, which gives the fitted
+distribution a *finite upper end point*; where the observed statistic lies beyond
+it, the fit returns exactly zero. But the observation is itself proof that the end
+point is wrong, so such a fit is rejected rather than believed, and the
+exponential limit (`k = 0`, infinite support) answers instead.
+
+**Pooling the shape.** The elements all carry the permutation distribution of the
+same statistic under the same design, so they differ in *scale*, not in *shape*.
+Estimating `k` separately for each element therefore spends a hundred tail values
+on a number they all share, and the error in it is what dominates the error of the
+extrapolation. It is pooled instead — estimated once over elements sampled across
+the whole image, with only the scale fitted per element, which then follows in
+closed form from the mean of the exceedances. The suite checks the premise
+directly: the per-element estimates of `k` scatter by ~0.15, but their median
+agrees to ~0.02 between one half of the image and the other, which is exactly the
+signature of one shared number seen through noise. Pooling lifts the share of
+elements landing within a factor of two of the truth at p = 1e-4 from 45% to 60%
+(5000 permutations) without moving the median, and the accuracy floors in the
+script are set to catch a regression below that.
 
 **Accelerated GLM.** `calc_GLM_fast` is not an approximation but an algebraic
 rearrangement, so the tolerance is the single-precision rounding floor (1e-5

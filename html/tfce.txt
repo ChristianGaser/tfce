@@ -28,12 +28,64 @@
     </div>
 
       <h2>Description</h2>
-      <p>This toolbox is a an extension to <a href="matlab:web('http://www.fil.ion.ucl.ac.uk/spm/software/spm12/','-browser');">SPM12</a> (Wellcome Department of Cognitive Neurology) to provide non-parametric statistics based on threshold-free cluster enhancement (TFCE). The idea of the TFCE approach is to combine focal effects with large voxel height as well as broad effects. In contrast to common approaches that consider cluster-based thresholding no initial (and arbitrary) cluster-forming threshold is necessary. Furthermore, TFCE is fairly robust to nonstationarity in the data, which can be often seen in VBM data. </p>
-      <p>An interesting additional feature of that toolbox is that it also allows to use voxel-wise covariates, similar to the approach <a href="matlab:web('https://doi.org/10.1016/j.neuroimage.2006.10.007','-browser')">here</a>. These voxel-wise covariates can be GM maps, which can be used to assess the extent to which functional activation can be explained by underlying anatomical differences, and at the same time to assess the amount of functional activation that cannot be attributed to anatomical differences and is therefore likely to be due to functional differences alone.</p> 
+      <p>This toolbox is an extension to <a href="matlab:web('http://www.fil.ion.ucl.ac.uk/spm/software/spm12/','-browser');">SPM12</a> (Wellcome Department of Cognitive Neurology) providing non-parametric permutation inference with threshold-free cluster enhancement (TFCE), for 3D volume and surface data.</p>
+      <p>TFCE combines focal effects of large height with broad effects of large extent, and needs <b>no cluster-forming threshold</b> - the arbitrary choice that cluster-based inference forces on you, and that the result can depend on heavily. It is also fairly robust to the nonstationarity that is common in VBM data.</p>
+      <p>The toolbox runs on <b>any existing second-level SPM design</b>. Point it at an SPM.mat from a parametric analysis you have already estimated, and it re-does the inference non-parametrically. It can be applied to (almost) any existing statistical (parametric) SPM design for 3D volume or surface data.</p>
+      <p>An interesting additional feature of that toolbox is that it also allows to use <b>voxel-wise covariates</b>, similar to the approach <a href="matlab:web('https://doi.org/10.1016/j.neuroimage.2006.10.007','-browser')">here</a>. These voxel-wise covariates can be GM maps, which can be used to assess the extent to which functional activation can be explained by underlying anatomical differences, and at the same time to assess the amount of functional activation that cannot be attributed to anatomical differences and is therefore likely to be due to functional differences alone.</p>
       <p>The toolbox is developed by Christian Gaser (University of Jena, Departments of Psychiatry and Neurology) and free but copyright software, distributed under the terms of the <a href="matlab:web('http://www.gnu.org/licenses/gpl-2.0.html','-browser')">GNU General Public Licence</a> as published by the Free Software Foundation; either version 2 of the Licence, or (at your option) any later version. If you use any TFCE code for commercial application, please send a <a href="mailto:christian.gaser@uni-jena.de">mail</a>.</p>
-      <p>The toolbox can be applied to (almost) any existing statistical (parametric) SPM design for 3D volume or surface data.</p>
+
+      <h2>Features</h2>
+
+      <h3>Inference</h3>
+      <ul>
+        <li><b>Exact TFCE, with no step size.</b> Most implementations approximate the TFCE integral by sampling the height on a grid and summing, which introduces a discretisation error that depends on a step size dh you have to choose. This toolbox does not. It builds a <b>max-tree</b> (component tree) with union-find, and because the extent function is piecewise constant, integrates each piece in closed form. The result is the exact integral, with no precision parameter to get wrong.</li>
+        <li><b>Permutation inference throughout.</b> No parametric assumptions about the distribution of the statistic, and no random field theory.</li>
+        <li><b>FWE, FDR and uncorrected p-values</b>, for both the TFCE map and the raw t/F statistic.</li>
+        <li><b>t- and F-contrasts</b>, on volumes and on surfaces.</li>
+      </ul>
+
+      <h3>Designs it understands</h3>
+      <ul>
+        <li><b>Any second-level SPM design</b>: one-sample, two-sample, paired, correlation, one-way and factorial ANOVA, repeated-measures ANOVA, ANCOVA, interactions.</li>
+        <li><b>Three ways of handling nuisance variables</b>: Draper-Stoneman, Smith (the default when nuisance variables are present), and Freedman-Lane. See <a href="matlab:web('https://doi.org/10.1016/j.neuroimage.2014.01.060','-browser');">Winkler et al. 2014</a>.</li>
+        <li><b>Exchangeability blocks</b> for longitudinal and repeated-measures designs, so that data are only ever permuted within the blocks they may be permuted within.</li>
+        <li><b>Sign-flipping</b> for one-sample designs, permutation for everything else - chosen automatically.</li>
+        <li><b>Voxel- and vertex-wise covariates</b>, so that the design matrix may differ at every element.</li>
+        <li><b>Surfaces and TBSS</b>: surface meshes use the mesh adjacency rather than a voxel grid, and TBSS data use the 2D-optimised TFCE parameters.</li>
+        <li><b>Small volume correction</b> by supplying an additional mask.</li>
+      </ul>
+
+      <h3>Fewer permutations</h3>
+      <p>The number of permutations you need is set by the smallest p-value you want to resolve. Counting exceedances cannot report a p-value below 1/n_perm - that floor, not the statistic, is what forces a permutation test to run many thousands of permutations. Three things remove it:</p>
+      <ul>
+        <li><b>Gamma approximation of the maximum distribution</b>, for FWE-corrected p-values. The distribution of the maximum statistic is fitted from its first three moments rather than counted, so corrected p-values are not floored at 1/n_perm and converge with far fewer permutations.</li>
+        <li><b>Generalised Pareto tail approximation of the element-wise distributions</b>, for <i>uncorrected</i> p-values and with them FDR, which is computed from them. Its <i>shape</i> is pooled across elements: they all carry the same statistic under the same design, so they differ in scale, not in shape. From 1000 permutations this recovers p of about 1e-4 with the median right, where plain counting returns zero for 91% of elements and says nothing at all.</li>
+        <li><b>Sequential stopping</b> (optional, off by default). Stops as soon as it is certain that <i>nothing</i> in the image can become significant. A null image reaches that almost at once; an image with a real effect, or one sitting anywhere near alpha, never does and runs the full count.</li>
+      </ul>
+
+      <h3>Faster permutations</h3>
+      <ul>
+        <li><b>The permuted GLM never forms the permuted data.</b> Under Freedman-Lane the nuisance columns are part of the full design, so the residual-forming matrix already annihilates them and the large multiply that builds the permuted dataset disappears entirely. The whole permutation collapses into one small projection.</li>
+        <li><b>Permutations are TFCE'd in parallel</b>, a block at a time, one permutation per thread. They are independent of one another, so this is where the parallelism belongs.</li>
+        <li><b>The max-tree sorts by radix, not by comparison</b>, which is the single largest cost of the transform.</li>
+        <li><b>The voxel-wise covariate path takes no pseudoinverse per voxel.</b> The normal equations are assembled for every element at once and batch-solved, bringing that path to roughly the cost of an ordinary design, where it used to be an order of magnitude slower.</li>
+        <li><b>Half the permutations, for free</b>, in balanced two-sample designs, where the mirrored permutation provably gives the negated statistic.</li>
+        <li><b>Multiple SPM.mat files in parallel</b> across cores.</li>
+      </ul>
+
+      <h3>Safety nets</h3>
+      <p>A permutation test is only as good as its exchangeability assumptions, and a wrong design gives a confidently wrong answer rather than an error. The toolbox therefore checks itself as it goes:</p>
+      <ul>
+        <li>The permutations are <b>verified before use</b>: data may only ever be exchanged inside their own exchangeability block.</li>
+        <li>The <b>permutation null is checked for width</b>. Under a valid permutation the uncorrected p-values are uniform, so about 5% of them exceed 0.95. True effects only produce <i>small</i> p-values and cannot inflate that upper tail, which makes it a clean check. A null that is too narrow makes the test anti-conservative, and is reported.</li>
+        <li>The <b>parametric and the non-parametric statistic are compared</b>. A large discrepancy points to a misspecified permutation scheme and is reported at the MATLAB command line.</li>
+      </ul>
+      <p>A validation suite ships with the toolbox and establishes, rather than assumes, that the above is true. Run <tt>validation/run_all</tt> from the toolbox directory.</p>
+
+      <h2>Download</h2>
+      <p><a href="matlab:web('https://github.com/ChristianGaser/tfce/releases/latest','-browser');">Download the latest release</a> from GitHub and unpack it into your SPM toolbox directory. The compiled mex-files ship with the release. See also <a href="matlab:web('https://github.com/ChristianGaser/tfce/releases','-browser');">all releases</a> and the <a href="matlab:web('https://github.com/ChristianGaser/tfce','-browser');">source repository</a>.</p>
     </div>
-  
+
       <ol>
         <li><a href=tfce_starting.html>Quick start guide</a></li>         
         <li><a href=tfce_FN.html>Visualization and naming convention of output files</a></li>         

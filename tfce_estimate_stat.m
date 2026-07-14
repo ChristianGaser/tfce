@@ -186,11 +186,6 @@ end
 % tolerance for comparing real numbers
 tol = 1e-4;
     
-% check spm version
-if strcmp(spm('ver'),'SPM8')
-  error('Please use any TFCE version < r215 that still supports SPM8.')
-end
-
 % indicate if voxel-wise covariates were modeled
 [pt,nm] = fileparts(job.data{1});
 is_vSPM = strcmp(nm,'vSPM');

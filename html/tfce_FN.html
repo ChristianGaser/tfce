@@ -51,8 +51,8 @@
         </tr>
       </table>
       
-      <h3>T statistic</h3>
-      <p>These are the result files of the non-parametric T-statistics and only available for completeness.</p>
+      <h3>T (or F) statistic</h3>
+      <p>These are the result files of the non-parametric T-statistics and only available for completeness. For an F-contrast the files are named F_xxxx and so on.</p>
       <table border="0">
          <tr>
           <td width="150">T_xxxx</td>
@@ -76,16 +76,22 @@
       <p>This is the null distribution based on the permuted design, which might be helpful to evaluate specificity (i.e. false positives) between different approaches.</p>
       <table border="0">
          <tr>
-          <td width="150">TFCE_xxxx</td>
-          <td>Null distribution for contrast #xxxx</td>
-        </tr>
-        <tr>
-          <td>nullT_xxxx</td>
+          <td width="150">nullT_xxxx</td>
           <td>Map of T-values (uncorrected) from the permuted design for contrast #xxxx</td>
         </tr>
       </table>
-</p>  
-    <div id="content"><a href="tfce.html">< TFCE</a></div>  
+
+      <h3>Number of permutations</h3>
+      <p>The number of permutations that were actually run. This is worth a look if sequential stopping is switched on, because the analysis then stops as soon as nothing in the image can become significant and the number will be smaller than the one you asked for.</p>
+      <table border="0">
+         <tr>
+          <td width="150">T_xxxx.txt</td>
+          <td>Number of permutations used for contrast #xxxx</td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="content"><a href="tfce.html">< TFCE</a></div>
     <div id="footer">
       <p>Copyright (C) Structural Brain Mapping Group <a href="mailto:christian.gaser@uni-jena.de">christian.gaser@uni-jena.de</a></p>
     </div>

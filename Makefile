@@ -51,6 +51,7 @@ help:
 
 doc:
 	-@cat html/tfce.txt | sed -e 's/VERSION/'${NEWVERSION}'/g' -e 's/RELNUMBER/r'${REVISION}'/g' -e 's/DATE/'${DATE}'/g' > html/tfce.html
+	-@sed -i '' -e 's/VERSION/'${NEWVERSION}'/g' spm_TFCE.m
 
 update: doc
 	-@git fetch

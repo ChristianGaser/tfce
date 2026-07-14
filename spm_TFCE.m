@@ -9,7 +9,7 @@ function spm_TFCE
 % ______________________________________________________________________
 
 SPMid = spm('FnBanner',mfilename);
-[Finter,Fgraph] = spm('FnUIsetup','TFCE 1.0');
+[Finter,Fgraph] = spm('FnUIsetup','TFCE1.3');
 url = fullfile(fileparts(mfilename('fullpath')),'html','tfce.html');
 web(url,'-noaddressbox','-new')
 

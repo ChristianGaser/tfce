@@ -12,8 +12,11 @@ The toolbox runs on **any existing second-level SPM design**. Point it at an `SP
 parametric analysis you have already estimated, and it re-does the inference non-parametrically.
 
 Developed by Christian Gaser (Jena University Hospital, Departments of Psychiatry and Neurology).
-Free but copyright software, distributed under the terms of the
-[GNU General Public License](http://www.gnu.org/licenses/gpl-2.0.html), version 2 or later.
+
+**Licences.** The MATLAB/SPM toolbox is
+[GPL-2.0-or-later](http://www.gnu.org/licenses/gpl-2.0.html), because it is built on SPM. The C core
+in [c/](c/) and the Python package in [python/](python/) are **BSD-3-Clause** — they contain no SPM
+code and are not derived from it, so they carry no such obligation. See [LICENSE.md](LICENSE.md).
 
 ---
 
@@ -44,6 +47,23 @@ Free but copyright software, distributed under the terms of the
 
 The compiled mex files ship with the release. To rebuild them, run `compile` from the toolbox
 directory.
+
+There is also a **Python package**: `pip install tfce`. It is the same C core with a different
+caller, so it gives bit-identical results, and it drops into
+[nilearn](https://nilearn.github.io) as an exact replacement for its stepped TFCE. See
+[python/README.md](python/README.md).
+
+### Repository layout
+
+| | |
+| --- | --- |
+| [c/](c/) | The TFCE core, plain C. Shared by both bindings and owned by neither, so there is exactly one implementation of TFCE here to get right. |
+| [matlab/](matlab/) | The SPM toolbox: the m-files, the mex glue, the prebuilt binaries, the [validation suite](matlab/validation/) and the [help pages](matlab/html/). |
+| [python/](python/) | The pip package: a Cython binding to the same core, plus the permutation machinery in numpy. |
+
+An installed SPM toolbox is a single flat folder, so `make zip` collapses `matlab/` and the headers
+from `c/` into one. `compile.m` looks for the core beside itself first and in `../c` second, which is
+what lets it build from either layout.
 
 ---
 
@@ -210,12 +230,12 @@ For most purposes `TFCE_log_pFWE_nnnn` is the map to look at.
 ## Validation
 
 The toolbox ships a validation suite that establishes, rather than assumes, that the things above are
-true. From the toolbox directory:
+true. From the `matlab/` directory:
 
 ```matlab
 addpath /path/to/spm12
 spm('defaults','fmri')
-compile              % the mex files must be built
+compile              % builds the mex files against the shared C core in ../c
 validation/run_all
 ```
 
@@ -227,7 +247,7 @@ the false-positive rate, including when the nuisance variable is correlated with
 interest; that the accelerated GLM returns exactly the statistic the unaccelerated one returns; and
 that sequential stopping reaches the same decision as running every permutation.
 
-See [validation/README.md](validation/README.md) for what each check establishes and why it is
+See [matlab/validation/README.md](matlab/validation/README.md) for what each check establishes and why it is
 written the way it is.
 
 ---

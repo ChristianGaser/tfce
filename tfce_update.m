@@ -67,9 +67,14 @@ data = jsondecode(jsonStr);
 % get largest release number
 rnew = [];
 for i = 1:length(data)
-  rnew = [rnew str2double(data(i).tag_name)];
+  tag_name = data(i).tag_name;
+  if strcmp(tag_name(1),'v')
+    tag_name = tag_name(2:end);
+  end
+  rnew = [rnew str2double(tag_name)];
 end
-rnew = max(rnew);
+[rnew, ind] = max(rnew);
+new_tag_name = data(ind).tag_name;
 
 if rnew > r
   sts = rnew;
@@ -85,7 +90,7 @@ else
   return
 end
 
-url = sprintf('https://github.com/ChristianGaser/tfce/releases/download/%g/tfce%g.zip',rnew,rnew);
+url = sprintf('https://github.com/ChristianGaser/tfce/releases/download/%s/tfce_v%g.zip',new_tag_name,rnew);
 
 if update
   overwrite = spm_input('Update',1,'m','Do not update|Download zip-file only|Overwrite old TFCE installation',[-1 0 1],3);
@@ -101,7 +106,6 @@ if update
         name = fullfile(fileparts(mfilename('fullpath')),mexfiles(i).name);
         spm_unlink(name);
       end
-
 
       lastwarn('');
       warning off

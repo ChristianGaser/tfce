@@ -2,8 +2,8 @@
 #
 # $Id$
 
-OLDVERSION="TFCE1.1"
-NEWVERSION="TFCE1.2"
+OLDVERSION="TFCE1.2"
+NEWVERSION="TFCE1.3"
 REVISION=`git rev-list --count HEAD`
 DATE=`git log --date short |grep "Date:"|head -1|cut -f2 -d':'|sed -e s'/ //g'`
 VERSION=`echo ${NEWVERSION} | sed -e 's/TFCE//g'`
@@ -26,7 +26,8 @@ MISC_FILES=html
 
 FILES=${MATLAB_FILES} ${C_FILES} ${MISC_FILES}
 
-ZIPFILE=tfce_r${REVISION}.zip
+ZIPFILE=tfce_v${VERSION}.zip
+ZIPFILE_OLD=tfce_r${REVISION}.zip
 
 install:
 	-@echo install
@@ -67,11 +68,11 @@ zip: update
 	-@mkdir TFCE
 	-@cp -rp ${FILES} TFCE
 	-@bash update_revision.sh
-	-@zip ${ZIPFOLDER}/${ZIPFILE} -rm TFCE
+	-@zip ${ZIPFILE} -rm TFCE
 
 scp: zip
 	-@git tag -f ${VERSION} -m "Release ${VERSION}"
 	-@echo scp to http://${STARGET_HOST}/tfce/${ZIPFILE}
-	-@scp -O -P 2222 CHANGES.txt ${ZIPFOLDER}/${ZIPFILE} ${STARGET}
-	-@bash -c "ssh -p 2222 ${STARGET_HOST} ln -fs ${STARGET_FOLDER}/${ZIPFILE} ${STARGET_FOLDER}/tfce_latest.zip"
+	-@scp -O -P 2222 CHANGES.txt ${ZIPFILE} ${STARGET}/${ZIPFILE_OLD}
+	-@bash -c "ssh -p 2222 ${STARGET_HOST} ln -fs ${STARGET_FOLDER}/${ZIPFILE_OLD} ${STARGET_FOLDER}/tfce_latest.zip"
 	

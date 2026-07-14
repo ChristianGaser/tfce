@@ -38,6 +38,9 @@ changes both — and the Python tests assert bit-identical agreement with MATLAB
 ### `matlab/`
 - `tfce_estimate_stat.m` (~4100 lines) — the whole permutation engine. Everything
   interesting lives in its subfunctions; see **Config flags** below.
+- `CHANGES.txt` — the toolbox changelog, newest first, `Added:`/`Changed:`/`Fixed:`
+  style, back to the 2010 SVN import. Add a `TFCE x.y | rNNN | date` block on top for
+  each release. Shipped in the toolbox and uploaded beside the zip by `make scp`.
 - `tfceMex_maxtree.c`, `tfceMex_maxtree_batch.c`, `tfceMex_resss.c` — mex glue only.
 - `tbx_cfg_tfce.m` — the SPM batch GUI. New user-facing options go here **and** in
   `tfce_estimate_stat.m`.

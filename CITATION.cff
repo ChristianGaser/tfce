@@ -1,0 +1,88 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software itself and the method paper it implements (Smith & Nichols, 2009), listed under references."
+title: "TFCE: exact threshold-free cluster enhancement and permutation inference"
+abstract: >-
+  Threshold-free cluster enhancement (TFCE) and the permutation inference around it, as an
+  SPM toolbox (MATLAB) and as a Python package sharing one C core. The TFCE integral is
+  evaluated exactly, by a max-tree over a union-find, rather than being summed over a ladder
+  of thresholds: there is no step size and no discretisation error. Supports volumes and
+  surface meshes, Freedman-Lane and other nuisance methods, exchangeability blocks,
+  voxel-wise covariates, Gamma and generalised Pareto tail approximations, and sequential
+  stopping.
+type: software
+authors:
+  - family-names: Gaser
+    given-names: Christian
+    email: christian.gaser@uni-jena.de
+    affiliation: "Structural Brain Mapping Group, Departments of Neurology and Psychiatry, Jena University Hospital, Friedrich Schiller University Jena, Germany"
+    # orcid: "https://orcid.org/0000-0002-9940-099X"
+version: "1.3"
+date-released: 2026-07-14
+license:
+  - GPL-2.0-or-later   # the MATLAB/SPM toolbox, in matlab/
+  - BSD-3-Clause       # the C core (c/) and the Python package (python/)
+repository-code: "https://github.com/ChristianGaser/tfce"
+url: "https://github.com/ChristianGaser/tfce"
+keywords:
+  - neuroimaging
+  - TFCE
+  - threshold-free cluster enhancement
+  - permutation test
+  - general linear model
+  - multiple comparisons
+  - fMRI
+  - VBM
+  - SPM
+references:
+  - type: article
+    title: "Threshold-free cluster enhancement: addressing problems of smoothing, threshold dependence and localisation in cluster inference"
+    authors:
+      - family-names: Smith
+        given-names: Stephen M.
+      - family-names: Nichols
+        given-names: Thomas E.
+    journal: NeuroImage
+    volume: 44
+    issue: 1
+    start: 83
+    end: 98
+    year: 2009
+    doi: "10.1016/j.neuroimage.2008.03.061"
+  - type: article
+    title: "Permutation inference for the general linear model"
+    authors:
+      - family-names: Winkler
+        given-names: Anderson M.
+      - family-names: Ridgway
+        given-names: Gerard R.
+      - family-names: Webster
+        given-names: Matthew A.
+      - family-names: Smith
+        given-names: Stephen M.
+      - family-names: Nichols
+        given-names: Thomas E.
+    journal: NeuroImage
+    volume: 92
+    start: 381
+    end: 397
+    year: 2014
+    doi: "10.1016/j.neuroimage.2014.01.060"
+  - type: article
+    title: "Faster permutation inference in brain imaging"
+    authors:
+      - family-names: Winkler
+        given-names: Anderson M.
+      - family-names: Ridgway
+        given-names: Gerard R.
+      - family-names: Douaud
+        given-names: Gwenaëlle
+      - family-names: Nichols
+        given-names: Thomas E.
+      - family-names: Smith
+        given-names: Stephen M.
+    journal: NeuroImage
+    volume: 141
+    start: 502
+    end: 516
+    year: 2016
+    doi: "10.1016/j.neuroimage.2016.05.068"

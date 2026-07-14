@@ -32,8 +32,9 @@ STARGET=${STARGET_HOST}:${STARGET_FOLDER}
 # shipped as well, so that a user on a platform we have no binary for can run
 # compile themselves. tfce_batch.h is one of them: leave it out and the shipped
 # sources no longer compile.
-MATLAB_FILES=matlab/Contents.* matlab/tfce_*.m matlab/spm_TFCE.m matlab/snpm_P_FDR.m \
-             matlab/tbx_cfg_tfce.m matlab/cat_spm_results_ui.m matlab/compile.m
+MATLAB_FILES=matlab/Contents.* matlab/CHANGES.txt matlab/tfce_*.m matlab/spm_TFCE.m \
+             matlab/snpm_P_FDR.m matlab/tbx_cfg_tfce.m matlab/cat_spm_results_ui.m \
+             matlab/compile.m
 MEX_FILES=matlab/tfceMex_maxtree.* matlab/tfceMex_maxtree_batch.* matlab/tfceMex_resss.*
 CORE_FILES=c/tfce_maxtree.h c/tfce_batch.h c/tfce_threads.h
 MISC_FILES=matlab/html
@@ -97,6 +98,7 @@ scp: zip
 	-@git tag -f ${VERSION} -m "Release ${VERSION}"
 	-@echo scp to http://${STARGET_HOST}/tfce/${ZIPFILE}
 	-@scp -O -P 2222 ${ZIPFILE} ${STARGET}/${ZIPFILE_OLD}
+	-@scp -O -P 2222 matlab/CHANGES.txt ${STARGET}/CHANGES.txt
 	-@bash -c "ssh -p 2222 ${STARGET_HOST} ln -fs ${STARGET_FOLDER}/${ZIPFILE_OLD} ${STARGET_FOLDER}/tfce_latest.zip"
 
 .PHONY: help install install2 install3 doc update zip scp

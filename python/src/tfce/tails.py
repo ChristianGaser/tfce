@@ -171,10 +171,11 @@ def _gpd_anderson(y, k, sigma):
 
 def pareto_pvalue(
     stat,
-    null,
+    tail,
+    cnt,
+    n_perm,
     *,
     n_exc_min=25,
-    n_tail=100,
     n_shape=20000,
     ad_max=5.0,
 ):
@@ -186,16 +187,23 @@ def pareto_pvalue(
         Observed statistic. Must already be an *upper* tail: flip the sign of the
         elements whose effect is negative before calling, so that both sides are
         the same question.
-    null : ndarray, shape (n_perm, n_elements)
-        The permutation distribution of each element, same sign convention. Only
-        its upper tail is used, so it is enough to pass the largest ``n_tail``
-        values per element.
+    tail : ndarray, shape (K, n_elements)
+        The largest ``K`` permuted values of each element, same sign convention.
+        Only the tail is needed -- keeping the whole ``n_perm x n_elements`` null
+        is out of the question at any realistic size -- and ``K`` around 100 is
+        plenty.
+    cnt : ndarray, shape (n_elements,)
+        How often the permutations reached or exceeded ``stat``. This is counted
+        over **all** ``n_perm`` permutations, not just the ones that survived into
+        ``tail``, and it is why it is passed in rather than derived: ``tail`` has
+        been truncated and cannot answer the question. Accumulating it costs one
+        comparison per element per permutation.
+    n_perm : int
+        How many permutations were drawn. Also not derivable from ``tail``.
     n_exc_min : int, default 25
         Elements whose statistic was exceeded at least this often are left to
         plain counting: the count is then already precise enough (25 exceedances
         is a relative standard error of 20%) and there is nothing for a fit to add.
-    n_tail : int, default 100
-        Largest tail the fit may use.
     n_shape : int, default 20000
         How many elements the shape is pooled over.
     ad_max : float, default 5.0
@@ -209,18 +217,23 @@ def pareto_pvalue(
         p-values.
     """
     stat = np.asarray(stat, dtype=float).ravel()
-    null = np.asarray(null, dtype=float)
-    n_perm, n_elem = null.shape
+    tail = np.asarray(tail, dtype=float)
+    cnt = np.asarray(cnt, dtype=float).ravel()
+    n_perm = int(n_perm)
+
+    K, n_elem = tail.shape
 
     if stat.size != n_elem:
         raise ValueError(
-            "stat has %d elements but null describes %d" % (stat.size, n_elem)
+            "stat has %d elements but tail describes %d" % (stat.size, n_elem)
+        )
+    if cnt.size != n_elem:
+        raise ValueError(
+            "cnt has %d elements but tail describes %d" % (cnt.size, n_elem)
         )
 
-    cnt = (null >= stat[None, :]).sum(axis=0)
     p = cnt / n_perm
 
-    K = min(n_tail, n_perm - 1)
     if K < 30:
         return p
 
@@ -233,7 +246,7 @@ def pareto_pvalue(
     # shape. The shape is pooled over the whole image on purpose -- the elements
     # being fitted were selected for carrying a large statistic, and selecting on
     # that would bias the tails it is estimated from.
-    G = -np.sort(-null, axis=0)[:K]                   # (K, n_elem), descending
+    G = -np.sort(-tail, axis=0)                       # (K, n_elem), descending
     Gn = G[:, need]
     ob = stat[need]
 

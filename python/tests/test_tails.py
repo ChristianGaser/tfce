@@ -83,9 +83,14 @@ class TestPareto:
         x = ref[int(q * n_ref)]            # threshold with true p-value q
 
         seen = null[:n_acc]
-        p_par = pareto_pvalue(x, seen)
         cnt = (seen >= x[None, :]).sum(axis=0)
         p_cnt = cnt / n_acc
+
+        # the fit only ever needs the tail, but the COUNT has to come from every
+        # permutation -- a truncated tail cannot say how often an element was
+        # exceeded, which is the whole of the p-value
+        tail = -np.sort(-seen, axis=0)[:100]
+        p_par = pareto_pvalue(x, tail, cnt, n_acc)
 
         # unbiased in the middle
         med = np.median(p_par / q)
@@ -111,10 +116,14 @@ class TestPareto:
         # a threshold every element clears often: p ~ 0.2, so ~200 exceedances
         x = -np.sort(-null, axis=0)[int(0.2 * null.shape[0])]
 
-        p = pareto_pvalue(x, seen, n_exc_min=25)
-        cnt = (seen >= x[None, :]).sum(axis=0) / n_acc
+        cnt = (seen >= x[None, :]).sum(axis=0)
+        tail = -np.sort(-seen, axis=0)[:100]
 
-        assert np.array_equal(p, cnt), "the fit touched elements counting resolves"
+        p = pareto_pvalue(x, tail, cnt, n_acc, n_exc_min=25)
+
+        assert np.array_equal(p, cnt / n_acc), (
+            "the fit touched elements counting resolves"
+        )
 
 
 class TestGPD:

@@ -152,6 +152,19 @@ crucially, an *exchangeability* structure. That last one is the real work, becau
 `X`, `Formula`, `Contrasts` and `GroupBy` but has **no** concept of exchangeability blocks, so what may
 be permuted with what has to be defined on top of it rather than read out of it.
 
+## Documentation
+
+| | |
+| --- | --- |
+| [Installation](https://github.com/ChristianGaser/tfce/blob/master/python/docs/installation.md) | Wheels, building from source, extras |
+| [Usage](https://github.com/ChristianGaser/tfce/blob/master/python/docs/usage.md) | Volumes, surfaces, batches, connectivity, `E` and `H` |
+| [A permutation test, end to end](https://github.com/ChristianGaser/tfce/blob/master/python/docs/permutation.md) | The whole thing, as a worked example you can run |
+| [Theory](https://github.com/ChristianGaser/tfce/blob/master/python/docs/theory.md) | Why the integral is exact, and why you need fewer permutations |
+| [Using it with nilearn](https://github.com/ChristianGaser/tfce/blob/master/python/docs/nilearn.md) | The drop-in — and a bug in nilearn's stepped TFCE |
+| [API reference](https://github.com/ChristianGaser/tfce/blob/master/python/docs/api.md) | Every public function |
+| [Benchmarks](https://github.com/ChristianGaser/tfce/blob/master/python/docs/benchmarks.md) | Accuracy and speed, with scripts to reproduce |
+| [Validation](https://github.com/ChristianGaser/tfce/blob/master/python/docs/validation.md) | What the test suite establishes, and how |
+
 ## Links
 
 - **Source, issues, MATLAB toolbox:** <https://github.com/ChristianGaser/tfce>

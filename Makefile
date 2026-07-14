@@ -96,7 +96,7 @@ zip: update
 scp: zip
 	-@git tag -f ${VERSION} -m "Release ${VERSION}"
 	-@echo scp to http://${STARGET_HOST}/tfce/${ZIPFILE}
-	-@scp -O -P 2222 CHANGES.txt ${ZIPFILE} ${STARGET}/${ZIPFILE_OLD}
+	-@scp -O -P 2222 ${ZIPFILE} ${STARGET}/${ZIPFILE_OLD}
 	-@bash -c "ssh -p 2222 ${STARGET_HOST} ln -fs ${STARGET_FOLDER}/${ZIPFILE_OLD} ${STARGET_FOLDER}/tfce_latest.zip"
 
 .PHONY: help install install2 install3 doc update zip scp

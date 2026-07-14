@@ -40,7 +40,7 @@ From a git checkout:
 git clone https://github.com/ChristianGaser/tfce
 cd tfce/python
 pip install -e ".[dev]"
-pytest                       # 49 checks
+pytest                       # 53 checks
 ```
 
 The C lives in [`c/`](../../c) at the repository root, shared with the MATLAB toolbox, and

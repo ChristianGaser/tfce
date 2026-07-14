@@ -92,7 +92,7 @@ Worth being explicit about, because the gaps are where the risk is.
 - **Comparison against PALM and FSL `randomise`.**
 - **The design layer** - there isn't one yet. See the status note in the [README](../README.md).
 
-The MATLAB toolbox ships a larger suite (98 checks), which covers the things that only exist there:
+The MATLAB toolbox ships a larger suite (105 checks), which covers the things that only exist there:
 the three nuisance methods, exchangeability blocks, the half-permutation shortcut, voxel-wise
 covariates and sequential stopping. See
 [matlab/validation/](https://github.com/ChristianGaser/tfce/tree/master/matlab/validation).

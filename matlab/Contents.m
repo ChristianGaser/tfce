@@ -16,7 +16,6 @@
 % General files
 %   spm_TFCE.m             - GUI
 %   TFCE.man               - notes on TFCE toolbox
-%   CHANGES.txt            - changes in revisions
 %
 % TFCE functions
 %   tfce_estimate.m        - TFCE core function

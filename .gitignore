@@ -11,3 +11,7 @@ python/src/tfce/*.so
 .pytest_cache/
 python/src/tfce/_c/
 python/MANIFEST
+
+# macOS
+.DS_Store
+**/.DS_Store

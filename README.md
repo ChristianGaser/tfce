@@ -1,10 +1,10 @@
 # TFCE: Threshold-Free Cluster Enhancement
 
 Non-parametric permutation inference with threshold-free cluster enhancement, for 3D volume and
-surface data — as an **SPM toolbox** and as a **Python package**.
+surface data - as an **SPM toolbox** and as a **Python package**.
 
 TFCE combines focal effects of large height with broad effects of large extent, and needs **no
-cluster-forming threshold** — the arbitrary choice that cluster-based inference forces on you, and
+cluster-forming threshold** - the arbitrary choice that cluster-based inference forces on you, and
 that the result can depend on heavily. It is also fairly robust to the non-stationarity that is
 common in VBM data.
 
@@ -60,7 +60,7 @@ The two halves have different licences, and the split follows exactly what each 
 
 | | Licence | Why |
 | --- | --- | --- |
-| [`c/`](c/), [`python/`](python/) | **BSD-3-Clause** | Original work. No SPM, SnPM or PALM code — nothing obliges it to be GPL, and permissive projects (nilearn is BSD-3, nipreps is Apache-2.0) can depend on it freely. |
+| [`c/`](c/), [`python/`](python/) | **BSD-3-Clause** | Original work. No SPM, SnPM or PALM code - nothing obliges it to be GPL, and permissive projects (nilearn is BSD-3, nipreps is Apache-2.0) can depend on it freely. |
 | [`matlab/`](matlab/) | **GPL-2.0-or-later** | Genuinely derived from GPL code: `snpm_P_FDR.m` from SnPM, `cat_spm_results_ui.m` from SPM, the `palm_*` subfunctions from PALM, and every `.m` calls SPM. |
 
 BSD-3-Clause is GPLv2-compatible, so the same C core is compiled into the GPL mex-files and the BSD
@@ -73,8 +73,8 @@ Python wheel alike. See **[LICENSE.md](LICENSE.md)**.
 Both implementations ship a validation suite, because a permutation test that is subtly wrong gives a
 confidently wrong answer rather than an error.
 
-- **MATLAB** — 98 checks: [`matlab/validation/`](matlab/validation/)
-- **Python** — 49 checks: [`python/tests/`](python/tests/)
+- **MATLAB** - 98 checks: [`matlab/validation/`](matlab/validation/)
+- **Python** - 49 checks: [`python/tests/`](python/tests/)
 
 Among them: that the max-tree really is the *exact* TFCE integral (an independent dh-stepping
 implementation must converge onto it at first order); that the Gamma and Pareto tail approximations

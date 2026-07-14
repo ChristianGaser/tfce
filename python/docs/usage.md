@@ -1,6 +1,6 @@
 # Usage
 
-Everything is **arrays in, arrays out**. No image objects, no file I/O, no design parsing — those
+Everything is **arrays in, arrays out**. No image objects, no file I/O, no design parsing - those
 belong in a layer above, so the core can be dropped into anything.
 
 ```python
@@ -17,7 +17,7 @@ A single map, shape `(nx, ny, nz)`:
 t = tfce.tfce(stat_map, E=0.5, H=2.0)          # -> (nx, ny, nz), float32
 ```
 
-A block of maps — permutations, say — shape `(nx, ny, nz, B)`:
+A block of maps - permutations, say - shape `(nx, ny, nz, B)`:
 
 ```python
 t = tfce.tfce(perms, E=0.5, H=2.0, n_jobs=-1)  # -> (nx, ny, nz, B)
@@ -36,8 +36,8 @@ tfce.tfce(x, connectivity=6)    # face only
 
 | | who uses it |
 | --- | --- |
-| **26** | the MATLAB TFCE toolbox, `fslmaths` — and the default here |
-| **18** | — |
+| **26** | the MATLAB TFCE toolbox, `fslmaths` - and the default here |
+| **18** | - |
 | **6** | nilearn (`generate_binary_structure(3, 1)`) |
 
 This matters more than it looks. A looser neighbourhood merges clusters, so extents grow and TFCE
@@ -78,7 +78,7 @@ n_vert = g.agg_data("pointset").shape[0]
 adj = tfce.adjacency_from_faces(faces, n_vert)
 ```
 
-`adjacency_from_faces` returns `(indptr, indices)` — CSR, 0-based — which you can hand straight back
+`adjacency_from_faces` returns `(indptr, indices)` - CSR, 0-based - which you can hand straight back
 to `tfce()`, or wrap in a scipy sparse matrix. A `scipy.sparse` matrix is accepted too:
 
 ```python
@@ -120,7 +120,7 @@ tfce.tfce(x, two_sided=True)    # default
 ```
 
 Enhances the negative part of the map as well, giving it a **negative** TFCE value. A map with no
-negative values — an F-statistic, say — is completely unaffected by this, so leaving it on costs a
+negative values - an F-statistic, say - is completely unaffected by this, so leaving it on costs a
 little time and changes nothing.
 
 ```python
@@ -138,7 +138,7 @@ tfce.tfce(perms, n_jobs=1)      # serial (default)
 ```
 
 Only the batched forms use this. Permutations are independent of one another, so that is where the
-parallelism belongs — every thread stays on its own map and never locks.
+parallelism belongs - every thread stays on its own map and never locks.
 
 Two things to know:
 

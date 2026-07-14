@@ -4,7 +4,7 @@ The SPM12 toolbox: non-parametric permutation inference with threshold-free clus
 3D volume and surface data.
 
 TFCE combines focal effects of large height with broad effects of large extent, and needs **no
-cluster-forming threshold** — the arbitrary choice that cluster-based inference forces on you, and
+cluster-forming threshold** - the arbitrary choice that cluster-based inference forces on you, and
 that the result can depend on heavily. It is also fairly robust to the non-stationarity that is
 common in VBM data.
 
@@ -12,11 +12,11 @@ The toolbox runs on **any existing second-level SPM design**. Point it at an `SP
 parametric analysis you have already estimated, and it re-does the inference non-parametrically.
 
 > There is also a **Python package** with the same C core and bit-identical results:
-> [`pip install tfce`](../python/README.md). It is not an SPM toolbox — it is a library, and it drops
+> [`pip install tfce`](../python/README.md). It is not an SPM toolbox - it is a library, and it drops
 > into [nilearn](https://nilearn.github.io).
 
 **Licence:** GPL-2.0-or-later (see [../COPYING](../COPYING)), because this toolbox is built on SPM and
-carries code from SnPM and PALM. The C core in [../c](../c) and the Python package are BSD-3-Clause —
+carries code from SnPM and PALM. The C core in [../c](../c) and the Python package are BSD-3-Clause -
 see [../LICENSE.md](../LICENSE.md).
 
 ---
@@ -145,7 +145,7 @@ confidently wrong answer rather than an error. The toolbox therefore checks itse
   exchangeability block. A wrong block structure invalidates the whole test and cannot be diagnosed
   from the results afterwards.
 - **The permutation null is checked for width.** Under a valid permutation the uncorrected p-values are
-  uniform on (0, 0.5] — one-sided, because they are conditioned on the sign of the observed effect —
+  uniform on (0, 0.5] - one-sided, because they are conditioned on the sign of the observed effect -
   so ~5% of them land in the upper tail. True effects only produce *small* p-values and cannot inflate
   that upper tail, which makes it a clean check. A null that is too narrow makes the test
   anti-conservative, and is reported.

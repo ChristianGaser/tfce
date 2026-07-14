@@ -1,6 +1,6 @@
 # A permutation test, end to end
 
-The package gives you three pieces — the GLM, the transform, the tail approximations — and leaves you
+The package gives you three pieces - the GLM, the transform, the tail approximations - and leaves you
 to assemble them, because the right way to permute depends on your design and nobody can guess that
 for you.
 
@@ -25,7 +25,7 @@ family-wise error; an element's own distribution is what gives it an uncorrected
 
 ## One-sample test (sign-flipping)
 
-A one-sample design is not permuted by shuffling subjects — there is nothing to shuffle them with.
+A one-sample design is not permuted by shuffling subjects - there is nothing to shuffle them with.
 It is permuted by **flipping the sign** of each subject's map, which is exchangeable under the null
 of "mean zero".
 
@@ -80,7 +80,7 @@ for p in range(n_perm):
 ```
 
 > **Two accumulators, and you need both.** Storing the whole `n_perm × n_elem` null is out of the
-> question — at 1000 permutations and 400k voxels that is 1.6 GB — so only the **tail** is kept. But a
+> question - at 1000 permutations and 400k voxels that is 1.6 GB - so only the **tail** is kept. But a
 > truncated tail cannot tell you *how often* an element was exceeded, and that count is what the
 > p-value is made of. So `cnt` is accumulated separately, exactly, over every permutation. It costs
 > one comparison per element and is the reason `pareto_pvalue` takes it as an argument rather than
@@ -102,12 +102,12 @@ significant = p_fwe < 0.05
 ```
 
 `gamma_pvalue` fits a Gamma to the maximum distribution from its first three moments, rather than
-counting exceedances — so a corrected p-value is **not floored at `1/n_perm`** and converges with far
+counting exceedances - so a corrected p-value is **not floored at `1/n_perm`** and converges with far
 fewer permutations.
 
 `pareto_pvalue` fits a Generalised Pareto to the tail of each element's own distribution, which does
 the same for the uncorrected p-values, and with them for FDR (which is computed from them). Elements
-that were exceeded often enough are left to plain counting — the count is already precise there and
+that were exceeded often enough are left to plain counting - the count is already precise there and
 the fit has nothing to add.
 
 ---
@@ -140,7 +140,7 @@ it does not have to.
 
 ---
 
-## Exchangeability — the part that will bite you
+## Exchangeability - the part that will bite you
 
 Everything above rests on one assumption: **that the thing you are permuting is exchangeable under
 the null.** Get that wrong and the test does not fail, it just gives you a confidently wrong answer.
@@ -158,7 +158,7 @@ The rules are not the library's to enforce, because they depend on your design:
 
 The MATLAB toolbox checks itself for this at runtime (it verifies the permutation against the
 exchangeability blocks, and warns if the permutation null comes out too narrow). **This package does
-not** — it hands you the pieces and trusts you. That is the trade for being a library rather than a
+not** - it hands you the pieces and trusts you. That is the trade for being a library rather than a
 pipeline, and it is the single biggest thing to be careful about.
 
 A cheap sanity check you can run yourself, on the **upper** tail of the p-values:
@@ -174,11 +174,11 @@ A cheap sanity check you can run yourself, on the **upper** tail of the p-values
 frac = np.mean(p_unc > 0.45)
 if frac < 0.05:
     print(f"WARNING: only {frac:.1%} of p exceed 0.45, expected ~10%. "
-          "The permutation null looks too narrow — check exchangeability.")
+          "The permutation null looks too narrow - check exchangeability.")
 ```
 
 Watch the bound: **0.5, not 1.0**. Because the p-value is conditioned on the sign of the effect that
-was actually observed, it can never come out near 1 — a large positive statistic cannot also be
+was actually observed, it can never come out near 1 - a large positive statistic cannot also be
 unusually *small*. Testing it against 0.95 as if it were a two-sided p-value is a mistake that looks
 perfectly reasonable and fires on every analysis.
 
@@ -192,5 +192,5 @@ Fewer than you think, because of the tail fits.
 - **Uncorrected / FDR**: the Pareto fit recovers `p ≈ 1e-4` from **1000** permutations with the median
   right, where plain counting returns zero for 91% of elements and tells you nothing at all.
 
-Without the fits you would need 10,000+ just to get below the `1/n_perm` floor. That floor — not the
-statistic — is what makes permutation testing expensive. See [theory](theory.md#fewer-permutations).
+Without the fits you would need 10,000+ just to get below the `1/n_perm` floor. That floor - not the
+statistic - is what makes permutation testing expensive. See [theory](theory.md#fewer-permutations).

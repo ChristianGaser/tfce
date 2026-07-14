@@ -19,7 +19,7 @@ Threshold-free cluster enhancement of one map or of many.
 
 | argument | | |
 | --- | --- | --- |
-| `data` | ndarray | `(nx, ny, nz)` or `(nx, ny, nz, B)` for volumes; `(n_vertices,)` or `(n_vertices, B)` for surfaces. Any dtype — used as `float32`. |
+| `data` | ndarray | `(nx, ny, nz)` or `(nx, ny, nz, B)` for volumes; `(n_vertices,)` or `(n_vertices, B)` for surfaces. Any dtype - used as `float32`. |
 | `adjacency` | sparse or `(indptr, indices)` | The mesh, for surface data. Omit for volumes. |
 | `connectivity` | `6`, `18`, `26` | Volume neighbourhood. Ignored for surfaces. |
 | `E`, `H` | float | Extent and height weights. `0.5, 2` for volumes; `1, 2` for surfaces and TBSS. |
@@ -39,7 +39,7 @@ CSR adjacency of a triangulated surface.
 | `faces` | `(n_faces, 3)` int | **1-based** vertex indices, as GIFTI stores them. |
 | `n_vertices` | int | |
 
-**Returns** `(indptr, indices)`, both `int32` and 0-based — ready for `scipy.sparse.csr_matrix`, or to
+**Returns** `(indptr, indices)`, both `int32` and 0-based - ready for `scipy.sparse.csr_matrix`, or to
 pass straight back to `tfce()` as `adjacency`.
 
 **Raises** `TfceError` if any index names a vertex that does not exist. This is a real check, not a
@@ -75,9 +75,9 @@ Uncorrected p-values, resolved **below** the `1/n_perm` floor of counting.
 
 | argument | | |
 | --- | --- | --- |
-| `stat` | `(n_elements,)` | Observed statistic, **already an upper tail** — flip the sign of the negative elements first. |
+| `stat` | `(n_elements,)` | Observed statistic, **already an upper tail** - flip the sign of the negative elements first. |
 | `tail` | `(K, n_elements)` | The largest `K` permuted values of each element. `K ≈ 100` is plenty. |
-| `cnt` | `(n_elements,)` | How often the permutations reached or exceeded `stat`, counted over **all** `n_perm` — not just the ones in `tail`. |
+| `cnt` | `(n_elements,)` | How often the permutations reached or exceeded `stat`, counted over **all** `n_perm` - not just the ones in `tail`. |
 | `n_perm` | int | How many permutations were drawn. |
 | `n_exc_min` | int | Elements exceeded at least this often keep their count; the fit has nothing to add. |
 | `n_shape` | int | How many elements the shape is pooled over. |
@@ -86,7 +86,7 @@ Uncorrected p-values, resolved **below** the `1/n_perm` floor of counting.
 **Returns** p-values, `(n_elements,)`.
 
 > **Why `cnt` and `n_perm` are arguments.** Storing the whole `n_perm × n_elements` null is impossible
-> at any real size, so only the tail is kept — but a truncated tail cannot say *how often* an element
+> at any real size, so only the tail is kept - but a truncated tail cannot say *how often* an element
 > was exceeded, and that count is what the p-value is made of. Accumulate it in your permutation loop:
 > it costs one comparison per element. See [permutation.md](permutation.md).
 
@@ -94,7 +94,7 @@ Uncorrected p-values, resolved **below** the `1/n_perm` floor of counting.
 
 Generalised Pareto parameters by probability-weighted moments (Hosking & Wallis).
 
-`y` is `(m, n)` — exceedances above a threshold, **ascending** down each column, one column per
+`y` is `(m, n)` - exceedances above a threshold, **ascending** down each column, one column per
 element. Returns `(k, sigma)`, each `(n,)`, parameterised as `F(y) = 1 − (1 − k·y/σ)^(1/k)`.
 
 ### `gpd_sf(z, k, sigma)`
@@ -124,7 +124,7 @@ disagree about the number of observations.
 #### `.fit(perm=None)`
 
 Statistic under one permutation. `perm` is read the way numpy reads a fancy index: the permuted data
-is `Y[:, perm]`. `None` is the identity — the unpermuted fit.
+is `Y[:, perm]`. `None` is the identity - the unpermuted fit.
 
 **Returns** `(n_elements,)`.
 
@@ -132,7 +132,7 @@ is `Y[:, perm]`. `None` is the identity — the unpermuted fit.
 
 Statistic under one sign-flip, for a one-sample design. `signs` is `(n_samples,)` of ±1.
 
-A one-sample design is not permuted by shuffling — there is nothing to shuffle it with. It is permuted
+A one-sample design is not permuted by shuffling - there is nothing to shuffle it with. It is permuted
 by flipping signs, which is exchangeable under the null of "mean zero".
 
 ### `partition_design(design, contrast)`
@@ -150,7 +150,7 @@ Guttman partition: which columns the contrast tests, and which are nuisance.
 Drop-in for `nilearn.mass_univariate._utils.calculate_tfce`, with the same signature and an exact
 transform. See [nilearn.md](nilearn.md).
 
-`dh` is **accepted and ignored** — there is no step size. Passing one is not an error; it simply has
+`dh` is **accepted and ignored** - there is no step size. Passing one is not an error; it simply has
 nothing to change.
 
 ### `connectivity_from_bin_struct(bin_struct)`

@@ -14,7 +14,7 @@ TFCE(v) = ∫₀^{t_v} e_v(h)^E · h^H dh
 
 where `e_v(h)` is the **extent** of the connected component containing `v` when the map is
 thresholded at height `h`. It combines focal effects (large `t_v`, so a long integral) with broad
-ones (large `e_v`), and — the point of the whole method — needs no cluster-forming threshold.
+ones (large `e_v`), and - the point of the whole method - needs no cluster-forming threshold.
 
 ### How it is normally computed, and why that costs you
 
@@ -35,7 +35,7 @@ halves it, forever, and it never reaches zero.
 
 Notice that `e_v(h)` is **piecewise constant**. As `h` falls, the component containing `v` only ever
 changes at the finitely many heights where two components merge. Between merges the integrand is
-`s^E · h^H` with `s` fixed — and *that* integrates in closed form:
+`s^E · h^H` with `s` fixed - and *that* integrates in closed form:
 
 ```text
 s^E · (birth^(H+1) − death^(H+1)) / (H+1)
@@ -47,7 +47,7 @@ to approximate.
 Finding those components is the **max-tree** (or component tree): sweep the elements in descending
 order of value, union-find them with their already-active neighbours, and every time a component
 changes, record a node with its size, its birth height and its death height. Each element's TFCE is
-then the sum of the contributions of its ancestors in that tree — one root-to-leaf accumulation.
+then the sum of the contributions of its ancestors in that tree - one root-to-leaf accumulation.
 
 Cost is `O(N log N)` for the sort plus `O(N α(N))` for the sweep, and it is **independent of any
 precision parameter**, because there isn't one.
@@ -59,7 +59,7 @@ precision parameter**, because there isn't one.
 ### Two-sided
 
 The negative part of the map is enhanced by the same procedure applied to `-t`, and given a negative
-TFCE value. The two passes touch disjoint elements — an element cannot be both positive and negative —
+TFCE value. The two passes touch disjoint elements - an element cannot be both positive and negative -
 so a map with no negative values is completely unaffected by asking for them.
 
 ---
@@ -84,13 +84,13 @@ ResSS = ‖y‖² − βᵀ (XᵀX) β
 
 and the residual matrix never has to exist.
 
-**Second**, `‖y‖²` does not depend on the permutation at all — a permutation matrix only reorders the
-observations — so it is computed once.
+**Second**, `‖y‖²` does not depend on the permutation at all - a permutation matrix only reorders the
+observations - so it is computed once.
 
 **Third**, the permutation can be moved off the data and onto the design. Writing out
 `β = pinv(X) @ Y[:, perm].T` and substituting `k = perm[j]` shows that permuting the columns of `Y` is
 the same as permuting the columns of `pinv(X)` by the **inverse** permutation. Since `pinv(X)` is
-`rank(X) × n` — tiny — that costs nothing.
+`rank(X) × n` - tiny - that costs nothing.
 
 So the whole permutation collapses into one small projection, and the permuted dataset is never
 formed. That is what [`PermutedGLM`](api.md#tfceglm) does.
@@ -108,7 +108,7 @@ out of the residuals entirely.
 ## Fewer permutations
 
 Counting exceedances cannot report a p-value below `1/n_perm`. If you run 1000 permutations, the
-smallest p-value in the universe is 0.001 — and for 91% of the elements that actually matter, the
+smallest p-value in the universe is 0.001 - and for 91% of the elements that actually matter, the
 count is **zero**, which tells you nothing at all.
 
 **That floor is what makes permutation testing expensive.** Not the statistic, not the number of
@@ -145,7 +145,7 @@ truth at `p = 1e-4` from 45% to **60%**.
 
 **A positive shape has a finite upper endpoint.** Probability-weighted moments put the shape `k` above
 zero for about half the elements *by chance*, which gives the fitted distribution a hard maximum at
-`u + σ/k`. When the observed statistic lies beyond it, the fit returns exactly **zero** — and a
+`u + σ/k`. When the observed statistic lies beyond it, the fit returns exactly **zero** - and a
 p-value of zero is unusable (it is `Inf` on a `-log10` map). But the observation is itself proof that
 the endpoint is wrong, so such a fit is rejected rather than believed, and the exponential limit
 (`k = 0`, infinite support) answers instead.
@@ -161,7 +161,7 @@ From **1000** permutations, against a reference counted over 50,000:
 | 3e-4 | **56%** | **0%** |
 | 1e-4 | **42%** | **0%** |
 
-Median-unbiased throughout, and **never zero** — where counting returns zero for 91% of elements and
+Median-unbiased throughout, and **never zero** - where counting returns zero for 91% of elements and
 says nothing.
 
 Be honest about the size of this, though. It is not "100× fewer permutations". Extrapolating a tail

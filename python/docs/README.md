@@ -1,4 +1,4 @@
-# tfce — documentation
+# tfce - documentation
 
 Exact threshold-free cluster enhancement, and the permutation inference around it.
 
@@ -31,5 +31,5 @@ parameter the caller has to guess. This one builds the **max-tree** (the compone
 union-find and integrates each piece of the extent function in closed form, because that function is
 piecewise constant. The result is the integral, not a sample of it, and there is nothing to tune.
 
-It is the same C the [MATLAB TFCE toolbox](https://github.com/ChristianGaser/tfce) runs — not a
-reimplementation — so the two are bit-identical, and the test suite holds them to it.
+It is the same C the [MATLAB TFCE toolbox](https://github.com/ChristianGaser/tfce) runs - not a
+reimplementation - so the two are bit-identical, and the test suite holds them to it.

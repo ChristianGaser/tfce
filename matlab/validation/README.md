@@ -19,7 +19,7 @@ ships rather than a copy of it that could drift.
 
 | script | what it establishes |
 | --- | --- |
-| `val_tfce_exactness` | The max-tree really is the exact TFCE integral, and the batched transform is identical to the sequential one — including under the single `calc_neg` flag that the permutation loop now shares across a whole block of permutations. |
+| `val_tfce_exactness` | The max-tree really is the exact TFCE integral, and the batched transform is identical to the sequential one - including under the single `calc_neg` flag that the permutation loop now shares across a whole block of permutations. |
 | `val_gamma` | The Gamma fit to the maximum distribution gives calibrated FWE p-values. This is the most consequential check: it enters *every* corrected p-value the toolbox reports. |
 | `val_pareto` | The Generalised Pareto fit to the tail of each element's permutation distribution recovers uncorrected p-values *below* the 1/n_perm floor that counting cannot reach, is unbiased, never returns zero, and is never less accurate than the counting it overrides. |
 | `val_sequential` | Stopping early once the image is decisively null reaches the same answer as running every permutation, keeps the false-positive rate at alpha, and never cuts short an image that is significant or borderline. |
@@ -41,7 +41,7 @@ errors instead is too noisy, because the error is a maximum over elements.
 **Gamma approximation.** Counting exceedances cannot resolve p-values below
 1/n_perm, which is why the maximum distribution is approximated by a Gamma fitted
 to its first three moments. The check compares the fit against counting *in the
-tail only* — the bulk is irrelevant for inference — with a tolerance of three
+tail only* - the bulk is irrelevant for inference - with a tolerance of three
 standard errors of the counting estimator, `sqrt(p(1-p)/n_perm)`. A tighter
 tolerance would be testing the noise of the reference rather than the fit.
 
@@ -54,7 +54,7 @@ have been, and a block size of 1 reproduces the old permutation-by-permutation
 path. One thing does genuinely change, and is checked: the loop used to decide
 `calc_neg` per map, and now shares one flag across the block. That is the same
 thing only if asking for negative TFCE values on a map that has none leaves it
-unchanged — otherwise a block mixing signed and unsigned maps (an F-statistic, or
+unchanged - otherwise a block mixing signed and unsigned maps (an F-statistic, or
 a t-statistic that happens to be all-positive) would come out differently.
 
 Do not expect the speed-up to scale with the core count. The max-tree is bound by
@@ -69,7 +69,7 @@ itself is *not* computed in float: `cum` accumulates a node's contribution along
 root-to-leaf path and `pow(birth, H+1)` spans a wide dynamic range, so those stay
 double. Only the stored values lose precision, not the arithmetic combining them.
 
-On its own this bought nothing — the transform is bound by random access (the sort
+On its own this bought nothing - the transform is bound by random access (the sort
 and the union-find), not by streaming bandwidth, and it measured the same to
 within noise. What it *enables* is the sort: every value reaching the sort is
 strictly positive, and for positive IEEE-754 floats the bit pattern read as a
@@ -88,8 +88,8 @@ still the exact TFCE integral.
 stops once the observed *global maximum* has been exceeded often enough by the
 permutation maxima (Besag & Clifford, 1991; the negative binomial method of
 Winkler et al., 2016). The global maximum is the right thing to watch because no
-element rests on fewer exceedances than it does — an element with a smaller
-statistic is exceeded at least as often — so once it is settled, every corrected
+element rests on fewer exceedances than it does - an element with a smaller
+statistic is exceeded at least as often - so once it is settled, every corrected
 p-value in the image is settled with it.
 
 Counting exceedances alone is *not* a safe rule, and the suite shows why. An image
@@ -99,7 +99,7 @@ far too coarse to place it on one side of alpha or the other: the truncated run
 and the full run then disagree about 40% of the time, in exactly the case where
 the answer matters most. So the rule is not "enough exceedances" but "enough
 exceedances **and** the estimate is 3 standard errors clear of the largest alpha
-asked about" — which is what bounds the risk of the sequential decision differing
+asked about" - which is what bounds the risk of the sequential decision differing
 from the full run's (Gandy, 2009). A decisively null image clears that within the
 floor of 500 permutations; anything significant, or anywhere near the boundary,
 never clears it and runs the full `n_perm`.
@@ -111,8 +111,8 @@ check also sits *after* the permutation-null calibration check in the loop, so
 stopping early can never skip it.
 
 **Pareto tail.** Counting exceedances cannot report a p-value below `1/n_perm`,
-and that floor — not the FWE-corrected null, which the Gamma fit already handles
-and which converges far sooner — is what forces a permutation test to run many
+and that floor - not the FWE-corrected null, which the Gamma fit already handles
+and which converges far sooner - is what forces a permutation test to run many
 thousands of permutations. It also caps FDR, which is computed from the
 uncorrected p-values. A Generalised Pareto distribution is therefore fitted to
 the tail of each element's permutation distribution and the p-value read off it.
@@ -123,7 +123,7 @@ permutation distribution from 50000 permutations, shows the fit only the first
 1000 or 5000, and scores both the fit and plain counting against the truth. The
 fit has to be unbiased, and has to land within a factor of two of the truth at
 least as often as counting does. Two structural properties matter as much as the
-accuracy. The fit must never return zero — counting does so constantly once the
+accuracy. The fit must never return zero - counting does so constantly once the
 true p drops below the floor, and a zero becomes `Inf` in the `-log10` map the
 toolbox writes out. And it must leave alone the elements counting already
 resolves. Both are checked.
@@ -139,7 +139,7 @@ exponential limit (`k = 0`, infinite support) answers instead.
 same statistic under the same design, so they differ in *scale*, not in *shape*.
 Estimating `k` separately for each element therefore spends a hundred tail values
 on a number they all share, and the error in it is what dominates the error of the
-extrapolation. It is pooled instead — estimated once over elements sampled across
+extrapolation. It is pooled instead - estimated once over elements sampled across
 the whole image, with only the scale fitted per element, which then follows in
 closed form from the mean of the exceedances. The suite checks the premise
 directly: the per-element estimates of `k` scatter by ~0.15, but their median
@@ -155,7 +155,7 @@ relative) rather than a statistical one. Two identities carry it. For any design
 `R = I - X*pinv(X)` is a projector, so the residual sum of squares is
 `||y||^2 - Beta'*(X'*X)*Beta` and never needs the residual matrix. And under
 Freedman-Lane the nuisance columns Z are part of the full design X, so `R*Rz = R`
-and Rz drops out of the residuals altogether — which is what allows the
+and Rz drops out of the residuals altogether - which is what allows the
 `n_vox x n_data x n_data` multiply `Y*(Pset'*Rz)` to disappear from the loop. The
 second identity requires Z to lie in the space spanned by the design that is
 actually fitted, and `calc_GLM` fits `W*X` while Rz is built from the unwhitened
@@ -197,7 +197,7 @@ two independent faults, and `val_calibration` pins both.
 *Which uniform.* The uncorrected p-value is one-sided and conditioned on the sign of the observed
 effect: on `mask_P` it counts only the permutations with `t >= t0`, and `t0` is positive there. Under
 the null the permuted statistic is symmetric about zero, so that probability can never exceed about a
-half. The p-value is therefore uniform on **(0, 0.5], not (0, 1]** — an element with a large positive
+half. The p-value is therefore uniform on **(0, 0.5], not (0, 1]** - an element with a large positive
 statistic cannot also be unusually *small*. The check compared it against 0.95 and expected ~5% to
 exceed it. **None ever can.** It reported "conservative" on every analysis, and the branch that
 matters was unreachable.

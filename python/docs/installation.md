@@ -11,8 +11,8 @@ Windows, for CPython 3.9–3.13, so **no compiler is needed**.
 
 Only **numpy** and **scipy**. Nothing else.
 
-That is deliberate. The core is meant to be depended on — by nilearn, by a pipeline, by a one-off
-script — and a library that drags a tree of dependencies behind it is a library people work around
+That is deliberate. The core is meant to be depended on - by nilearn, by a pipeline, by a one-off
+script - and a library that drags a tree of dependencies behind it is a library people work around
 instead of using.
 
 ## Optional extras
@@ -24,7 +24,7 @@ pip install "tfce[dev]"    # + nibabel, nilearn, cython, pytest
 ```
 
 `nilearn` is **not** a dependency, even for `tfce.nilearn_compat`. That module imports it lazily, so
-the package works without it — and so nilearn could one day depend on `tfce` without a cycle.
+the package works without it - and so nilearn could one day depend on `tfce` without a cycle.
 
 ## Building from source
 
@@ -74,5 +74,5 @@ print(tfce.tfce(x).max())     # ~10.1
 
 The batched transform runs one permutation per thread and **releases the GIL** for the whole call, so
 `n_jobs` does what it says even inside a thread pool. It uses pthreads (Win32 threads on Windows)
-directly — not OpenMP, not joblib — so there is no thread-pool interaction to reason about and no
+directly - not OpenMP, not joblib - so there is no thread-pool interaction to reason about and no
 environment variable to set.

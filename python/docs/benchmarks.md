@@ -12,12 +12,12 @@ Against a stepped implementation (nilearn's), on a 60×72×60 volume:
 | steps | max error vs exact |
 | --- | --- |
 | 50 | 3.4% |
-| **100** — nilearn's default | **1.7%** |
+| **100** - nilearn's default | **1.7%** |
 | 200 | 0.8% |
 | 400 | 0.4% |
 | 800 | 0.2% |
 
-The error **halves every time the steps double** — first order, exactly as a Riemann sum must behave.
+The error **halves every time the steps double** - first order, exactly as a Riemann sum must behave.
 That is the signature of a discretisation error, and it is what proves the max-tree is not merely
 another approximation: the stepped transform converges *onto* it.
 
@@ -32,14 +32,14 @@ Same volume, one map:
 | | time |
 | --- | --- |
 | stepped (100 steps) | 0.38 s |
-| **exact max-tree** | **0.03 s** — **14×** |
+| **exact max-tree** | **0.03 s** - **14×** |
 
 A block of 16 permutations, which is what a permutation test actually does:
 
 | | total | per permutation |
 | --- | --- | --- |
 | stepped (100 steps) | 9.1 s | 569 ms |
-| **exact, threaded** | **0.13 s** | **8 ms** — **72×** |
+| **exact, threaded** | **0.13 s** | **8 ms** - **72×** |
 
 The gap widens with the batch because permutations are independent, so they are handed out one per
 thread and never lock.
@@ -58,7 +58,7 @@ The max-tree is bound by **memory**, not by arithmetic. On an 8-core machine:
 | 12 | 0.077 | 1.7× |
 | 16 | 0.075 | 1.7× |
 
-It plateaus at about **2×** from six threads onwards, and gets *worse* beyond eight — eight threads
+It plateaus at about **2×** from six threads onwards, and gets *worse* beyond eight - eight threads
 each streaming ~7 MB in and 7 MB out saturate the memory system long before they saturate the cores.
 `n_jobs=-1` sits on that plateau, which is why it is the right default and why asking for more is
 counter-productive.
@@ -77,7 +77,7 @@ Not from where you would guess. Measured, step by step, on a 91×109×91 volume:
 | batched, 8 threads | **0.051** |
 
 **Single precision on its own bought almost nothing** (0.128 → 0.116). The transform is bound by
-*random access* — the sort and the union-find pointer chasing — not by streaming bandwidth, so halving
+*random access* - the sort and the union-find pointer chasing - not by streaming bandwidth, so halving
 the size of arrays you are already missing cache on does not help.
 
 What it *enabled* was the sort. Every value the max-tree sorts is a **positive float**, and for
@@ -142,11 +142,11 @@ for nt in (1, 2, 4, 6, 8, 12, 16):
 
 ## A note on what to time
 
-Timing the transform alone flatters it. In a real permutation test the GLM matters too — and the
+Timing the transform alone flatters it. In a real permutation test the GLM matters too - and the
 permuted GLM here never forms the permuted data, which removes what is otherwise the dominant term
 (see [theory](theory.md#the-permuted-glm)). In the MATLAB toolbox that change alone took the GLM from
 55% of the loop to 23%.
 
 The thing actually worth optimising is **how many permutations you run**, and that is what the
-[tail approximations](theory.md#fewer-permutations) address — roughly a 5× cut for the same accuracy.
+[tail approximations](theory.md#fewer-permutations) address - roughly a 5× cut for the same accuracy.
 A 72× faster transform on 10,000 permutations is slower than a 14× faster transform on 1,000.

@@ -11,25 +11,34 @@ function tfce_estimate_stat(job)
 %     0 - no multi-threading
 %     x - number of processors for multi-threading
 %
-%   nuisance_method 
+%   nuisance_method
 %     method to deal with nuisance variables
 %     0 - Draper-Stoneman
 %     1 - Freedman-Lane
 %     2 - Smith
-% 
-%   single-threaded
-%     0 - multi-threaded TFCE estimation
-%     1 - single-threaded TFCE estimation
+%
+%   conspec.titlestr
+%     heading of the results page, determined automatically if empty
 %
 %   conspec.contrasts
 %     Inf - interactive selection of contrast
 %     x   - index of contrast(s)
 %
+%   conspec.n_perm
+%     number of permutations, optionally [n_perm n_perm_break]
+%
+%   use_sequential_stopping
+%     0 - always run the full number of permutations
+%     1 - stop as soon as nothing in the image can become significant
+%
 %   mask
 %     mask for restricting TFCE estimation (SVC)
 %
+%   exch_blocks
+%     exchangeability blocks for longitudinal or repeated-measures designs
+%
 %   tbss
-%     TBSS weighting
+%     2D optimization for TBSS data (E=1 instead of E=0.5)
 %
 % ______________________________________________________________________
 %

@@ -18,7 +18,7 @@ of the source file at run time, so the suite always exercises the code that
 ships rather than a copy of it that could drift.
 
 | script | what it establishes |
-|---|---|
+| --- | --- |
 | `val_tfce_exactness` | The max-tree really is the exact TFCE integral, and the batched transform is identical to the sequential one — including under the single `calc_neg` flag that the permutation loop now shares across a whole block of permutations. |
 | `val_gamma` | The Gamma fit to the maximum distribution gives calibrated FWE p-values. This is the most consequential check: it enters *every* corrected p-value the toolbox reports. |
 | `val_pareto` | The Generalised Pareto fit to the tail of each element's permutation distribution recovers uncorrected p-values *below* the 1/n_perm floor that counting cannot reach, is unbiased, never returns zero, and is never less accurate than the counting it overrides. |

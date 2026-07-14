@@ -145,7 +145,8 @@ confidently wrong answer rather than an error. The toolbox therefore checks itse
   exchangeability block. A wrong block structure invalidates the whole test and cannot be diagnosed
   from the results afterwards.
 - **The permutation null is checked for width.** Under a valid permutation the uncorrected p-values are
-  uniform, so ~5% of them exceed 0.95. True effects only produce *small* p-values and cannot inflate
+  uniform on (0, 0.5] — one-sided, because they are conditioned on the sign of the observed effect —
+  so ~5% of them land in the upper tail. True effects only produce *small* p-values and cannot inflate
   that upper tail, which makes it a clean check. A null that is too narrow makes the test
   anti-conservative, and is reported.
 - **The parametric and the non-parametric statistic are compared.** A large discrepancy points to a

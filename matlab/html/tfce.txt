@@ -77,7 +77,7 @@
       <p>A permutation test is only as good as its exchangeability assumptions, and a wrong design gives a confidently wrong answer rather than an error. The toolbox therefore checks itself as it goes:</p>
       <ul>
         <li>The permutations are <b>verified before use</b>: data may only ever be exchanged inside their own exchangeability block.</li>
-        <li>The <b>permutation null is checked for width</b>. Under a valid permutation the uncorrected p-values are uniform, so about 5% of them exceed 0.95. True effects only produce <i>small</i> p-values and cannot inflate that upper tail, which makes it a clean check. A null that is too narrow makes the test anti-conservative, and is reported.</li>
+        <li>The <b>permutation null is checked for width</b>. Under a valid permutation the uncorrected p-values are uniform, so about 5% of them land in the upper tail. True effects only produce <i>small</i> p-values and cannot inflate that tail, which makes it a clean check. A null that is too narrow pushes the p-values down and <i>empties</i> the tail, which makes the test anti-conservative, and is reported.</li>
         <li>The <b>parametric and the non-parametric statistic are compared</b>. A large discrepancy points to a misspecified permutation scheme and is reported at the MATLAB command line.</li>
       </ul>
       <p>A validation suite ships with the toolbox and establishes, rather than assumes, that the above is true. Run <tt>validation/run_all</tt> from the toolbox directory.</p>

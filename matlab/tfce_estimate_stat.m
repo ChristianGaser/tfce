@@ -1414,26 +1414,53 @@ for con = 1:length(Ic0)
         end
 
         % Calibration of the permutation null. Under a valid permutation the
-        % uncorrected p-values are uniformly distributed, so ~5% of them exceed
-        % 0.95. True effects only ever produce SMALL p-values and therefore
-        % cannot inflate this upper tail, which makes it a clean check.
-        % A null that is too narrow makes the test anti-conservative and shows
-        % up here, while the correlation above stays close to 1 and is blind to
-        % it (both p-value maps are monotone functions of the same statistic).
+        % uncorrected p-values are uniformly distributed -- but note WHICH uniform.
+        %
+        % nPt is one-sided and conditioned on the sign of the observed effect: on
+        % mask_P, tperm only ever counts the permutations with t >= t0, and t0 is
+        % positive there. Under the null the permuted statistic is symmetric about
+        % zero, so P(t >= t0) can never be more than about a half. nPt is therefore
+        % uniform on (0, 0.5], NOT on (0, 1]: an element carrying a large positive
+        % statistic cannot also be unusually SMALL.
+        %
+        % Doubling it restores a uniform on (0, 1], of which ~5% exceed 0.95.
+        % Testing nPt itself against 0.95 -- which an earlier version did -- asks a
+        % question that cannot be answered yes: it reported "conservative" on every
+        % single analysis, and left the too-narrow branch below, the one that
+        % actually matters, unreachable.
+        %
+        % True effects only ever produce SMALL p-values and therefore cannot
+        % inflate this upper tail, which makes it a clean check. A null that is too
+        % narrow makes the test anti-conservative and shows up here, while the
+        % correlation above stays close to 1 and is blind to it (both p-value maps
+        % are monotone functions of the same statistic).
         if found_P
-          p_unc = abs(nPt(mask_P & mask_shared));
+          p_unc = 2*abs(nPt(mask_P & mask_shared));
         else
-          p_unc = abs(nPt(mask_N & mask_shared));
+          p_unc = 2*abs(nPt(mask_N & mask_shared));
         end
         p_hi = mean(p_unc > 0.95);
 
-        if p_hi > 0.08
+        % Which way round does p_hi move? A null that is TOO NARROW makes every
+        % observed statistic look more extreme than it is, so the p-values are
+        % pushed DOWN and the upper tail EMPTIES: p_hi falls below 5%. A null that
+        % is too wide does the opposite. An earlier version had these two branches
+        % the wrong way round, which mattered less than it might have, because the
+        % threshold above meant neither of them could ever be reached.
+        %
+        % The thresholds are deliberately loose. p_hi is measured over a few
+        % hundred thousand (spatially correlated) elements, so its sampling error
+        % is well under a percent, and 3% only fires once the permutation null is
+        % about 1.7 times too narrow -- a gross error, of the kind that a wrong
+        % exchangeability block structure produces. A mild misspecification will
+        % not be caught here, and is not meant to be.
+        if p_hi < 0.03
           spm('alert!',sprintf('WARNING: The permutation null looks too narrow and the test may be anti-conservative! Please check the exchangeability blocks of your design.\n'),'',spm('CmdLine'),0);
-          fprintf('\nWARNING: %.1f%% of the uncorrected p-values exceed 0.95, but only ~5%% are expected. The permutation null is too narrow, which makes the test anti-conservative and points to wrong exchangeability blocks.\n',100*p_hi);
-        elseif p_hi < 0.02
-          fprintf('\nNote: only %.1f%% of the uncorrected p-values exceed 0.95, but ~5%% are expected. The permutation null is wider than expected, so the test is likely conservative.\n',100*p_hi);
+          fprintf('\nWARNING: only %.1f%% of the uncorrected p-values are in the upper tail, but ~5%% are expected. The permutation null is too narrow, which makes the test anti-conservative and points to wrong exchangeability blocks.\n',100*p_hi);
+        elseif p_hi > 0.08
+          fprintf('\nNote: %.1f%% of the uncorrected p-values are in the upper tail, but ~5%% are expected. The permutation null is wider than expected, so the test is likely conservative.\n',100*p_hi);
         else
-          fprintf('Calibration of the permutation null is fine: %.1f%% of the uncorrected p-values exceed 0.95 (~5%% expected).\n',100*p_hi);
+          fprintf('Calibration of the permutation null is fine: %.1f%% of the uncorrected p-values are in the upper tail (~5%% expected).\n',100*p_hi);
         end
 
         check_validity = true;

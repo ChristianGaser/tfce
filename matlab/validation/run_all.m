@@ -19,6 +19,7 @@ tests = {
   'val_sequential'          % does stopping early reach the same answer as the full run?
   'val_half_permutations'   % is the half-permutation shortcut lossless?
   'val_nuisance'            % are Draper-Stoneman / Freedman-Lane / Smith calibrated?
+  'val_calibration'         % can the permutation-null warning actually fire, and the right way?
   'val_glm_fast'            % is the accelerated GLM identical to the unaccelerated one?
   'val_voxel_covariate'     % is the voxel-wise covariate path calibrated, and how slow?
 };

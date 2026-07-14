@@ -25,6 +25,7 @@ ships rather than a copy of it that could drift.
 | `val_sequential` | Stopping early once the image is decisively null reaches the same answer as running every permutation, keeps the false-positive rate at alpha, and never cuts short an image that is significant or borderline. |
 | `val_half_permutations` | The half-permutation shortcut is lossless, and correctly refuses unbalanced designs. |
 | `val_nuisance` | Draper-Stoneman, Freedman-Lane and Smith all control the false-positive rate, including when the nuisance variable is correlated with the effect of interest. |
+| `val_calibration` | The warning that fires when the permutation null is too narrow can actually fire, and fires in the right direction. Both of those were false. |
 | `val_glm_fast` | The accelerated GLM returns exactly the statistic `calc_GLM` returns, for t- and F-contrasts under all three nuisance methods, and refuses itself when its algebraic precondition does not hold. |
 | `val_voxel_covariate` | The voxel-/vertex-wise covariate path controls the false-positive rate for t- and F-contrasts, both when the covariate is the effect of interest and when it is a nuisance. Its batched solve returns what the per-voxel pseudoinverse loop returns, hands rank-deficient elements back to `pinv`, shrinks `ResMS` towards the maximum over all elements, and permutes a multi-column covariate whenever any of its columns is tested. Also reports its cost. |
 
@@ -189,6 +190,26 @@ supported, which the path used to refuse outright: replacing the contrast by an
 orthonormal basis of its column space leaves ESS unchanged and makes the middle
 matrix invertible, so the `pinv` of the textbook formula becomes a batched solve.
 The F of a 1-df contrast is checked against the square of its t.
+
+**The permutation-null warning.** The check that warns when the permutation null is too narrow had
+two independent faults, and `val_calibration` pins both.
+
+*Which uniform.* The uncorrected p-value is one-sided and conditioned on the sign of the observed
+effect: on `mask_P` it counts only the permutations with `t >= t0`, and `t0` is positive there. Under
+the null the permuted statistic is symmetric about zero, so that probability can never exceed about a
+half. The p-value is therefore uniform on **(0, 0.5], not (0, 1]** — an element with a large positive
+statistic cannot also be unusually *small*. The check compared it against 0.95 and expected ~5% to
+exceed it. **None ever can.** It reported "conservative" on every analysis, and the branch that
+matters was unreachable.
+
+*Which direction.* A null that is too narrow makes every observed statistic look more extreme than it
+is, so the p-values are pushed **down** and the upper tail **empties**. The fraction in that tail
+therefore *falls* below 5% when the null is too narrow, and *rises* when it is too wide. The two
+branches were the other way round.
+
+Both are fixed: the p-value is doubled, and the branches are swapped. `val_calibration` establishes
+that a valid permutation gives ~5%, that a 2× too-narrow null gives 2.4% (the warning fires), and that
+a 2× too-wide null gives 9.9%.
 
 **Calibration.** All false-positive rates are for the *uncorrected* permutation
 p-value at α = 0.05 unless stated otherwise, over independent elements. The

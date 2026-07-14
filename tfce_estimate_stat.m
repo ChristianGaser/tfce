@@ -125,13 +125,19 @@ convert_to_z = false;
 % the Pareto fits to the element-wise tails both need a few hundred permutations
 % before they have anything to work with, however quickly the FWE question itself
 % settles, so n_perm_min permutations are always run.
+% Off unless the job asks for it: it changes how many permutations a given
+% analysis runs, and analyses run with a fixed number of permutations are easier
+% to compare with one another. A batch written before this option existed does not
+% carry the field, and is left on the old behaviour.
+use_sequential_stopping = isfield(job,'use_sequential_stopping') && ...
+                          job.use_sequential_stopping > 0;
+
 % How many standard errors clear of alpha the estimate has to be before the loop
 % is allowed to stop. This is what keeps an image whose corrected p-value sits
 % near alpha from being cut short on an estimate too coarse to decide it, and so
 % bounds the risk of the sequential decision differing from the full run's
 % (Gandy, 2009, "Sequential implementation of Monte Carlo tests with uniformly
 % bounded resampling risk").
-use_sequential_stopping = true;
 n_exceed_stop = 20;
 n_sigma_stop  = 3;
 n_perm_min    = 500;

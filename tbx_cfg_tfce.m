@@ -123,6 +123,30 @@ n_perm.val     = {5000};
 n_perm.num     = [1 Inf];
 
 % ---------------------------------------------------------------------
+% sequential stopping
+% ---------------------------------------------------------------------
+use_sequential_stopping        = cfg_menu;
+use_sequential_stopping.tag    = 'use_sequential_stopping';
+use_sequential_stopping.name   = 'Stop early if nothing can become significant';
+use_sequential_stopping.labels = {'no','yes'};
+use_sequential_stopping.values = {0 1};
+use_sequential_stopping.val    = {0};
+use_sequential_stopping.help   = {[...
+'Stop the permutations as soon as it is certain that nothing in the image can become significant, instead of always running the full number of permutations.']
+''
+[...
+'The largest value in the image is watched. No other element rests on fewer exceedances than it does, because an element with a smaller value is exceeded at least as often by the permutation maxima. Once the largest value has been exceeded often enough, and its corrected p-value is at least three standard errors above the largest alpha you asked about, no element in the image can still become significant and no corrected p-value can still move appreciably. The permutations are stopped there and the results are saved as usual.']
+''
+[...
+'An image with nothing in it reaches that almost at once, because its largest value is an ordinary draw from the very distribution it is being compared against. An image with a real effect never reaches it, nor does an image whose corrected p-value sits anywhere near alpha, and both run the full number of permutations. So the permutations are only ever saved where they could not have changed the answer. At least 500 permutations are always run, which the tail approximations need.']
+''
+[...
+'This is off by default: it changes how many permutations a given analysis runs, and analyses that were run with a fixed number of permutations are easier to compare with one another. Switch it on when you are screening many contrasts or designs and most of them are expected to be null.']
+''
+'Besag & Clifford (1991); Gandy (2009); Winkler et al. (2016), Faster permutation inference in brain imaging.'
+};
+
+% ---------------------------------------------------------------------
 % two-dimensional processing
 % ---------------------------------------------------------------------
 tbss    = cfg_menu;
@@ -186,6 +210,6 @@ exch_blocks.help    = {[...
 tfce_estimate          = cfg_exbranch;
 tfce_estimate.tag      = 'tfce_estimate';
 tfce_estimate.name     = 'Estimate TFCE';
-tfce_estimate.val      = {data nproc mask conspec nuisance_method tbss exch_blocks};
+tfce_estimate.val      = {data nproc mask conspec nuisance_method use_sequential_stopping tbss exch_blocks};
 tfce_estimate.help     = {''};
 tfce_estimate.prog     = @tfce_estimate_stat;

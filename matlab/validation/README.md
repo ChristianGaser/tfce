@@ -5,8 +5,8 @@ Calibration and correctness checks for the TFCE toolbox. Run everything with
 ```matlab
 addpath /path/to/spm12
 spm('defaults','fmri')
-cd /path/to/tfce
-compile          % the mex-files must be built
+cd /path/to/tfce/matlab
+compile          % builds the mex-files against the shared C core in ../c
 validation/run_all
 ```
 

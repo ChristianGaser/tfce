@@ -38,6 +38,22 @@ else
   mexflag = ' -O COPTIMFLAGS=''-O3 -fwrapv -DNDEBUG'' CFLAGS=''$CFLAGS -pthread -Wall -ansi -pedantic -Wextra'' ';
 end
 
+% Where the shared C core is. It is shared with the Python binding and so belongs
+% to neither of them: in the repository it sits in ../c, while an installed
+% toolbox is a single flat folder and it sits right here. Both are supported, so
+% that the toolbox can be compiled either from a checkout or from the zip.
+here = fileparts(mfilename('fullpath'));
+core_dir = fullfile(here, '..', 'c');
+if exist(fullfile(here, 'tfce_maxtree.h'), 'file')
+  core_dir = here;               % installed toolbox: everything in one folder
+elseif ~exist(fullfile(core_dir, 'tfce_maxtree.h'), 'file')
+  error('Cannot find the C core (tfce_maxtree.h), looked in %s and %s', ...
+        here, core_dir);
+end
+fprintf('C core: %s\n', core_dir);
+
+mexflag = [mexflag ' -I''' core_dir ''' '];
+
 % name of the mex-file and a call that exercises it
 tests = {
   'tfceMex_maxtree',       @() tfceMex_maxtree(rand(10,10,10),0.5,2,1)
@@ -47,11 +63,17 @@ tests = {
 
 failed = {};
 
+% make sure the mex-files can be called once they are built, whatever the current
+% directory happens to be
+addpath(here);
+
 for i = 1:size(tests,1)
   name = tests{i,1};
 
   try
-    eval(['mex ' mexflag ' ' name '.c'])
+    % build from this folder and write back into it, so that compile can be run
+    % from anywhere and does not depend on the current directory
+    eval(['mex ' mexflag ' -outdir ''' here ''' ''' fullfile(here,[name '.c']) '''']);
     tests{i,2}();
     fprintf('Compilation of %s successful\n', name);
   catch err

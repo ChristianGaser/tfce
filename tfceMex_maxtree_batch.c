@@ -29,8 +29,8 @@
 #define MAX_THREADS 256
 
 typedef struct {
-  const double *T;
-  double *out;
+  const tfce_val *T;
+  tfce_val *out;
   int N, B;
   const Neigh *nb;
   double E, H;
@@ -67,7 +67,10 @@ static void *batch_thread(void *pa)
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
   double E, H;
-  int calc_neg = 1, N, B, i, nthreads, next = 0;
+  int calc_neg = 1, N, B, i, nthreads, next = 0, is_single;
+  size_t NB;
+  const tfce_val *Tin;
+  tfce_val *outData, *inBuf = NULL, *outBuf = NULL;
   Neigh nb;
   BatchArgs args[MAX_THREADS];
   tfce_thread_t th[MAX_THREADS];
@@ -77,8 +80,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   if (nrhs < 5)
     mexErrMsgTxt("Usage: tfce = tfceMex_maxtree_batch(T, E, H, calc_neg, geom [, n_threads])");
-  if (!mxIsDouble(prhs[0]) || mxIsComplex(prhs[0]))
-    mexErrMsgTxt("T must be real double.");
+
+  /* The core works in single precision. A single block of maps is used as it
+     stands, which is the point of the exercise: it is half the memory traffic,
+     and the max-tree is bound by bandwidth. A double block is converted, and the
+     result comes back in the class it went in as. */
+  is_single = mxIsSingle(prhs[0]);
+  if ((!mxIsDouble(prhs[0]) && !is_single) || mxIsComplex(prhs[0]))
+    mexErrMsgTxt("T must be a real single or double matrix.");
   if (mxGetNumberOfDimensions(prhs[0]) != 2)
     mexErrMsgTxt("T must be an N x B matrix, one map per column.");
 
@@ -87,6 +96,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   E = mxGetScalar(prhs[1]);
   H = mxGetScalar(prhs[2]);
   calc_neg = (int) mxGetScalar(prhs[3]);
+  NB = (size_t)N * (size_t)B;
 
   memset(&nb, 0, sizeof(nb));
 
@@ -110,14 +120,35 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   if (nthreads > B) nthreads = B;
   if (nthreads > MAX_THREADS) nthreads = MAX_THREADS;
 
-  plhs[0] = mxCreateDoubleMatrix((mwSize)N, (mwSize)B, mxREAL);
+  if (is_single) {
+    Tin = (const tfce_val *) mxGetData(prhs[0]);
+  } else {
+    const double *dd = mxGetPr(prhs[0]);
+    size_t k;
+    inBuf = (tfce_val *) malloc(NB * sizeof(tfce_val));
+    if (!inBuf) mexErrMsgTxt("Memory allocation error.");
+    for (k = 0; k < NB; k++) inBuf[k] = (tfce_val) dd[k];
+    Tin = inBuf;
+  }
+
+  plhs[0] = mxCreateNumericMatrix((mwSize)N, (mwSize)B,
+                                  is_single ? mxSINGLE_CLASS : mxDOUBLE_CLASS,
+                                  mxREAL);
+
+  if (is_single) {
+    outData = (tfce_val *) mxGetData(plhs[0]);
+  } else {
+    outBuf = (tfce_val *) malloc(NB * sizeof(tfce_val));
+    if (!outBuf) { free(inBuf); mexErrMsgTxt("Memory allocation error."); }
+    outData = outBuf;
+  }
 
   if (tfce_mutex_init(&mtx) != 0)
     mexErrMsgTxt("Mutex init failed.");
 
   for (i = 0; i < nthreads; i++) {
-    args[i].T        = mxGetPr(prhs[0]);
-    args[i].out      = mxGetPr(plhs[0]);
+    args[i].T        = Tin;
+    args[i].out      = outData;
     args[i].N        = N;
     args[i].B        = B;
     args[i].nb       = &nb;
@@ -140,6 +171,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   tfce_mutex_destroy(&mtx);
   if (aptr) { free(aptr); free(aidx); }
+
+  if (!is_single) {                      /* hand the result back as double */
+    double *od = mxGetPr(plhs[0]);
+    size_t k;
+    for (k = 0; k < NB; k++) od[k] = (double) outBuf[k];
+  }
+
+  if (inBuf)  free(inBuf);
+  if (outBuf) free(outBuf);
 
   for (i = 0; i < nthreads; i++)
     if (!args[i].ok) mexErrMsgTxt("Memory allocation error in worker thread.");

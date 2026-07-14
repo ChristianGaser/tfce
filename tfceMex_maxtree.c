@@ -25,8 +25,8 @@
 
 typedef struct {
   Workspace ws;
-  const double *d;
-  double *out;
+  const tfce_val *d;
+  tfce_val *out;
   const Neigh *nb;
   double E, H, sign;
   int ok;
@@ -41,8 +41,10 @@ static void *pass_thread(void *pa)
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-  double *inData, *outData, E, H;
-  int calc_neg = 1, i, N;
+  const tfce_val *inData;
+  tfce_val *outData, *inBuf = NULL, *outBuf = NULL;
+  double E, H;
+  int calc_neg = 1, i, N, is_single;
   Neigh nb;
   PassArgs ap, an;
   tfce_thread_t th;
@@ -51,14 +53,28 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   if (nrhs < 3)
     mexErrMsgTxt("Usage: tfce = tfceMex_maxtree(t, E, H [, calc_neg, faces])");
-  if (!mxIsDouble(prhs[0]) || mxIsComplex(prhs[0]))
-    mexErrMsgTxt("First argument must be real double.");
 
-  inData = mxGetPr(prhs[0]);
-  N      = (int) mxGetNumberOfElements(prhs[0]);
-  E      = mxGetScalar(prhs[1]);
-  H      = mxGetScalar(prhs[2]);
+  /* The core works in single precision. A single map is used as it stands, a
+     double one is converted, and the result comes back in the class it went in
+     as, so that a caller who has not moved to single sees no change. */
+  is_single = mxIsSingle(prhs[0]);
+  if ((!mxIsDouble(prhs[0]) && !is_single) || mxIsComplex(prhs[0]))
+    mexErrMsgTxt("First argument must be a real single or double array.");
+
+  N = (int) mxGetNumberOfElements(prhs[0]);
+  E = mxGetScalar(prhs[1]);
+  H = mxGetScalar(prhs[2]);
   if (nrhs > 3) calc_neg = (int) mxGetScalar(prhs[3]);
+
+  if (is_single) {
+    inData = (const tfce_val *) mxGetData(prhs[0]);
+  } else {
+    const double *dd = mxGetPr(prhs[0]);
+    inBuf = (tfce_val *) malloc((size_t)N * sizeof(tfce_val));
+    if (!inBuf) mexErrMsgTxt("Memory allocation error.");
+    for (i = 0; i < N; i++) inBuf[i] = (tfce_val) dd[i];
+    inData = inBuf;
+  }
 
   memset(&nb, 0, sizeof(nb));
 
@@ -76,9 +92,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
 
   plhs[0] = mxCreateNumericArray(mxGetNumberOfDimensions(prhs[0]),
-                                 mxGetDimensions(prhs[0]), mxDOUBLE_CLASS, mxREAL);
-  outData = mxGetPr(plhs[0]);
-  for (i = 0; i < N; i++) outData[i] = 0.0;
+                                 mxGetDimensions(prhs[0]),
+                                 is_single ? mxSINGLE_CLASS : mxDOUBLE_CLASS,
+                                 mxREAL);
+
+  if (is_single) {
+    outData = (tfce_val *) mxGetData(plhs[0]);
+  } else {
+    outBuf = (tfce_val *) malloc((size_t)N * sizeof(tfce_val));
+    if (!outBuf) mexErrMsgTxt("Memory allocation error.");
+    outData = outBuf;
+  }
+  for (i = 0; i < N; i++) outData[i] = 0.0f;
 
   if (!ws_alloc(&ap.ws, N)) mexErrMsgTxt("Memory allocation error.");
   ap.d = inData; ap.out = outData; ap.nb = &nb;
@@ -103,5 +128,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   ws_free(&ap.ws);
 
+  if (!is_single) {                      /* hand the result back as double */
+    double *od = mxGetPr(plhs[0]);
+    for (i = 0; i < N; i++) od[i] = (double) outBuf[i];
+  }
+
+  if (inBuf)  free(inBuf);
+  if (outBuf) free(outBuf);
   if (aptr) { free(aptr); free(aidx); }
 }

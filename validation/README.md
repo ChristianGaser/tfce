@@ -22,6 +22,7 @@ ships rather than a copy of it that could drift.
 | `val_tfce_exactness` | The max-tree really is the exact TFCE integral, and the batched transform is identical to the sequential one — including under the single `calc_neg` flag that the permutation loop now shares across a whole block of permutations. |
 | `val_gamma` | The Gamma fit to the maximum distribution gives calibrated FWE p-values. This is the most consequential check: it enters *every* corrected p-value the toolbox reports. |
 | `val_pareto` | The Generalised Pareto fit to the tail of each element's permutation distribution recovers uncorrected p-values *below* the 1/n_perm floor that counting cannot reach, is unbiased, never returns zero, and is never less accurate than the counting it overrides. |
+| `val_sequential` | Stopping early once the image is decisively null reaches the same answer as running every permutation, keeps the false-positive rate at alpha, and never cuts short an image that is significant or borderline. |
 | `val_half_permutations` | The half-permutation shortcut is lossless, and correctly refuses unbalanced designs. |
 | `val_nuisance` | Draper-Stoneman, Freedman-Lane and Smith all control the false-positive rate, including when the nuisance variable is correlated with the effect of interest. |
 | `val_glm_fast` | The accelerated GLM returns exactly the statistic `calc_GLM` returns, for t- and F-contrasts under all three nuisance methods, and refuses itself when its algebraic precondition does not hold. |
@@ -56,9 +57,57 @@ unchanged — otherwise a block mixing signed and unsigned maps (an F-statistic,
 a t-statistic that happens to be all-positive) would come out differently.
 
 Do not expect the speed-up to scale with the core count. The max-tree is bound by
-memory bandwidth rather than by arithmetic, and on an 8-core machine it saturates
-at about 2x from 6 threads onwards, getting *worse* beyond 8. The default block
-size is one permutation per computational thread, which sits on that plateau.
+memory rather than by arithmetic, and on an 8-core machine it saturates at about
+2x from 6 threads onwards, getting *worse* beyond 8. The default block size is one
+permutation per computational thread, which sits on that plateau.
+
+**Single precision and the sort.** The max-tree carries the statistic, and
+everything derived from it that is one value per element, as `float`. The map is a
+permuted statistic and single precision is all it is ever worth. The integral
+itself is *not* computed in float: `cum` accumulates a node's contribution along a
+root-to-leaf path and `pow(birth, H+1)` spans a wide dynamic range, so those stay
+double. Only the stored values lose precision, not the arithmetic combining them.
+
+On its own this bought nothing — the transform is bound by random access (the sort
+and the union-find), not by streaming bandwidth, and it measured the same to
+within noise. What it *enables* is the sort: every value reaching the sort is
+strictly positive, and for positive IEEE-754 floats the bit pattern read as a
+uint32 increases monotonically with the value, so the key needs no transformation
+and four counting passes replace `qsort`'s n log n comparisons through a function
+pointer. That is where the time was. The two together take the transform from
+0.128 to 0.081 s per permutation sequentially, and to 0.051 batched.
+
+Both mex files accept `single` or `double` and return the class they were given,
+so a caller that has not moved to single sees no change other than the precision
+of the values themselves. `val_tfce_exactness` still recovers the first-order
+convergence of dh-stepping onto the max-tree, which is what establishes that it is
+still the exact TFCE integral.
+
+**Sequential stopping.** The loop no longer always runs `n_perm` permutations. It
+stops once the observed *global maximum* has been exceeded often enough by the
+permutation maxima (Besag & Clifford, 1991; the negative binomial method of
+Winkler et al., 2016). The global maximum is the right thing to watch because no
+element rests on fewer exceedances than it does — an element with a smaller
+statistic is exceeded at least as often — so once it is settled, every corrected
+p-value in the image is settled with it.
+
+Counting exceedances alone is *not* a safe rule, and the suite shows why. An image
+whose true corrected p-value sits right at alpha reaches any fixed number of
+exceedances quickly, and stopping there leaves the decision resting on an estimate
+far too coarse to place it on one side of alpha or the other: the truncated run
+and the full run then disagree about 40% of the time, in exactly the case where
+the answer matters most. So the rule is not "enough exceedances" but "enough
+exceedances **and** the estimate is 3 standard errors clear of the largest alpha
+asked about" — which is what bounds the risk of the sequential decision differing
+from the full run's (Gandy, 2009). A decisively null image clears that within the
+floor of 500 permutations; anything significant, or anywhere near the boundary,
+never clears it and runs the full `n_perm`.
+
+The floor is not optional: the Gamma fit to the maximum distribution and the
+Pareto fits to the element-wise tails need a few hundred permutations before they
+have anything to work with, however quickly the FWE question itself settles. The
+check also sits *after* the permutation-null calibration check in the loop, so
+stopping early can never skip it.
 
 **Pareto tail.** Counting exceedances cannot report a p-value below `1/n_perm`,
 and that floor — not the FWE-corrected null, which the Gamma fit already handles

@@ -69,16 +69,74 @@ static int neigh_get(const Neigh *nb, int u, int *buf)
 }
 
 /* ------------------------------------------------------------------ *
+ * Precision
+ *
+ * The statistic itself, and everything derived from it that is N elements long,
+ * is carried as float. The map is a permuted statistic, single precision is all
+ * it is ever worth, and the max-tree is bound by memory bandwidth rather than by
+ * arithmetic: the sort array halves, the working set shrinks by about a third,
+ * and the whole transform speeds up accordingly.
+ *
+ * The integral itself is NOT computed in float. `cum` accumulates a node's
+ * contribution along a root-to-leaf path, which can be long, and pow(birth, H+1)
+ * with H = 2 spans a wide dynamic range. Those stay double, so only the values
+ * that are stored per element lose precision, not the arithmetic that combines
+ * them.
+ * ------------------------------------------------------------------ */
+typedef float tfce_val;
+
+/* ------------------------------------------------------------------ *
  * Sort
  * ------------------------------------------------------------------ */
-typedef struct { double val; int idx; } VI;
+typedef struct { tfce_val val; int idx; } VI;
 
-static int cmp_desc(const void *a, const void *b)
+/*
+ * Sort descending by value.
+ *
+ * This is the most expensive single step of the transform, and it is a sort of
+ * hundreds of thousands of elements by a float key -- exactly the case a radix
+ * sort is for. Every value reaching here is strictly positive, and for positive
+ * IEEE-754 floats the bit pattern read as a uint32 increases monotonically with
+ * the value, so the key needs no transformation at all. Four counting passes over
+ * the array replace n log n comparisons through a function pointer.
+ *
+ * The sort is stable, so ties come out in a fixed order. Which order does not
+ * matter: ties are consumed as one level, and the union-find partition they
+ * produce does not depend on the order they are merged in.
+ */
+static void sort_desc(VI *a, VI *tmp, int n)
 {
-  double x = ((const VI *)a)->val, y = ((const VI *)b)->val;
-  if (x < y) return  1;
-  if (x > y) return -1;
-  return 0;
+  int pass, i;
+  unsigned int cnt[256], pos[256], k;
+  VI *src = a, *dst = tmp, *sw;
+
+  for (pass = 0; pass < 4; pass++) {
+    int shift = pass * 8;
+
+    memset(cnt, 0, sizeof(cnt));
+    for (i = 0; i < n; i++) {
+      unsigned int key;
+      memcpy(&key, &src[i].val, sizeof(key));
+      cnt[(key >> shift) & 0xFFu]++;
+    }
+
+    pos[0] = 0;
+    for (k = 1; k < 256; k++) pos[k] = pos[k - 1] + cnt[k - 1];
+
+    for (i = 0; i < n; i++) {
+      unsigned int key;
+      memcpy(&key, &src[i].val, sizeof(key));
+      dst[pos[(key >> shift) & 0xFFu]++] = src[i];
+    }
+
+    sw = src; src = dst; dst = sw;
+  }
+
+  /* four passes is an even number of swaps, so the result is back in `a`,
+     ascending. The sweep wants it descending. */
+  for (i = 0; i < n / 2; i++) {
+    VI t = a[i]; a[i] = a[n - 1 - i]; a[n - 1 - i] = t;
+  }
 }
 
 /* ------------------------------------------------------------------ *
@@ -93,14 +151,15 @@ static int cmp_desc(const void *a, const void *b)
 typedef struct {
   int N;
   int level;
-  VI *ord;
+  VI *ord, *ord_tmp;                 /* ord_tmp is the radix sort's scratch */
   int *parent, *sz, *head, *tail;   /* union-find, per element */
   int *nd_next;                     /* merge lists, per node   */
   int *elem_node, *root_stamp;
   int *nd_parent, *nd_size;
-  double *nd_birth, *nd_death, *cum;
+  tfce_val *nd_birth, *nd_death;
+  double *cum;                      /* the integral is accumulated in double */
   char *active;
-  double *neg;                      /* buffer for the negative pass */
+  tfce_val *neg;                    /* buffer for the negative pass */
 } Workspace;
 
 static int ws_alloc(Workspace *w, int N)
@@ -111,6 +170,7 @@ static int ws_alloc(Workspace *w, int N)
   w->level = 0;
 
   w->ord        = (VI *)     malloc((size_t)N * sizeof(VI));
+  w->ord_tmp    = (VI *)     malloc((size_t)N * sizeof(VI));
   w->parent     = (int *)    malloc((size_t)N * sizeof(int));
   w->sz         = (int *)    malloc((size_t)N * sizeof(int));
   w->head       = (int *)    malloc((size_t)N * sizeof(int));
@@ -120,13 +180,13 @@ static int ws_alloc(Workspace *w, int N)
   w->root_stamp = (int *)    malloc((size_t)N * sizeof(int));
   w->nd_parent  = (int *)    malloc((size_t)N * sizeof(int));
   w->nd_size    = (int *)    malloc((size_t)N * sizeof(int));
-  w->nd_birth   = (double *) malloc((size_t)N * sizeof(double));
-  w->nd_death   = (double *) malloc((size_t)N * sizeof(double));
-  w->cum        = (double *) malloc((size_t)N * sizeof(double));
-  w->active     = (char *)   calloc((size_t)N, sizeof(char));
-  w->neg        = (double *) malloc((size_t)N * sizeof(double));
+  w->nd_birth   = (tfce_val *) malloc((size_t)N * sizeof(tfce_val));
+  w->nd_death   = (tfce_val *) malloc((size_t)N * sizeof(tfce_val));
+  w->cum        = (double *)   malloc((size_t)N * sizeof(double));
+  w->active     = (char *)     calloc((size_t)N, sizeof(char));
+  w->neg        = (tfce_val *) malloc((size_t)N * sizeof(tfce_val));
 
-  if (!w->ord || !w->parent || !w->sz || !w->head || !w->tail || !w->nd_next ||
+  if (!w->ord || !w->ord_tmp || !w->parent || !w->sz || !w->head || !w->tail || !w->nd_next ||
       !w->elem_node || !w->root_stamp || !w->nd_parent || !w->nd_size ||
       !w->nd_birth || !w->nd_death || !w->cum || !w->active || !w->neg)
     return 0;
@@ -137,7 +197,8 @@ static int ws_alloc(Workspace *w, int N)
 
 static void ws_free(Workspace *w)
 {
-  free(w->ord); free(w->parent); free(w->sz); free(w->head); free(w->tail);
+  free(w->ord); free(w->ord_tmp);
+  free(w->parent); free(w->sz); free(w->head); free(w->tail);
   free(w->nd_next); free(w->elem_node); free(w->root_stamp);
   free(w->nd_parent); free(w->nd_size); free(w->nd_birth); free(w->nd_death);
   free(w->cum); free(w->active); free(w->neg);
@@ -183,7 +244,7 @@ static void uf_union(Workspace *w, int a, int b)
  * One signed pass over the positive part of `d`, accumulated into `out`
  * with weight `sign`.
  * ------------------------------------------------------------------ */
-static void maxtree_pass(Workspace *w, const double *d, double *out,
+static void maxtree_pass(Workspace *w, const tfce_val *d, tfce_val *out,
                          const Neigh *nb, double E, double H, double sign)
 {
   int N = w->N;
@@ -192,15 +253,15 @@ static void maxtree_pass(Workspace *w, const double *d, double *out,
   double Hp1 = H + 1.0;
 
   for (i = 0, g = 0; i < N; i++)
-    if (d[i] > 0.0) { w->ord[g].val = d[i]; w->ord[g].idx = i; g++; }
+    if (d[i] > 0.0f) { w->ord[g].val = d[i]; w->ord[g].idx = i; g++; }
   nPos = g;
   if (nPos == 0) return;
 
-  qsort(w->ord, (size_t)nPos, sizeof(VI), cmp_desc);
+  sort_desc(w->ord, w->ord_tmp, nPos);
 
   gs = 0;
   while (gs < nPos) {
-    double h = w->ord[gs].val;
+    tfce_val h = w->ord[gs].val;
 
     ge = gs;
     while (ge < nPos && w->ord[ge].val == h) ge++;   /* ties share one level */
@@ -232,7 +293,7 @@ static void maxtree_pass(Workspace *w, const double *d, double *out,
         w->nd_parent[n]  = -1;
         w->nd_size[n]    = w->sz[r];
         w->nd_birth[n]   = h;
-        w->nd_death[n]   = 0.0;         /* overwritten if it later merges */
+        w->nd_death[n]   = 0.0f;        /* overwritten if it later merges */
 
         /* every old component in this root dies here, under n */
         for (o = w->head[r]; o >= 0; o = w->nd_next[o]) {
@@ -252,27 +313,29 @@ static void maxtree_pass(Workspace *w, const double *d, double *out,
     gs = ge;
   }
 
-  /* root->leaf accumulation: a node's parent always has a larger index */
+  /* root->leaf accumulation: a node's parent always has a larger index. The
+     heights are stored as float, but everything done with them here is double */
   for (i = nNodes - 1; i >= 0; i--) {
     double c = pow((double)w->nd_size[i], E) *
-               (pow(w->nd_birth[i], Hp1) - pow(w->nd_death[i], Hp1)) / Hp1;
+               (pow((double)w->nd_birth[i], Hp1) -
+                pow((double)w->nd_death[i], Hp1)) / Hp1;
     w->cum[i] = c + (w->nd_parent[i] >= 0 ? w->cum[w->nd_parent[i]] : 0.0);
   }
 
   for (g = 0; g < nPos; g++) {
     int u = w->ord[g].idx;
-    out[u] += sign * w->cum[w->elem_node[u]];
+    out[u] += (tfce_val)(sign * w->cum[w->elem_node[u]]);
     w->active[u] = 0;                  /* clear only what this pass touched */
   }
 }
 
 /* TFCE of one map, both signs. `out` is overwritten. */
-static void maxtree_map(Workspace *w, const double *d, double *out,
+static void maxtree_map(Workspace *w, const tfce_val *d, tfce_val *out,
                         const Neigh *nb, double E, double H, int calc_neg)
 {
   int i, N = w->N;
 
-  for (i = 0; i < N; i++) out[i] = 0.0;
+  for (i = 0; i < N; i++) out[i] = 0.0f;
 
   maxtree_pass(w, d, out, nb, E, H, 1.0);
 

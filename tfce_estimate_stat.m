@@ -102,8 +102,39 @@ tfce_block_size = 0;
 % convert to z-statistic
 convert_to_z = false;
 
-% option to stop estimation if no FWE-corrected result was found after defined number of permutations
-stop_if_no_FWEeffects_found = Inf;
+% Sequential stopping (Besag & Clifford, 1991; the negative binomial method of
+% Winkler et al., 2016). Instead of always running the full number of
+% permutations, keep going until the observed GLOBAL maximum has been exceeded
+% n_exceed_stop times by the permutation maxima, and stop there.
+%
+% What makes this the right thing to watch is that no element in the image rests
+% on fewer exceedances than the global maximum does: an element with a smaller
+% statistic is exceeded at least as often. So once the global maximum has been
+% exceeded n_exceed_stop times, EVERY corrected P-value in the image has been
+% pinned down to a relative standard error of 1/sqrt(n_exceed_stop) or better, and
+% further permutations cannot change any of them by more than that.
+%
+% The economics are exactly right. An image with nothing in it reaches the target
+% almost at once -- its largest value is an ordinary draw from the very
+% distribution it is being compared against, so it is exceeded about every other
+% permutation -- while an image with a real effect never reaches it and runs the
+% full n_perm. The permutations are spent only where they can still change the
+% answer.
+%
+% A floor is needed all the same. The Gamma fit to the maximum distribution and
+% the Pareto fits to the element-wise tails both need a few hundred permutations
+% before they have anything to work with, however quickly the FWE question itself
+% settles, so n_perm_min permutations are always run.
+% How many standard errors clear of alpha the estimate has to be before the loop
+% is allowed to stop. This is what keeps an image whose corrected p-value sits
+% near alpha from being cut short on an estimate too coarse to decide it, and so
+% bounds the risk of the sequential decision differing from the full run's
+% (Gandy, 2009, "Sequential implementation of Monte Carlo tests with uniformly
+% bounded resampling risk").
+use_sequential_stopping = true;
+n_exceed_stop = 20;
+n_sigma_stop  = 3;
+n_perm_min    = 500;
 
 % save null distribution
 save_null_distribution = true;
@@ -1332,15 +1363,6 @@ for con = 1:length(Ic0)
       end
       
       save_results = 1;
-      % wait until 50 permutations are finished and skip that if voxel-wise covariate is used 
-      if ~voxel_covariate && (perm > 50) 
-        % after defined number of permutations check whether maximum value exceed 95% of threshold
-        if (perm >= stop_if_no_FWEeffects_found) && (tfce0_max < 0.95*stfce_max(ind_max(alpha==0.05)) && -tfce0_min < 0.95*stfce_max(ind_max(alpha==0.05)))
-          fprintf('Stop estimation because after %d permutations because threshold could not be exceeded.\n',perm);
-          save_results = 0;
-          break; % stop the permutation loop
-        end
-      end
 
       % after 500 permutations or at n_perm compare uncorrected p-values with permutations with parametric
       % p-values to check wheter something went wrong    
@@ -1407,9 +1429,57 @@ for con = 1:length(Ic0)
         check_validity = true;
       end
 
+      % Sequential stopping. Count how often the permutation maxima have reached
+      % the observed global maximum. Both tails are watched, and whichever has
+      % accumulated the fewer exceedances decides, since that is the one still
+      % least certain. This sits after the calibration check above on purpose, so
+      % that stopping early can never skip it.
+      %
+      % Unlike the rule this replaced, the results ARE saved. They are not a guess
+      % that the answer would have been null; they are the answer, computed from as
+      % many permutations as it took to be sure of it.
+      if use_sequential_stopping && perm >= n_perm_min
+        n_exceed = Inf;
+        if found_P
+          n_exceed = min(n_exceed, sum(tfce_max >= tfce0_max));
+        end
+        if found_N
+          n_exceed = min(n_exceed, sum(-tfce_min >= -tfce0_min));
+        end
+
+        % How certain are we that even the most extreme element in the image is
+        % NOT significant? Counting exceedances alone is not enough to answer
+        % that. An image whose true corrected p-value sits right at alpha reaches
+        % any fixed number of exceedances quickly, and stopping there would leave
+        % the decision resting on an estimate far too coarse to place it on one
+        % side of alpha or the other -- the truncated run and the full run would
+        % then disagree about half the time, which is exactly the case where the
+        % answer matters most.
+        %
+        % So the rule is not "enough exceedances" but "enough exceedances AND the
+        % estimate is n_sigma_stop standard errors clear of the largest alpha we
+        % are asked about". A decisively null image clears that within the floor;
+        % anything significant, or anywhere near the boundary, never clears it and
+        % runs the full n_perm. This is what bounds the risk of the sequential
+        % decision differing from the one the full run would have made (Gandy,
+        % 2009).
+        m     = numel(tfce_max);
+        p_hat = n_exceed/m;
+        se    = sqrt(p_hat*(1 - p_hat)/m);
+
+        if n_exceed >= n_exceed_stop && (p_hat - n_sigma_stop*se) > max(alpha)
+          fprintf(['\nStopping after %d of %d permutations: the largest value in the image ' ...
+                   'was exceeded %d times, so its corrected p-value is %.3f (+/- %.3f), ' ...
+                   'clear of alpha = %.3f. Nothing in the image can become significant, and ' ...
+                   'no corrected p-value can still move by more than %.0f%%.\n'], ...
+                  perm, n_perm, n_exceed, p_hat, se, max(alpha), 100/sqrt(n_exceed));
+          break; % stop the permutation loop
+        end
+      end
+
     end % test_mode
 
-    
+
     if show_plot
       if ~test_mode, tfce_progress('Set',perm,Fgraph); end
       drawnow

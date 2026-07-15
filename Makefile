@@ -14,8 +14,8 @@
 #
 # $Id$
 
-OLDVERSION="TFCE1.2"
-NEWVERSION="TFCE1.3"
+OLDVERSION="TFCE1.3"
+NEWVERSION="TFCE1.3.1"
 REVISION=`git rev-list --count HEAD`
 DATE=`git log --date short |grep "Date:"|head -1|cut -f2 -d':'|sed -e s'/ //g'`
 VERSION=`echo ${NEWVERSION} | sed -e 's/TFCE//g'`
@@ -41,7 +41,7 @@ MISC_FILES=matlab/html
 
 FILES=${MATLAB_FILES} ${MEX_FILES} ${CORE_FILES} ${MISC_FILES}
 
-ZIPFILE=tfce_v${VERSION}.zip
+ZIPFILE=tfce_${VERSION}.zip
 ZIPFILE_OLD=tfce_r${REVISION}.zip
 
 help:

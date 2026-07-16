@@ -1,5 +1,9 @@
 % TFCE Toolbox
+<<<<<<< Updated upstream
 % Version  333  (TFCE1.3.1) 2026-07-15
+=======
+% Version  334  (TFCE1.3.1) 2026-07-15
+>>>>>>> Stashed changes
 % __________________________________________________________________________
 % Copyright (C) 2020 Christian Gaser christian.gaser@uni-jena.de
 %

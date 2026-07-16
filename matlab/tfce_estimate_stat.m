@@ -1454,10 +1454,10 @@ for con = 1:length(Ic0)
         % about 1.7 times too narrow -- a gross error, of the kind that a wrong
         % exchangeability block structure produces. A mild misspecification will
         % not be caught here, and is not meant to be.
-        if p_hi < 0.03
+        if p_hi < 0.01
           spm('alert!',sprintf('WARNING: The permutation null looks too narrow and the test may be anti-conservative! Please check the exchangeability blocks of your design.\n'),'',spm('CmdLine'),0);
-          fprintf('\nWARNING: only %.1f%% of the uncorrected p-values are in the upper tail, but ~5%% are expected. The permutation null is too narrow, which makes the test anti-conservative and points to wrong exchangeability blocks.\n',100*p_hi);
-        elseif p_hi > 0.08
+          fprintf('\nWARNING: only %.1f%% of the uncorrected p-values are in the upper tail, but ~5%% are expected. The permutation null is too narrow, which makes the test anti-conservative.\n',100*p_hi);
+        elseif p_hi > 0.09
           fprintf('\nNote: %.1f%% of the uncorrected p-values are in the upper tail, but ~5%% are expected. The permutation null is wider than expected, so the test is likely conservative.\n',100*p_hi);
         else
           fprintf('Calibration of the permutation null is fine: %.1f%% of the uncorrected p-values are in the upper tail (~5%% expected).\n',100*p_hi);

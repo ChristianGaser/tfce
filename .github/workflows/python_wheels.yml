@@ -1,5 +1,4 @@
-# Build the tfce Python package for every platform, and publish it to PyPI on a
-# tag.
+# Build the tfce Python package for every platform.
 #
 # The point of the compiled core is that it is 14x faster than a stepped TFCE on
 # one map, and 72x on a block of permutations. That is worth nothing if users have
@@ -9,6 +8,10 @@
 # The C core is shared with the MATLAB toolbox and lives at the repository root;
 # python/setup.py vendors it into the package at build time, which is why this
 # checks out the whole repository rather than just python/.
+#
+# Publishing is NOT done here. `Publish Python Package` (publish-pypi.yml) calls
+# this workflow and uploads what comes out, so there is exactly one path to PyPI
+# and it is a deliberate, manual one.
 
 name: Python wheels
 
@@ -23,51 +26,75 @@ on:
     paths:
       - "python/**"
       - "c/**"
-  release:
-    types: [published]
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   wheels:
-    name: ${{ matrix.os }}
+    name: ${{ matrix.os }} (${{ matrix.cibw-archs }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-13, macos-14, windows-latest]
+        # One runner per architecture, each building only what it natively is.
+        # Nothing is cross-compiled and nothing is emulated: aarch64 Linux is a
+        # real arm64 runner, not QEMU, which is the difference between a job that
+        # takes minutes and one that takes hours.
+        include:
+          - os: ubuntu-22.04
+            cibw-archs: x86_64
+            artifact: wheels-linux-x86_64
+          - os: ubuntu-22.04-arm
+            cibw-archs: aarch64
+            artifact: wheels-linux-aarch64
+          # macos-26 is what macos-latest points to. macos-26-intel is the same OS
+          # on x86_64: GitHub retired macos-13 in December 2025, and Intel macOS
+          # is itself scheduled to disappear from Actions after macOS 15/26, so
+          # this entry has a shelf life.
+          - os: macos-26
+            cibw-archs: arm64
+            artifact: wheels-macos-arm64
+          - os: macos-26-intel
+            cibw-archs: x86_64
+            artifact: wheels-macos-x86_64
+          - os: windows-latest
+            cibw-archs: AMD64
+            artifact: wheels-windows-amd64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      # Linux aarch64 wheels are cross-built in an emulated container
-      - name: Set up QEMU
-        if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v3
+      - uses: actions/setup-python@v5
         with:
-          platforms: arm64
+          python-version: "3.12"
 
+      - name: Install cibuildwheel
+        run: pip install cibuildwheel==2.23.3
+
+      # Run from the repository root, with python/ as the argument -- NOT from
+      # inside python/. On Linux cibuildwheel copies its working directory into
+      # the container, and setup.py vendors the core from ../c: build from python/
+      # and the core is outside the copy and the build fails. This is also why
+      # pyproject's test-command says {package}/tests and not {project}/tests --
+      # {project} is this directory, {package} is python/.
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21
-        with:
-          package-dir: python
         env:
-          # macos-13 is Intel, macos-14 is Apple silicon: build only what the
-          # runner actually is, so nothing is cross-compiled untested
-          CIBW_ARCHS_MACOS: ${{ matrix.os == 'macos-14' && 'arm64' || 'x86_64' }}
+          CIBW_ARCHS: ${{ matrix.cibw-archs }}
+        run: cibuildwheel python --output-dir wheelhouse
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}
+          name: ${{ matrix.artifact }}
           path: wheelhouse/*.whl
 
   sdist:
     name: sdist
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - run: pipx run build --sdist
         working-directory: python
@@ -90,17 +117,31 @@ jobs:
           name: sdist
           path: python/dist/*.tar.gz
 
-  publish:
-    name: Publish to PyPI
+  # Everything publishable in one artifact, so the publish workflow has a single
+  # thing to download and PyPI gets the sdist alongside the wheels.
+  merge:
+    name: merge artifacts
     needs: [wheels, sdist]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
-    environment: pypi
-    permissions:
-      id-token: write        # trusted publishing: no API token to leak
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download wheels
+        uses: actions/download-artifact@v4
         with:
-          path: dist
+          pattern: wheels-*
           merge-multiple: true
-      - uses: pypa/gh-action-pypi-publish@release/v1
+          path: dist/
+
+      - name: Download sdist
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist
+          path: dist/
+
+      - name: List what will be published
+        run: ls -lh dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: all-wheels
+          path: dist/
+          retention-days: 30

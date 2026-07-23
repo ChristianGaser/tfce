@@ -70,9 +70,18 @@ testpaths = ["tests"]
 # ---------------------------------------------------------------------------
 [tool.cibuildwheel]
 build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
-skip = ["*-musllinux_i686", "pp*"]
+# cp39-musllinux_aarch64 is skipped because scipy has never published a wheel for
+# it: musl aarch64 wheels start at scipy 1.15, which already requires Python 3.10.
+# Building the tfce wheel there would work, but installing it to run the tests
+# would compile scipy from source inside an emulated container. A wheel nobody can
+# install is not worth an hour of QEMU.
+skip = ["*-musllinux_i686", "cp39-musllinux_aarch64", "pp*"]
 test-requires = "pytest"
-test-command = "pytest {project}/tests -q"
+# {package} is python/, {project} is the repository root -- and the tests are in
+# the former. On Linux cibuildwheel copies the whole working directory into the
+# container, which is what lets setup.py find ../c, so {project} resolves to a
+# directory that has no tests/ in it and pytest exits 4 before running anything.
+test-command = "pytest {package}/tests -q"
 build-verbosity = 1
 
 [tool.cibuildwheel.linux]

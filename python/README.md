@@ -124,7 +124,7 @@ wanted only by I/O.
 ## Trust
 
 This is not a reimplementation. It is the same C core that the
-[MATLAB TFCE toolbox](https://github.com/ChristianGaser/tfce) has been running for years, with a
+[MATLAB TFCE toolbox](https://github.com/ChristianGaser/tfce) has been running, with a
 Cython binding instead of a MEX one - so the two give **bit-identical** results, and the test suite
 holds them to it. It ships a validation suite of its own: the exactness of the max-tree is established
 against an *independent* stepped implementation, which must converge onto it at first order.
@@ -136,6 +136,9 @@ If you use this, please cite the method:
 > Smith SM, Nichols TE (2009). *Threshold-free cluster enhancement: addressing problems of smoothing,
 > threshold dependence and localisation in cluster inference.* NeuroImage 44:83–98.
 > [doi:10.1016/j.neuroimage.2008.03.061](https://doi.org/10.1016/j.neuroimage.2008.03.061)
+
+> X. Chen, W. Weeda, T. E. Nichols, J. J. Goeman (2026). *eTFCE: Exact Threshold-Free Cluster Enhancement 
+> via Fast Cluster Retrieval (2026). [arXiv:2603.03004](https://arxiv.org/abs/2603.03004)
 
 The tail approximations are from:
 

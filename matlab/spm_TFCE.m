@@ -9,11 +9,7 @@ function spm_TFCE
 % ______________________________________________________________________
 
 SPMid = spm('FnBanner',mfilename);
-<<<<<<< Updated upstream
-[Finter,Fgraph] = spm('FnUIsetup','TFCE1.3.1');
-=======
-[Finter,Fgraph] = spm('FnUIsetup','TFCE1.3.1.1.1');
->>>>>>> Stashed changes
+[Finter,Fgraph] = spm('FnUIsetup','TFCE1.3.2');
 url = fullfile(fileparts(mfilename('fullpath')),'html','tfce.html');
 web(url,'-noaddressbox','-new')
 tfcedir = fileparts(mfilename('fullpath')); 

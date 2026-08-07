@@ -1,4 +1,21 @@
 ------------------------------------------------------------------------
+TFCE 1.3.1 | r343 | 2026-08-07
+
+Fixed: The Linux mex-files no longer refuse to load on older distributions.
+       They are built on the oldest runner GitHub still offers (Ubuntu 22.04,
+       glibc 2.35) and inherited its symbol versions, which the dynamic loader
+       treats as a hard minimum -- MATLAB then reports "version `GLIBC_2.34'
+       not found" on anything older, RHEL/Rocky 8 and Ubuntu 20.04 included.
+       Three imports caused all of it: pthread_create and pthread_join, which
+       glibc 2.34 versioned anew when it merged libpthread into libc, and pow,
+       which glibc 2.29 versioned anew for a more accurate implementation. All
+       three are now requested at their original versions, so the binaries load
+       on glibc 2.14 and later, which is older than any glibc MATLAB itself
+       supports. Nothing about the computation changes. The build now fails if
+       that floor ever rises again, since it cannot be noticed on the build
+       machine.
+
+------------------------------------------------------------------------
 TFCE 1.3 | r332 | 2026-07-14
 
 IMPORTANT: this release changes the p-values that are reported. Both tail

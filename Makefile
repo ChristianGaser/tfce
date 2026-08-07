@@ -14,8 +14,8 @@
 #
 # $Id$
 
-OLDVERSION="TFCE1.3"
-NEWVERSION="TFCE1.3.1"
+OLDVERSION="TFCE1.3.1"
+NEWVERSION="TFCE1.3.2"
 REVISION=`git rev-list --count HEAD`
 DATE=`git log --date short |grep "Date:"|head -1|cut -f2 -d':'|sed -e s'/ //g'`
 VERSION=`echo ${NEWVERSION} | sed -e 's/TFCE//g'`
@@ -31,12 +31,13 @@ STARGET=${STARGET_HOST}:${STARGET_FOLDER}
 # What goes into an installed toolbox. The mex sources and the core headers are
 # shipped as well, so that a user on a platform we have no binary for can run
 # compile themselves. tfce_batch.h is one of them: leave it out and the shipped
-# sources no longer compile.
+# sources no longer compile. So is tfce_glibc_compat.h, which every mex source
+# includes first.
 MATLAB_FILES=matlab/Contents.* matlab/CHANGES.txt matlab/tfce_*.m matlab/spm_TFCE.m \
              matlab/snpm_P_FDR.m matlab/tbx_cfg_tfce.m matlab/cat_spm_results_ui.m \
              matlab/compile.m
 MEX_FILES=matlab/tfceMex_maxtree.* matlab/tfceMex_maxtree_batch.* matlab/tfceMex_resss.*
-CORE_FILES=c/tfce_maxtree.h c/tfce_batch.h c/tfce_threads.h
+CORE_FILES=c/tfce_maxtree.h c/tfce_batch.h c/tfce_threads.h c/tfce_glibc_compat.h
 MISC_FILES=matlab/html
 
 FILES=${MATLAB_FILES} ${MEX_FILES} ${CORE_FILES} ${MISC_FILES}

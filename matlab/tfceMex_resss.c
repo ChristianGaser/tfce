@@ -29,6 +29,7 @@
  * Christian Gaser
  */
 
+#include "tfce_glibc_compat.h"
 #include "mex.h"
 #include "math.h"
 #include <stdlib.h>

@@ -19,6 +19,7 @@
  * Christian Gaser
  */
 
+#include "tfce_glibc_compat.h"
 #include "mex.h"
 #include "tfce_threads.h"
 #include "tfce_maxtree.h"

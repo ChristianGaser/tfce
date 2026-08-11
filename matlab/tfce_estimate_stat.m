@@ -1887,7 +1887,11 @@ end
 
 % check for exchangeability blocks and design matrix
 if n_exch_blocks == 1
-  n_cond = length(find(xX.iH==ind_X)); % check whether the contrast is defined at columns for condition effects
+  % check whether the contrast is defined at columns for condition effects.
+  % ind_X may hold more than one column here, because an effects-of-interest
+  % F-contrast collapses n_exch_blocks to 1 while keeping all its columns, so
+  % the two index sets have to be compared as sets and not element by element.
+  n_cond = numel(intersect(xX.iH, ind_X));
 else
   n_cond = 0;
   n_data_cond = [];

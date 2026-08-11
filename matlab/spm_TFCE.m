@@ -56,7 +56,7 @@ if ismac && ~isdeployed
     [qST, result] = system(cmd);
     if (qST == 0 && ~isempty(strtrim(result)))
       [fixStatus1, ~] = system(sprintf('xattr -dr com.apple.quarantine "%s"', tfcedir));
-      if fixStatus1 ~= 0 || fixStatus2 ~= 0
+      if fixStatus1 ~= 0
         fprintf(2, '\n========================================================================\n');
         fprintf(2, 'TFCE: Could not remove macOS quarantine automatically.\n');
         fprintf(2, 'Please run this command in your Terminal to fix this:\n\n');

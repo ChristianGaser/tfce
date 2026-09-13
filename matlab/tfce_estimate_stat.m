@@ -4032,13 +4032,14 @@ d = double(V1.dim(active));
 n_corner = 2^numel(active);
 corners = zeros(4, n_corner);
 for c = 0:(n_corner-1)
-  p = [0.5 0.5 0.5];
+  p = 0.5 * ones(1,4);
+  p(4) = 1;
   for j = 1:numel(active)
     if bitget(c, j)
       p(active(j)) = d(j) + 0.5;
     end
   end
-  corners(:, c+1) = [p 1]';
+  corners(:, c+1) = p';
 end
 xyz1 = V1.mat * corners;
 xyz2 = V2.mat * corners;

@@ -485,13 +485,13 @@ if ~test_mode
 
   % check whether mask images fits to the data
   if mesh_detected, dim_index = 1; else dim_index=1:3; end
-  if sum(sum((Vmask.mat-VY(1).mat).^2)) > 1e-6 || any(Vmask.dim(dim_index) ~= VY(1).dim(dim_index))
+  if geometry_mismatch(Vmask, VY(1), dim_index)
     error('Mask must have the same dimensions and orientation as the data.');
   end
   
   if voxel_covariate
     do_resample = false;
-    if sum(sum((Vmask.mat-VC(1).mat).^2)) > 1e-6 || any(Vmask.dim(dim_index) ~= VC(1).dim(dim_index))
+    if geometry_mismatch(Vmask, VC(1), dim_index)
       fprintf('Covariate data has different dimensions and orientation as the other data. Thus, your covariate data will be resampled.\n');
       fprintf('Please check that your covariate data are co-registered to your other data!\n');
       do_resample = true;
@@ -4017,6 +4017,12 @@ function varargout = lgamma(varargin)
 varargout{1:nargout} = gammaln(varargin{:});
 
 %---------------------------------------------------------------
+function mismatch = geometry_mismatch(V1, V2, dim_index)
+% keep a practical tolerance for affine comparisons in mm space
+mat_tol = 1e-4;
+mismatch = any(V1.dim(dim_index) ~= V2.dim(dim_index)) || ...
+    any(abs(V1.mat(:) - V2.mat(:)) > mat_tol);
+
 function X = pinv2(A,tol)
 %PINV2   Pseudoinverse.
 %   X = PINV2(A) produces a matrix X of the same dimensions

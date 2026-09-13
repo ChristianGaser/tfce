@@ -46,7 +46,7 @@ changes both — and the Python tests assert bit-identical agreement with MATLAB
   `tfce_estimate_stat.m`.
 - `compile.m` — finds the core beside itself (installed flat toolbox) *or* at `../c`
   (repo). Both layouts must keep working.
-- `validation/` — **105 checks**, `run_all.m`.
+- `validation/` — **109 checks**, `run_all.m`.
 - `html/` — generated from `html/tfce.txt` by `make doc`. Never edit `tfce.html`.
 
 ### `python/`
@@ -64,7 +64,7 @@ changes both — and the Python tests assert bit-identical agreement with MATLAB
 
 ```bash
 # MATLAB
-cd matlab && matlab -batch "compile(1); cd validation; run_all"     # 105 checks
+cd matlab && matlab -batch "compile(1); cd validation; run_all"     # 109 checks
 
 # Python
 cd python && pip install -e '.[dev]' && pytest                      # 53 tests

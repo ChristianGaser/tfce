@@ -4027,18 +4027,19 @@ if any(V1.dim(dim_index) ~= V2.dim(dim_index))
   return;
 end
 
-d = ones(1,3);
-d(dim_index) = double(V1.dim(dim_index));
-lo = [0.5 0.5 0.5];
-hi = d + 0.5;
-corners = [lo(1) lo(2) lo(3) 1;
-           hi(1) lo(2) lo(3) 1;
-           lo(1) hi(2) lo(3) 1;
-           lo(1) lo(2) hi(3) 1;
-           hi(1) hi(2) lo(3) 1;
-           hi(1) lo(2) hi(3) 1;
-           lo(1) hi(2) hi(3) 1;
-           hi(1) hi(2) hi(3) 1]';
+active = dim_index(:)';
+d = double(V1.dim(active));
+n_corner = 2^numel(active);
+corners = zeros(4, n_corner);
+for c = 0:(n_corner-1)
+  p = [0.5 0.5 0.5];
+  for j = 1:numel(active)
+    if bitget(c, j)
+      p(active(j)) = d(j) + 0.5;
+    end
+  end
+  corners(:, c+1) = [p 1]';
+end
 xyz1 = V1.mat * corners;
 xyz2 = V2.mat * corners;
 max_disp = max(sqrt(sum((xyz1(1:3,:) - xyz2(1:3,:)).^2, 1)));

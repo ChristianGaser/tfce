@@ -4027,19 +4027,6 @@ if any(V1.dim(dim_index) ~= V2.dim(dim_index))
   return;
 end
 
-if numel(dim_index) == 1
-  % mesh geometry is 1-D (vertex index); compare along the active axis only
-  p0 = [0.5 0.5 0.5 1];
-  p1 = p0;
-  p1(dim_index) = double(V1.dim(dim_index)) + 0.5;
-  corners = [p0; p1]';
-  xyz1 = V1.mat * corners;
-  xyz2 = V2.mat * corners;
-  max_disp = max(sqrt(sum((xyz1(1:3,:) - xyz2(1:3,:)).^2, 1)));
-  mismatch = max_disp > mat_tol;
-  return;
-end
-
 d = ones(1,3);
 d(dim_index) = double(V1.dim(dim_index));
 lo = [0.5 0.5 0.5];

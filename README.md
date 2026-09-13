@@ -73,7 +73,7 @@ Python wheel alike. See **[LICENSE.md](LICENSE.md)**.
 Both implementations ship a validation suite, because a permutation test that is subtly wrong gives a
 confidently wrong answer rather than an error.
 
-- **MATLAB** - 105 checks: [`matlab/validation/`](matlab/validation/)
+- **MATLAB** - 106 checks: [`matlab/validation/`](matlab/validation/)
 - **Python** - 53 checks: [`python/tests/`](python/tests/)
 
 Among them: that the max-tree really is the *exact* TFCE integral (an independent dh-stepping

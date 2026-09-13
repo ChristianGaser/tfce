@@ -22,6 +22,7 @@ tests = {
   'val_calibration'         % can the permutation-null warning actually fire, and the right way?
   'val_glm_fast'            % is the accelerated GLM identical to the unaccelerated one?
   'val_voxel_covariate'     % is the voxel-wise covariate path calibrated, and how slow?
+  'val_mask_geometry'       % does the mask geometry check ignore harmless affine roundoff?
 };
 
 failed = {};

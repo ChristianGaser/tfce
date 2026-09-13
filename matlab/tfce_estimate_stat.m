@@ -4029,10 +4029,10 @@ end
 
 if numel(dim_index) == 1
   % mesh geometry is 1-D (vertex index); compare along the active axis only
-  lo = 0.5;
-  hi = double(V1.dim(dim_index)) + 0.5;
-  corners = [lo 0.5 0.5 1;
-             hi 0.5 0.5 1]';
+  p0 = [0.5 0.5 0.5 1];
+  p1 = p0;
+  p1(dim_index) = double(V1.dim(dim_index)) + 0.5;
+  corners = [p0; p1]';
   xyz1 = V1.mat * corners;
   xyz2 = V2.mat * corners;
   max_disp = max(sqrt(sum((xyz1(1:3,:) - xyz2(1:3,:)).^2, 1)));

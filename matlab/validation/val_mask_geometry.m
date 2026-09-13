@@ -44,5 +44,19 @@ V2.dim(3) = V2.dim(3) + 1;
 val_util('result','dimension mismatch fails', ...
   geometry_mismatch(V1, V2, 1:3));
 
+M1.dim = 327684;
+M1.mat = eye(4);
+M2 = M1;
+M2.mat(1,4) = M2.mat(1,4) + 5e-5;
+val_util('result','mesh roundoff passes', ...
+  ~geometry_mismatch(M1, M2, 1), ...
+  'max corner displacement < 1e-4 mm');
+
+M2 = M1;
+M2.mat(1,4) = M2.mat(1,4) + 2e-4;
+val_util('result','mesh mismatch fails', ...
+  geometry_mismatch(M1, M2, 1), ...
+  'max corner displacement > 1e-4 mm');
+
 val_util('summary');
 end

@@ -4027,13 +4027,8 @@ if any(V1.dim(dim_index) ~= V2.dim(dim_index))
   return;
 end
 
-if numel(dim_index) == 1
-  % mesh headers only carry a 1-D size, so keep the affine check direct
-  mismatch = any(abs(V1.mat(:) - V2.mat(:)) > mat_tol);
-  return;
-end
-
-d = double(V1.dim(1:3));
+d = ones(1,3);
+d(dim_index) = double(V1.dim(dim_index));
 lo = [0.5 0.5 0.5];
 hi = d + 0.5;
 corners = [lo(1) lo(2) lo(3) 1;

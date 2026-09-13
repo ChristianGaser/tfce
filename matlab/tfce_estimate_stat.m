@@ -4034,14 +4034,16 @@ if numel(dim_index) == 1
 end
 
 d = double(V1.dim(1:3));
-corners = [1    1    1    1;
-           d(1) 1    1    1;
-           1    d(2) 1    1;
-           1    1    d(3) 1;
-           d(1) d(2) 1    1;
-           d(1) 1    d(3) 1;
-           1    d(2) d(3) 1;
-           d(1) d(2) d(3) 1]';
+lo = [0.5 0.5 0.5];
+hi = d + 0.5;
+corners = [lo(1) lo(2) lo(3) 1;
+           hi(1) lo(2) lo(3) 1;
+           lo(1) hi(2) lo(3) 1;
+           lo(1) lo(2) hi(3) 1;
+           hi(1) hi(2) lo(3) 1;
+           hi(1) lo(2) hi(3) 1;
+           lo(1) hi(2) hi(3) 1;
+           hi(1) hi(2) hi(3) 1]';
 xyz1 = V1.mat * corners;
 xyz2 = V2.mat * corners;
 max_disp = max(sqrt(sum((xyz1(1:3,:) - xyz2(1:3,:)).^2, 1)));

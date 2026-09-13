@@ -4018,7 +4018,9 @@ varargout{1:nargout} = gammaln(varargin{:});
 
 %---------------------------------------------------------------
 function mismatch = geometry_mismatch(V1, V2, dim_index)
-% keep a practical tolerance for affine comparisons in mm space
+% SPM/NIfTI headers can differ by tiny floating-point roundoff although they
+% represent the same voxel grid. Accept up to 1e-4 mm element-wise affine
+% differences, but keep exact dimension matching.
 mat_tol = 1e-4;
 mismatch = any(V1.dim(dim_index) ~= V2.dim(dim_index)) || ...
     any(abs(V1.mat(:) - V2.mat(:)) > mat_tol);

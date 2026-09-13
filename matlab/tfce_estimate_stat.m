@@ -4019,11 +4019,33 @@ varargout{1:nargout} = gammaln(varargin{:});
 %---------------------------------------------------------------
 function mismatch = geometry_mismatch(V1, V2, dim_index)
 % SPM/NIfTI headers can differ by tiny floating-point roundoff although they
-% represent the same voxel grid. Accept up to 1e-4 mm element-wise affine
-% differences, but keep exact dimension matching.
+% represent the same voxel grid. Keep exact dimension matching and accept up
+% to 1e-4 mm difference in world-space voxel placement.
 mat_tol = 1e-4;
-mismatch = any(V1.dim(dim_index) ~= V2.dim(dim_index)) || ...
-    any(abs(V1.mat(:) - V2.mat(:)) > mat_tol);
+if any(V1.dim(dim_index) ~= V2.dim(dim_index))
+  mismatch = true;
+  return;
+end
+
+if numel(dim_index) == 1
+  % mesh headers only carry a 1-D size, so keep the affine check direct
+  mismatch = any(abs(V1.mat(:) - V2.mat(:)) > mat_tol);
+  return;
+end
+
+d = double(V1.dim(1:3));
+corners = [1    1    1    1;
+           d(1) 1    1    1;
+           1    d(2) 1    1;
+           1    1    d(3) 1;
+           d(1) d(2) 1    1;
+           d(1) 1    d(3) 1;
+           1    d(2) d(3) 1;
+           d(1) d(2) d(3) 1]';
+xyz1 = V1.mat * corners;
+xyz2 = V2.mat * corners;
+max_disp = max(sqrt(sum((xyz1(1:3,:) - xyz2(1:3,:)).^2, 1)));
+mismatch = max_disp > mat_tol;
 
 function X = pinv2(A,tol)
 %PINV2   Pseudoinverse.
